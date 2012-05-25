@@ -1,3 +1,9 @@
+/*
+ * Written by Fernando Tubilla
+ * ftubilla@mit.edu
+ * © 2012 Fernando Tubilla. All rights reserved.
+ */
+
 package discreteEvent;
 
 import sim.Sim;
@@ -11,7 +17,7 @@ public class Event implements Comparable<Event> {
 	public Event(int time){
 		this.time = time;
 		this.id = idCount;
-		idCount++;
+		Event.idCount++;
 	}
 	
 	public int compareTo(Event otherEvent){
@@ -33,6 +39,10 @@ public class Event implements Comparable<Event> {
 
 	public int getId() {
 		return id;
+	}
+	
+	public static int getCount(){
+		return Event.idCount;
 	}
 	
 }

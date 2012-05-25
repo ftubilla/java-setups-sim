@@ -1,3 +1,9 @@
+/*
+ * Written by Fernando Tubilla
+ * ftubilla@mit.edu
+ * © 2012 Fernando Tubilla. All rights reserved.
+ */
+
 package system;
 
 public class Item {

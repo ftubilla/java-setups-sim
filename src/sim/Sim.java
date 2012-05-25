@@ -1,18 +1,20 @@
 package sim;
 
 import java.util.*;
-import discreteEvent.Event;
+import discreteEvent.*;
 import sim.Params;
 
 public class Sim {
 
 	private Params params;
-	private Queue<Event> schedule;
+	private Schedule failuresSchedule;
+	private Schedule productionSchedule;
 	private int time;
 
 	public Sim(){
-		this.schedule = new PriorityQueue<Event>();
 		this.time = 0;
+		this.failuresSchedule = new Schedule();
+		this.productionSchedule = new Schedule();
 	}
 	
 	
@@ -24,13 +26,6 @@ public class Sim {
 		this.params = params;
 	}
 	
-	public void addEvent(Event e){
-		schedule.add(e);
-	}
-	
-	public void nextEvent(){
-		(schedule.poll()).handle(this);
-	}
 	
 	public void setTime(int newTime){
 		this.time = newTime;
@@ -39,9 +34,42 @@ public class Sim {
 	public int getTime(){
 		return this.time;
 	}
+
+
+	public Schedule getFailuresSchedule() {
+		return failuresSchedule;
+	}
+
+
+	public Schedule getProductionSchedule() {
+		return productionSchedule;
+	}
 	
-	public int getNumberOfEventsLeft(){
-		return schedule.size();
+	public boolean eventsComplete(){
+		if (productionSchedule.eventsComplete() && failuresSchedule.eventsComplete()){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	
+	public Event getNextEvent(){
+		if (eventsComplete()){
+			return null;
+		}
+		if (productionSchedule.eventsComplete()){
+			return failuresSchedule.getNextEvent();
+		}
+		if (failuresSchedule.eventsComplete()){
+			return productionSchedule.getNextEvent();
+		}
+		if (productionSchedule.nextEventTime() <= failuresSchedule.nextEventTime()){
+			return productionSchedule.getNextEvent();
+		} else {
+			return failuresSchedule.getNextEvent();
+		}
+		
 	}
 	
 }
