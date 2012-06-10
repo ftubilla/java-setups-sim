@@ -5,16 +5,19 @@ import sim.Sim;
 public class Failure extends Event {
 
 	private static int idCount = 0;
-	
-	public Failure(int time){
+
+
+	public Failure(double time){
 		super(time);
 		Failure.idCount++;
 	}
 	
 	@Override
 	public void handle(Sim sim){
-		super.handle(sim);
-		int repairTime = 5;
+
+		super.handle(sim);		
+		//Repair machine and delay the production schedule
+		double repairTime = sim.getTheRepairsGenerator().nextTimeInterval();
 		sim.getFailuresSchedule().addEvent(new Repair(sim.getTime() + repairTime));
 		sim.getProductionSchedule().delayEvents(repairTime);
 	}
@@ -23,4 +26,6 @@ public class Failure extends Event {
 	public static int getCount(){
 		return Failure.idCount;
 	}
+	
+
 }

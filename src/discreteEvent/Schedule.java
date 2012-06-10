@@ -24,7 +24,7 @@ public class Schedule {
 		return this.eventQueue.poll();
 	}
 	
-	public int nextEventTime(){
+	public double nextEventTime(){
 		return this.eventQueue.peek().getTime();
 	}
 	
@@ -32,7 +32,7 @@ public class Schedule {
 		return this.eventQueue.isEmpty();
 	}
 	
-	public void delayEvents(int delay){
+	public void delayEvents(double delay){
 		//Delays all events in the queue using recursion
 		if(this.eventQueue.isEmpty()){
 			return;

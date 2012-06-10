@@ -6,7 +6,7 @@ public class Repair extends Event {
 	
 	private static int idCount = 0;
 	
-	public Repair(int time){
+	public Repair(double time){
 		super(time);
 		Repair.idCount++;
 	}
@@ -14,8 +14,9 @@ public class Repair extends Event {
 	@Override
 	public void handle(Sim sim){
 		super.handle(sim);
-		int failureTime = 5;
-		sim.getFailuresSchedule().addEvent(new Failure(sim.getTime() + failureTime));
+
+		//Generate the next failure
+		sim.getFailuresSchedule().addEvent(new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval()));
 	}
 	
 	

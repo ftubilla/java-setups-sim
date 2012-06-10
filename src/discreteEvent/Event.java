@@ -10,11 +10,13 @@ import sim.Sim;
 
 public class Event implements Comparable<Event> {
 
-	private int time;
+	private double time;
 	private int id;
 	private static int idCount = 0;
+
+
 	
-	public Event(int time){
+	public Event(double time){
 		this.time = time;
 		this.id = idCount;
 		Event.idCount++;
@@ -29,11 +31,11 @@ public class Event implements Comparable<Event> {
 		System.out.println("Event " + this.id + " has occurred at time " + sim.getTime());
 	}
 		
-	public int getTime() {
+	public double getTime() {
 		return time;
 	}
 
-	public void updateTime(int time) {
+	public void updateTime(double time) {
 		this.time = time;
 	}
 
@@ -44,5 +46,5 @@ public class Event implements Comparable<Event> {
 	public static int getCount(){
 		return Event.idCount;
 	}
-	
+		
 }
