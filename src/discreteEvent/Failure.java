@@ -19,7 +19,8 @@ public class Failure extends Event {
 		//Repair machine and delay the production schedule
 		double repairTime = sim.getTheRepairsGenerator().nextTimeInterval();
 		sim.getFailuresSchedule().addEvent(new Repair(sim.getTime() + repairTime));
-		sim.getProductionSchedule().delayEvents(repairTime);
+		sim.getMachine().breakDown();
+		sim.getTheScheduler().updateControl(sim);
 	}
 	
 	

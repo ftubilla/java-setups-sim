@@ -7,6 +7,8 @@
 package sim;
 
 import java.io.File;
+import system.Machine;
+import system.scheduler.*;
 import org.codehaus.jackson.map.ObjectMapper;
 
 
@@ -50,7 +52,12 @@ public class SimSetup {
 		
 		//Summarize system props
 		System.out.println(sim);
+		
+		//Create the machine
+		sim.setMachine(new Machine(sim.getParams()));
 
+		//Load the policy
+		sim.setTheScheduler(new RoundRobin());
 		
 	}
 }

@@ -14,9 +14,14 @@ public class Params {
 	private List<Double> demandRates;
 	private List<Double> productionRates;
 	private List<Double> setupTimes;
+	private List<Double> surplusTargets;
 	private double meanTimeToFail = 1.0;
 	private double meanTimeToRepair = 0.0;
+	private double finalTime;
+
+
 	private int initialSetup=0;
+	private List<Double> initialDemand;
 	
 	
 	public int getInitialSetup() {
@@ -51,5 +56,16 @@ public class Params {
 		return demandRates;
 	}
 
+	public double getFinalTime() {
+		return finalTime;
+	}
+
+	public List<Double> getInitialDemand() {
+		return initialDemand;
+	}
+
+	public List<Double> getSurplusTargets() {
+		return surplusTargets;
+	}
 	
 }

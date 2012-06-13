@@ -17,6 +17,8 @@ public class Repair extends Event {
 
 		//Generate the next failure
 		sim.getFailuresSchedule().addEvent(new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval()));
+		sim.getMachine().repair();
+		sim.getTheScheduler().updateControl(sim);
 	}
 	
 	

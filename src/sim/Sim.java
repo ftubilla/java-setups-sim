@@ -3,6 +3,8 @@ package sim;
 
 import discreteEvent.*;
 import sim.Params;
+import system.*;
+import system.scheduler.*;
 
 public class Sim {
 
@@ -11,7 +13,12 @@ public class Sim {
 	private Schedule productionSchedule;
 	private IRandomTimeIntervalGenerator theFailuresGenerator;
 	private IRandomTimeIntervalGenerator theRepairsGenerator;
+	private Event latestEvent;
+	private Machine machine;
+	private IScheduler theScheduler;
 	private double time;
+
+	public static final double SURPLUS_TOLERANCE = 1e-6;
 
 	public Sim(){
 		this.time = 0.0;
@@ -19,7 +26,13 @@ public class Sim {
 		this.productionSchedule = new Schedule();
 	}
 	
-	
+	public boolean continueSim(){
+		if (time < params.getFinalTime() && !eventsComplete()){
+			return true;
+		}else{
+			return false;
+		}
+	}
 	
 	public IRandomTimeIntervalGenerator getTheFailuresGenerator() {
 		return theFailuresGenerator;
@@ -113,5 +126,33 @@ public class Sim {
 		}
 		
 	}
+	
+
+	public Event getLatestEvent() {
+		return latestEvent;
+	}
+
+
+
+	public void setLatestEvent(Event latestEvent) {
+		this.latestEvent = latestEvent;
+	}
+
+	public Machine getMachine() {
+		return machine;
+	}
+
+	public void setMachine(Machine machine) {
+		this.machine = machine;
+	}
+
+	public IScheduler getTheScheduler() {
+		return theScheduler;
+	}
+
+	public void setTheScheduler(IScheduler theScheduler) {
+		this.theScheduler = theScheduler;
+	}
+
 	
 }

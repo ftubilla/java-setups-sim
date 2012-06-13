@@ -7,6 +7,7 @@
 package discreteEvent;
 
 import sim.Sim;
+import system.*;
 
 public class Event implements Comparable<Event> {
 
@@ -27,8 +28,26 @@ public class Event implements Comparable<Event> {
 	}
 	
 	public void handle(Sim sim){
+		
+		//Update the items' surpluses
+		for (Item item : sim.getMachine().getItemMap().values()){
+			item.setCumulativeDemand(item.getCumulativeDemand() + item.getDemandRate()*(time-sim.getTime()));
+			if (sim.getMachine().getSetup().equals(item)){
+				switch(sim.getMachine().getOperationalState()){
+					case SPRINT:
+						item.setCumulativeProduction(item.getCumulativeProduction() + item.getProductionRate()*(time-sim.getTime()));
+						break;
+					case CRUISE:
+						item.setCumulativeProduction(item.getCumulativeProduction() + item.getDemandRate()*(time-sim.getTime()));
+						break;
+				}
+			}	
+		}
+		
+		//Advance time
+		System.out.println(this.getClass().getSimpleName() + " has occurred at time " + time);
 		sim.setTime(time);
-		System.out.println("Event " + this.id + " has occurred at time " + sim.getTime());
+		sim.setLatestEvent(this);
 	}
 		
 	public double getTime() {

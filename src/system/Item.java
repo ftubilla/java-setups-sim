@@ -6,16 +6,18 @@
 
 package system;
 
-import sim.Params;
+import sim.*;
 
 public class Item {
 	
 	// Parameters
 	private double demandRate;
-	private double productionTime;
+	private double productionRate;
+	private double setupTime;
 	private double deviationCostRate;
 	private double inventoryCostRate;
 	private double backlogCostRate;
+	private double surplusTarget;
 	private int id;
 	
 	// Variables
@@ -35,6 +37,10 @@ public class Item {
 	public Item(int id, Params params){
 		this.id = id;
 		demandRate = params.getDemandRates().get(id);
+		productionRate = params.getProductionRates().get(id);
+		setupTime = params.getSetupTimes().get(id);
+		setCumulativeDemand(params.getInitialDemand().get(id));
+		surplusTarget = params.getSurplusTargets().get(id);
 	}
 	
 	
@@ -62,6 +68,18 @@ public class Item {
 		backlog = Math.max(-surplus,0);
 	}
 	
+	public boolean onTarget(){
+		return Math.abs(surplus - surplusTarget) < Sim.SURPLUS_TOLERANCE ? true : false;
+	}
+	
+	public boolean onOrAboveTarget(){
+		return surplus >= surplusTarget - Sim.SURPLUS_TOLERANCE;
+	}
+	
+	public double workToTarget(){
+		return Math.max(0, (surplusTarget-surplus)/(productionRate - demandRate) );
+	}
+	
 	public double getSurplus() {
 		return surplus;
 	}
@@ -77,33 +95,33 @@ public class Item {
 	public double getDemandRate() {
 		return demandRate;
 	}
-	public void setDemandRate(double demandRate) {
-		this.demandRate = demandRate;
-	}
+
 	public double getProductionTime() {
-		return productionTime;
+		return productionRate;
 	}
-	public void setProductionTime(double productionTime) {
-		this.productionTime = productionTime;
-	}
+
 	public double getDeviationCostRate() {
 		return deviationCostRate;
 	}
-	public void setDeviationCostRate(double deviationCostRate) {
-		this.deviationCostRate = deviationCostRate;
-	}
+
 	public double getInventoryCostRate() {
 		return inventoryCostRate;
 	}
-	public void setInventoryCostRate(double inventoryCostRate) {
-		this.inventoryCostRate = inventoryCostRate;
-	}
+
 	public double getBacklogCostRate() {
 		return backlogCostRate;
 	}
-	public void setBacklogCostRate(double backlogCostRate) {
-		this.backlogCostRate = backlogCostRate;
+
+
+	public double getSetupTime() {
+		return setupTime;
 	}
+
+
+	public double getProductionRate() {
+		return productionRate;
+	}
+
 	
 	
 

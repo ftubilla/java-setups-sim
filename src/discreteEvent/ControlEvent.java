@@ -2,23 +2,26 @@ package discreteEvent;
 
 import sim.Sim;
 
-public class OrderArrival extends Event{
-	
+public class ControlEvent extends Event {
+
 	private static int idCount = 0;
 	
-	public OrderArrival(int time){
+	public ControlEvent(double time){
 		super(time);
-		OrderArrival.idCount++;
+		ControlEvent.idCount++;
 	}
 	
 	@Override
 	public void handle(Sim sim){
 		super.handle(sim);
+		
+		sim.getTheScheduler().updateControl(sim);
+		
 	}
-	
-	
 	public static int getCount(){
-		return OrderArrival.idCount;
+		return ControlEvent.idCount;
 	}
-
+	
 }
+
+
