@@ -14,24 +14,22 @@ public class SimRun {
 
 	public static void run(Sim sim){
 		
+		
+		//TODO Send this to setup
 		Event firstFailure = new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval());
 		sim.getFailuresSchedule().addEvent(firstFailure);
+		sim.getProductionSchedule().addEvent(new ControlEvent(sim.getTime()));
 		
-		FailureEventsRecorder test = new FailureEventsRecorder();
-		EventsLengthRecorder test2 = new EventsLengthRecorder();
+		//TODO Figure out what to do with the metrics
+		TimeMetricsRecorder timeMetricsRecorder = new TimeMetricsRecorder();
 		
 		while(sim.continueSim()){
 			sim.getNextEvent().handle(sim);
-			for (Item item : sim.getMachine().getItemMap().values()){
-				System.out.println("Item " + item.getId() + " D: " + item.getCumulativeDemand() + " P:" + item.getCumulativeProduction());
-			}
+			timeMetricsRecorder.record(sim);
 		}
 		
-		
-		test.close();
-		test2.close();
-		
-		
+		timeMetricsRecorder.close();
+		System.out.println("*****SIM COMPLETE!******************");
 		System.out.println("Total Events: " + Event.getCount());
 		System.out.println("Total Failures: " + Failure.getCount());
 		System.out.println("Total Repairs: " + Repair.getCount());

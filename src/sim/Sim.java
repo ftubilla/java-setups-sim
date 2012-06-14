@@ -19,11 +19,12 @@ public class Sim {
 	private double time;
 
 	public static final double SURPLUS_TOLERANCE = 1e-6;
+	public static final boolean DEBUG = false;
 
 	public Sim(){
 		this.time = 0.0;
-		this.failuresSchedule = new Schedule();
-		this.productionSchedule = new Schedule();
+		this.failuresSchedule = new Schedule(/*dumpable=*/false);
+		this.productionSchedule = new Schedule(/*dumpable=*/true);
 	}
 	
 	public boolean continueSim(){

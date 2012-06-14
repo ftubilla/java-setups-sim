@@ -11,10 +11,17 @@ import java.util.*;
 public class Schedule {
 
 	private Queue<Event> eventQueue;
+	private boolean dumpable = false;
 	
 	public Schedule(){
 		this.eventQueue = new PriorityQueue<Event>();
 	}
+	
+	public Schedule(boolean dumpable){
+		this();
+		this.dumpable = dumpable;
+	}
+	
 	
 	public void addEvent(Event e){
 		this.eventQueue.add(e);
@@ -42,5 +49,13 @@ public class Schedule {
 		e.updateTime(e.getTime() + delay);
 		this.eventQueue.add(e);
 	}
-		
+	
+	public void dumpEvents(){
+		if (dumpable){
+			this.eventQueue.clear();
+		} else{
+			System.err.println("Cannot dump this type of schedule!");
+			System.exit(-1);
+		}
+	}	
 }

@@ -9,6 +9,12 @@ public class RoundRobin implements IScheduler {
 	@Override
 	public void updateControl(Sim sim) {
 		
+		if (sim.getMachine().getFailureState() == FailureState.DOWN){
+			// Flush the production schedule
+			sim.getProductionSchedule().dumpEvents();
+		}
+		
+		
 		if (sim.getMachine().getFailureState() == FailureState.UP){
 		
 			if(sim.getMachine().getOperationalState() != OperationalState.SETUP){
