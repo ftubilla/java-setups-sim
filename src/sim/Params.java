@@ -18,6 +18,9 @@ public class Params {
 	private double meanTimeToFail = 1.0;
 	private double meanTimeToRepair = 0.0;
 	private double finalTime;
+	private double metricsStartTime;
+
+
 
 
 	private int initialSetup=0;
@@ -66,6 +69,10 @@ public class Params {
 
 	public List<Double> getSurplusTargets() {
 		return surplusTargets;
+	}
+	
+	public double getMetricsStartTime() {
+		return metricsStartTime;
 	}
 	
 }

@@ -1,10 +1,12 @@
 package sim;
 
 
+import output.Recorders;
 import discreteEvent.*;
 import sim.Params;
 import system.*;
 import system.scheduler.*;
+import sim.metrics.*;
 
 public class Sim {
 
@@ -16,10 +18,16 @@ public class Sim {
 	private Event latestEvent;
 	private Machine machine;
 	private IScheduler theScheduler;
+	private Metrics metrics;
+	private Recorders recorders;
 	private double time;
 
 	public static final double SURPLUS_TOLERANCE = 1e-6;
 	public static final boolean DEBUG = false;
+	public static boolean TIME_TO_START_RECORDING = false;
+	public static double METRICS_INITIAL_TIME = 0.0; 
+
+
 
 	public Sim(){
 		this.time = 0.0;
@@ -155,5 +163,20 @@ public class Sim {
 		this.theScheduler = theScheduler;
 	}
 
+	public Metrics getMetrics() {
+		return metrics;
+	}
+	
+	public void setMetrics(Metrics theMetrics){
+		this.metrics = theMetrics;
+	}
+
+	public Recorders getRecorders() {
+		return recorders;
+	}
+
+	public void setRecorders(Recorders recorders) {
+		this.recorders = recorders;
+	}
 	
 }

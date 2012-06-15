@@ -6,6 +6,7 @@
 
 package sim;
 
+import sim.metrics.*;
 import system.*;
 import discreteEvent.*;
 import output.*;
@@ -28,12 +29,19 @@ public class SimRun {
 			timeMetricsRecorder.record(sim);
 		}
 		
-		timeMetricsRecorder.close();
+		
+		sim.getRecorders().closeAll();
+		
 		System.out.println("*****SIM COMPLETE!******************");
 		System.out.println("Total Events: " + Event.getCount());
 		System.out.println("Total Failures: " + Failure.getCount());
 		System.out.println("Total Repairs: " + Repair.getCount());
-		
+		for (Item item : sim.getMachine().getItems()){
+			for (TimeFractionsMetrics.Metric metric : TimeFractionsMetrics.Metric.values()){
+				System.out.println(metric.toString() + " " + item.getId() + " " + 
+						sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(metric).get(item)/(sim.getTime()-Sim.METRICS_INITIAL_TIME));
+			}
+		}
 
 	}
 	

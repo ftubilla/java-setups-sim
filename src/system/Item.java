@@ -44,6 +44,10 @@ public class Item {
 	}
 	
 	
+	public String toString(){
+		return id + "";
+	}
+	
 	public double getCumulativeProduction() {
 		return cumulativeProduction;
 	}

@@ -9,7 +9,11 @@ package sim;
 import java.io.File;
 import system.Machine;
 import system.scheduler.*;
+import sim.metrics.*;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import output.Recorders;
+
 
 
 public class SimSetup {
@@ -59,6 +63,11 @@ public class SimSetup {
 		//Load the policy
 		sim.setTheScheduler(new RoundRobin());
 				
+		
+		//Initialize the metrics and recorders
+		sim.setMetrics(new Metrics(sim));
+		sim.setRecorders(new Recorders());
+		
 		
 	}
 }

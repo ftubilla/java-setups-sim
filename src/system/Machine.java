@@ -69,5 +69,9 @@ public class Machine {
 		return itemMap;
 	}
 	
+	public Collection<Item> getItems(){
+		return itemMap.values();
+	}
+	
 	
 }
