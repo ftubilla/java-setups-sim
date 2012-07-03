@@ -6,8 +6,8 @@
 
 package discreteEvent;
 
+import metrics.TimeFractionsMetrics;
 import sim.Sim;
-import sim.metrics.TimeFractionsMetrics;
 import system.*;
 import system.Machine.FailureState;
 

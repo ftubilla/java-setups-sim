@@ -1,4 +1,4 @@
-package system.scheduler;
+package scheduler;
 
 import sim.Sim;
 import system.Machine.*;
@@ -6,6 +6,7 @@ import discreteEvent.*;
 
 public class RoundRobin implements IScheduler {
 
+	
 	@Override
 	public void updateControl(Sim sim) {
 		
@@ -39,5 +40,11 @@ public class RoundRobin implements IScheduler {
 		}
 		
 		return;
+	}
+
+	@Override
+	public void setup(Sim sim) {
+		// TODO Auto-generated method stub
+		
 	}
 }

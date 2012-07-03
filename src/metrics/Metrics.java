@@ -1,4 +1,4 @@
-package sim.metrics;
+package metrics;
 
 import sim.*;
 

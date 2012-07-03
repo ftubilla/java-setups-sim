@@ -72,6 +72,6 @@ public class Machine {
 	public Collection<Item> getItems(){
 		return itemMap.values();
 	}
-	
+		
 	
 }

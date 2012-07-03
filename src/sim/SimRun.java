@@ -6,7 +6,7 @@
 
 package sim;
 
-import sim.metrics.*;
+import metrics.*;
 import system.*;
 import discreteEvent.*;
 import output.*;
@@ -20,13 +20,10 @@ public class SimRun {
 		Event firstFailure = new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval());
 		sim.getFailuresSchedule().addEvent(firstFailure);
 		sim.getProductionSchedule().addEvent(new ControlEvent(sim.getTime()));
-		
-		//TODO Figure out what to do with the metrics
-		TimeMetricsRecorder timeMetricsRecorder = new TimeMetricsRecorder();
-		
+				
 		while(sim.continueSim()){
 			sim.getNextEvent().handle(sim);
-			timeMetricsRecorder.record(sim);
+			sim.getRecorders().getTimeMetricsRecorder().record(sim);
 		}
 		
 		
@@ -41,6 +38,12 @@ public class SimRun {
 				System.out.println(metric.toString() + " " + item.getId() + " " + 
 						sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(metric).get(item)/(sim.getTime()-Sim.METRICS_INITIAL_TIME));
 			}
+			System.out.println("Efficiency ei: " + 
+					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item)/
+					(sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item) + 
+					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.REPAIR).get(item)));
+			
+			System.out.println("---------------------------");
 		}
 
 	}

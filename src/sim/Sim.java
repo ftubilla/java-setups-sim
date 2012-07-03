@@ -1,12 +1,12 @@
 package sim;
 
 
+import metrics.*;
 import output.Recorders;
 import discreteEvent.*;
+import scheduler.*;
 import sim.Params;
 import system.*;
-import system.scheduler.*;
-import sim.metrics.*;
 
 public class Sim {
 

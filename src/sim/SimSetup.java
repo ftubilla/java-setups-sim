@@ -8,8 +8,9 @@ package sim;
 
 import java.io.File;
 import system.Machine;
-import system.scheduler.*;
-import sim.metrics.*;
+import scheduler.*;
+import metrics.*;
+
 import org.codehaus.jackson.map.ObjectMapper;
 
 import output.Recorders;
@@ -30,7 +31,7 @@ public class SimSetup {
 			System.err.println("Problem reading input json file!");
 		}
 		
-		
+		// TODO Send this to a different config file? that uses the MTTF and MTTR
 		//Set the Failures/Repairs Generator
 		IRandomTimeIntervalGenerator failuresGenerator = new BinaryDistributedRandomTimeIntervalGenerator(1,4,0.5,6);
 		sim.setTheFailuresGenerator(failuresGenerator);
@@ -50,8 +51,7 @@ public class SimSetup {
 		
 		double e = sim.getParams().getMeanTimeToFail()/(sim.getParams().getMeanTimeToFail() + sim.getParams().getMeanTimeToRepair());
 		if (rho>=e){
-			System.err.println("Check your data, rho >= e!");
-			System.exit(-1);
+			System.err.println("Warning: rho >= e!");
 		}
 		
 		//Summarize system props
@@ -62,11 +62,17 @@ public class SimSetup {
 
 		//Load the policy
 		sim.setTheScheduler(new RoundRobin());
+		//sim.setTheScheduler(new UnstableExampleN3());
+		
+		
+		
+		//Setup the policy
+		sim.getTheScheduler().setup(sim);
 				
 		
 		//Initialize the metrics and recorders
 		sim.setMetrics(new Metrics(sim));
-		sim.setRecorders(new Recorders());
+		sim.setRecorders(new Recorders(sim));
 		
 		
 	}

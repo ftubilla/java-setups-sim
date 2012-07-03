@@ -88,6 +88,10 @@ public class Item {
 		return surplus;
 	}
 	
+	public double getSurplusDeviation(){
+		return surplusTarget - surplus;
+	}
+	
 	public double getInventory() {
 		return inventory;
 	}
