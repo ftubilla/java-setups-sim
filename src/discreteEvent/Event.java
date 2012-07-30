@@ -93,6 +93,7 @@ public class Event implements Comparable<Event> {
 		
 		//Call other recorders
 		sim.getRecorders().getFailureEventsRecorder().record(sim);
+		sim.getRecorders().getEventsLengthRecorder().record(this.getClass().getSimpleName(), deltaTime);
 		
 		//Advance time
 		sim.setTime(time);
