@@ -34,11 +34,13 @@ public class SimSetup {
 		// TODO Send this to a different config file? that uses the MTTF and MTTR
 		//Set the Failures/Repairs Generator
 		//IRandomTimeIntervalGenerator failuresGenerator = new BinaryDistributedRandomTimeIntervalGenerator(1,4,0.5,6);
-		IRandomTimeIntervalGenerator failuresGenerator = new ExponentiallyDistributedRandomTimeIntervalGenerator(1,5);
+		long seed1 = System.currentTimeMillis();
+		long seed2 = seed1 + 1;
+		IRandomTimeIntervalGenerator failuresGenerator = new ExponentiallyDistributedRandomTimeIntervalGenerator(seed1,5);
 		sim.setTheFailuresGenerator(failuresGenerator);
 		
 		//IRandomTimeIntervalGenerator repairsGenerator = new BinaryDistributedRandomTimeIntervalGenerator(1,1,1.0,0);
-		IRandomTimeIntervalGenerator repairsGenerator = new ExponentiallyDistributedRandomTimeIntervalGenerator(1,1);
+		IRandomTimeIntervalGenerator repairsGenerator = new ExponentiallyDistributedRandomTimeIntervalGenerator(seed2,1);
 		sim.setTheRepairsGenerator(repairsGenerator);
 		
 		

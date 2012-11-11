@@ -8,7 +8,7 @@ public class ExponentiallyDistributedRandomTimeIntervalGenerator implements IRan
 	private double prob1;
 	private Random generator;
 	
-	public ExponentiallyDistributedRandomTimeIntervalGenerator(int seed, double mean){
+	public ExponentiallyDistributedRandomTimeIntervalGenerator(long seed, double mean){
 		this.mean = mean;
 		this.generator = new Random(seed);
 		
