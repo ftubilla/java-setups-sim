@@ -1,9 +1,12 @@
 package discreteEvent;
 
+import org.apache.log4j.Logger;
+
 import sim.Sim;
 
 public class Repair extends Event {
 	
+	private static Logger logger = Logger.getLogger(Repair.class);
 	private static int idCount = 0;
 	
 	public Repair(double time){
@@ -16,9 +19,11 @@ public class Repair extends Event {
 		super.handle(sim);
 
 		//Generate the next failure
-		sim.getFailuresSchedule().addEvent(new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval()));
+		double nextTimeToFailure = sim.getTheFailuresGenerator().nextTimeInterval();
+		sim.getFailuresSchedule().addEvent(new Failure(sim.getTime() + nextTimeToFailure));
+		logger.debug("Finished repairing the machine. Next TTF is " + nextTimeToFailure);
 		sim.getMachine().repair();
-		sim.getTheScheduler().updateControl(sim);
+		sim.getPolicy().updateControl(sim);
 	}
 	
 	

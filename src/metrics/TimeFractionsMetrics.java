@@ -16,9 +16,9 @@ public class TimeFractionsMetrics {
 		MetricToItemToFraction = new HashMap<Metric,Map<Item,Double>>(Metric.values().length);
 		
 		for (Metric metric : Metric.values()){
-			MetricToItemToFraction.put(metric, new HashMap<Item,Double>(machine.getItems().size()));
+			MetricToItemToFraction.put(metric, new HashMap<Item,Double>(machine.getNumItems()));
 			
-			for (Item item : machine.getItems()){
+			for (Item item : machine){
 				MetricToItemToFraction.get(metric).put(item, 0.0);
 			}
 			

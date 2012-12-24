@@ -33,7 +33,7 @@ public class SimRun {
 		System.out.println("Total Events: " + Event.getCount());
 		System.out.println("Total Failures: " + Failure.getCount());
 		System.out.println("Total Repairs: " + Repair.getCount());
-		for (Item item : sim.getMachine().getItems()){
+		for (Item item : sim.getMachine()){
 			for (TimeFractionsMetrics.Metric metric : TimeFractionsMetrics.Metric.values()){
 				System.out.println(metric.toString() + " " + item.getId() + " " + 
 						sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(metric).get(item)/(sim.getTime()-Sim.METRICS_INITIAL_TIME));

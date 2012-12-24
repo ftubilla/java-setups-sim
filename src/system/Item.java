@@ -6,10 +6,20 @@
 
 package system;
 
+import org.apache.log4j.Logger;
+
 import sim.*;
 
+/**
+ * A part or product type that can be produced by the machine.
+ * 
+ * @author ftubilla
+ * 
+ */
 public class Item {
-	
+
+	private static Logger logger = Logger.getLogger(Item.class);
+
 	// Parameters
 	private double demandRate;
 	private double productionRate;
@@ -19,87 +29,95 @@ public class Item {
 	private double backlogCostRate;
 	private double surplusTarget;
 	private int id;
-	
+
 	// Variables
 	private double cumulativeProduction;
 	private double cumulativeDemand;
 	private double surplus;
 	private double inventory;
 	private double backlog;
-	
-	
-	
-	public int getId() {
-		return id;
-	}
 
-
-	public Item(int id, Params params){
+	public Item(int id, Params params) {
 		this.id = id;
 		demandRate = params.getDemandRates().get(id);
 		productionRate = params.getProductionRates().get(id);
 		setupTime = params.getSetupTimes().get(id);
 		setCumulativeDemand(params.getInitialDemand().get(id));
 		surplusTarget = params.getSurplusTargets().get(id);
+		logger.debug("Created Item " + id + " with demand rate: "
+				+ demandRate + " production rate: " + productionRate
+				+ " setup time: " + setupTime + " surplus target: "
+				+ surplusTarget);
 	}
-	
-	
-	public String toString(){
-		return id + "";
+
+	public String toString() {
+		return "Item: " + id;
 	}
-	
+
 	public double getCumulativeProduction() {
 		return cumulativeProduction;
 	}
-	
+
 	public void setCumulativeProduction(double cumulativeProduction) {
+		logger.debug("Setting the cum. production of item " + id + " to "
+				+ cumulativeProduction);
 		this.cumulativeProduction = cumulativeProduction;
 		updateSurplus();
 	}
-	
+
 	public double getCumulativeDemand() {
 		return cumulativeDemand;
 	}
-	
+
 	public void setCumulativeDemand(double cumulativeDemand) {
+		logger.debug("Setting the cum. demand of item " + id + " to "
+				+ cumulativeDemand);
 		this.cumulativeDemand = cumulativeDemand;
 		updateSurplus();
 	}
-	
-	private void updateSurplus(){
+
+	private void updateSurplus() {
 		surplus = cumulativeProduction - cumulativeDemand;
-		inventory = Math.max(surplus,0);
-		backlog = Math.max(-surplus,0);
+		inventory = Math.max(surplus, 0);
+		backlog = Math.max(-surplus, 0);
+		logger.trace("Item " + id + " surplus: " + surplus + " inventory: "
+				+ inventory + " backlog: " + backlog);
 	}
-	
-	public boolean onTarget(){
-		return Math.abs(surplus - surplusTarget) < Sim.SURPLUS_TOLERANCE ? true : false;
+
+	public boolean onTarget() {
+		return Math.abs(surplus - surplusTarget) < Sim.SURPLUS_TOLERANCE ? true
+				: false;
 	}
-	
-	public boolean onOrAboveTarget(){
+
+	public boolean onOrAboveTarget() {
 		return surplus >= surplusTarget - Sim.SURPLUS_TOLERANCE;
 	}
-	
-	public double workToTarget(){
-		return Math.max(0, (surplusTarget-surplus)/(productionRate - demandRate) );
+
+	public double workToTarget() {
+		return Math.max(0, (surplusTarget - surplus)
+				/ (productionRate - demandRate));
 	}
-	
+
+	public int getId() {
+		return id;
+	}
+
 	public double getSurplus() {
 		return surplus;
 	}
-	
-	public double getSurplusDeviation(){
+
+	public double getSurplusDeviation() {
 		return surplusTarget - surplus;
 	}
-	
+
 	public double getInventory() {
 		return inventory;
 	}
-	
+
 	public double getBacklog() {
 		return backlog;
 	}
-	
+
 	public double getDemandRate() {
 		return demandRate;
 	}
@@ -120,17 +138,12 @@ public class Item {
 		return backlogCostRate;
 	}
 
-
 	public double getSetupTime() {
 		return setupTime;
 	}
 
-
 	public double getProductionRate() {
 		return productionRate;
 	}
-
-	
-	
 
 }

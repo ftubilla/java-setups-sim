@@ -1,8 +1,8 @@
-package scheduler;
+package policies;
 
 import sim.*;
 
-public interface IScheduler {
+public interface IPolicy {
 
 	public void setup(Sim sim);
 	public void updateControl(Sim sim);

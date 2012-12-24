@@ -1,11 +1,11 @@
-package scheduler;
+package policies;
 
 import discreteEvent.Changeover;
 import discreteEvent.ControlEvent;
 import sim.Sim;
 import system.Machine.*;
 
-public class UnstableExampleN3 implements IScheduler {
+public class UnstableCCPolicyN3 implements IPolicy {
 
 	private final double K = 3.1;
 	private final double Delta = 3;
@@ -23,8 +23,8 @@ public class UnstableExampleN3 implements IScheduler {
 				if( sim.getMachine().getSetup().onOrAboveTarget()){
 					
 					// Find the next changeover
-					double y1 = sim.getMachine().getItemMap().get(1).getSurplusDeviation();
-					double y2 = sim.getMachine().getItemMap().get(2).getSurplusDeviation();
+					double y1 = sim.getMachine().getItemById(1).getSurplusDeviation();
+					double y2 = sim.getMachine().getItemById(2).getSurplusDeviation();
 					int setup = sim.getMachine().getSetup().getId();
 					int changeTo = -1;
 					
@@ -65,7 +65,7 @@ public class UnstableExampleN3 implements IScheduler {
 					//System.out.println("Changing to " + changeTo);
 					// Add the changeover event
 					sim.getProductionSchedule().addEvent(new Changeover(sim.getTime(),
-							sim.getMachine().getItemMap().get(changeTo)));
+							sim.getMachine().getItemById(changeTo)));
 					
 				} else {
 					// Continue Producing
