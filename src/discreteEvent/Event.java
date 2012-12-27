@@ -6,6 +6,9 @@
 
 package discreteEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import metrics.TimeFractionsMetrics;
 
 import org.apache.log4j.Logger;
@@ -14,9 +17,25 @@ import sim.Sim;
 import system.Item;
 import system.Machine.FailureState;
 
+/**
+ * The base class from which any other type of event should inherit. Takes care
+ * of calling listeners (if any) at the beginning of the processing of the
+ * event.
+ * 
+ * @author ftubilla
+ * 
+ */
 public class Event implements Comparable<Event> {
 
 	private static Logger logger = Logger.getLogger(Event.class);
+	//TODO IF we want to move towards a parallelizable implementation, where multiple
+	// sim instances are running at the same time, we'll need to move all these static
+	// methods to the sim instance
+	private static List<BeforeEventListener> beforeEventListeners;
+
+	static {
+		beforeEventListeners = new ArrayList<BeforeEventListener>();
+	}
 
 	private double time;
 	private int id;
@@ -26,6 +45,8 @@ public class Event implements Comparable<Event> {
 		this.time = time;
 		this.id = idCount;
 		Event.idCount++;
+		logger.debug("Created new event " + this.getClass() + " " + id
+				+ " for time " + time);
 	}
 
 	public int compareTo(Event otherEvent) {
@@ -35,11 +56,17 @@ public class Event implements Comparable<Event> {
 
 	public void handle(Sim sim) {
 
+		for (BeforeEventListener listener : beforeEventListeners) {
+			logger.debug("Executing before event listener " + listener.getId());
+			listener.execute(this);
+		}
+
+		logger.debug("Handling event " + this.getId());
 		double deltaTime = time - sim.getTime();
 
 		// Check if it's time to start recording data
 		if (!Sim.TIME_TO_START_RECORDING
-				|| sim.getTime() >= sim.getParams().getMetricsStartTime()) {
+				&& sim.getTime() >= sim.getParams().getMetricsStartTime()) {
 			logger.debug("Time to start recording data. Sim time: "
 					+ sim.getTime());
 			Sim.METRICS_INITIAL_TIME = sim.getTime();
@@ -48,10 +75,6 @@ public class Event implements Comparable<Event> {
 
 		// Update the items' surpluses
 		for (Item item : sim.getMachine()) {
-
-			// Cumulative demand always goes up
-			item.setCumulativeDemand(item.getCumulativeDemand()
-					+ item.getDemandRate() * deltaTime);
 
 			// Execute if the machine has this setup
 			if (sim.getMachine().getSetup().equals(item)) {
@@ -133,6 +156,16 @@ public class Event implements Comparable<Event> {
 
 	public static int getCount() {
 		return Event.idCount;
+	}
+
+	/**
+	 * Adds a listener that is executed before handling any event.
+	 * 
+	 * @param listener
+	 */
+	public static void addBeforeEventListener(BeforeEventListener listener) {
+		logger.debug("Adding BeforeEventListener " + listener.getId());
+		beforeEventListeners.add(listener);
 	}
 
 }

@@ -24,7 +24,7 @@ public class RoundRobinPolicy implements IPolicy {
 
 		if (sim.getMachine().getFailureState() == FailureState.DOWN) {
 			// Flush the production schedule
-			sim.getProductionSchedule().dumpEvents();
+			sim.getMasterScheduler().dumpEvents();
 		}
 
 		if (sim.getMachine().getFailureState() == FailureState.UP) {
@@ -33,7 +33,7 @@ public class RoundRobinPolicy implements IPolicy {
 				if (sim.getMachine().getSetup().onOrAboveTarget()) {
 
 					logger.debug("Scheduling a changeover to a new item");
-					sim.getProductionSchedule().addEvent(
+					sim.getMasterScheduler().addEvent(
 							new Changeover(sim.getTime(), nextItem()));
 
 				} else {
@@ -42,14 +42,14 @@ public class RoundRobinPolicy implements IPolicy {
 					logger.debug("Sprint until the next control event after "
 							+ workRemaining);
 					sim.getMachine().setSprint();
-					sim.getProductionSchedule().addEvent(
+					sim.getMasterScheduler().addEvent(
 							new ControlEvent(sim.getTime() + workRemaining));
 				}
 			} else if (sim.getMachine().getOperationalState() == OperationalState.SETUP) {
 				logger.debug("The machine is ready to start producing new item."
 						+ " Next control event will determine how much work to do");
 				sim.getMachine().setSprint();
-				sim.getProductionSchedule().addEvent(
+				sim.getMasterScheduler().addEvent(
 						new ControlEvent(sim.getTime()));
 			}
 

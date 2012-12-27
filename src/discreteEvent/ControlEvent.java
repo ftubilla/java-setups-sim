@@ -21,6 +21,7 @@ public class ControlEvent extends Event {
 		sim.getPolicy().updateControl(sim);
 		
 	}
+	
 	public static int getCount(){
 		return ControlEvent.idCount;
 	}

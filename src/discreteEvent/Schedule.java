@@ -23,19 +23,18 @@ public class Schedule {
 	private static Logger logger = Logger.getLogger(Schedule.class);
 
 	private Queue<Event> eventQueue;
-	private boolean dumpable = false;
-	private String name;
+	private ScheduleType type;
 
-	public Schedule(String name, boolean dumpable) {
+	public Schedule(ScheduleType type) {
 		this.eventQueue = new PriorityQueue<Event>();
-		this.name = name;
-		this.dumpable = dumpable;
-		logger.debug("Creating schedule " + name + " dumpable? " + dumpable);
+		this.type = type;
+		logger.debug("Creating schedule " + type + " dumpable? "
+				+ type.isDumpable() + " delayable? " + type.isDelayable());
 	}
 
 	public void addEvent(Event e) {
-		logger.trace("Adding event " + e.getClass().getSimpleName() + " "
-				+ e.getId() + " to schedule " + name);
+		logger.debug("Adding event " + e.getClass().getSimpleName() + " "
+				+ e.getId() + " to schedule " + type);
 		this.eventQueue.add(e);
 	}
 
@@ -44,7 +43,12 @@ public class Schedule {
 	}
 
 	public double nextEventTime() {
+		if (eventQueue.isEmpty()){
+			logger.trace("Next event time is infinity for Schedule " + this.getType());
+			return Double.MAX_VALUE;
+		} else {
 		return this.eventQueue.peek().getTime();
+		}
 	}
 
 	public boolean eventsComplete() {
@@ -52,25 +56,30 @@ public class Schedule {
 	}
 
 	public void delayEvents(double delay) {
+		assert type.isDelayable() : "Cannot delay this type of schedule!";
+		delayEventsRecursive(delay);
+		logger.debug("Delayed all events in schedule " + type + " by "
+				+ delay);
+	}
+	
+	private void delayEventsRecursive(double delay){
 		// Delays all events in the queue using recursion
 		if (this.eventQueue.isEmpty()) {
-			logger.debug("Delayed all events in schedule " + name + " by "
-					+ delay);
 			return;
 		}
 		Event e = this.eventQueue.poll();
-		delayEvents(delay);
+		delayEventsRecursive(delay);
 		e.updateTime(e.getTime() + delay);
 		this.eventQueue.add(e);
 	}
 
 	public void dumpEvents() {
-		assert dumpable : "Cannot dump this type of schedule!";
-		logger.debug("Dumping all events in schedule " + name);
+		assert type.isDumpable() : "Cannot dump this type of schedule!";
+		logger.debug("Dumping all events in schedule " + type);
 		eventQueue.clear();
 	}
 
-	public String getName() {
-		return this.getName();
+	public ScheduleType getType() {
+		return type;
 	}
 }

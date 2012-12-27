@@ -22,7 +22,7 @@ public class Failure extends Event {
 		double repairTime = sim.getTheRepairsGenerator().nextTimeInterval();
 		logger.debug("Processing failure event. Machine will be repaired after "
 				+ repairTime + " time units");
-		sim.getFailuresSchedule().addEvent(
+		sim.getMasterScheduler().addEvent(
 				new Repair(sim.getTime() + repairTime));
 		sim.getMachine().breakDown();
 		sim.getPolicy().updateControl(sim);

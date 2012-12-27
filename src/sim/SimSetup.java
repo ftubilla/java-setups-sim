@@ -7,13 +7,17 @@
 package sim;
 
 import java.io.File;
-import system.Machine;
-import metrics.*;
+
+import metrics.Metrics;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
 import output.Recorders;
-import policies.*;
+import policies.RoundRobinPolicy;
+import processes.demand.DeterministicBatchesDemandProcess;
+import processes.generators.ExponentiallyDistributedRandomTimeIntervalGenerator;
+import processes.generators.IRandomTimeIntervalGenerator;
+import system.Machine;
 
 public class SimSetup {
 
@@ -67,6 +71,10 @@ public class SimSetup {
 
 		// Create the machine
 		sim.setMachine(new Machine(sim.getParams()));
+		
+		// Set up the demand process
+		sim.setDemandProcess(new DeterministicBatchesDemandProcess());
+		sim.getDemandProcess().init(sim);
 
 		// Load the policy
 		sim.setPolicy(new RoundRobinPolicy());

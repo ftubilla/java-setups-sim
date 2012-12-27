@@ -6,6 +6,8 @@
 
 package sim;
 
+import org.apache.log4j.Logger;
+
 import metrics.*;
 import system.*;
 import discreteEvent.*;
@@ -13,16 +15,29 @@ import output.*;
 
 public class SimRun {
 
+	private static Logger logger = Logger.getLogger(SimRun.class);
+	
 	public static void run(Sim sim){
 		
 		
 		//TODO Send this to setup
 		Event firstFailure = new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval());
-		sim.getFailuresSchedule().addEvent(firstFailure);
-		sim.getProductionSchedule().addEvent(new ControlEvent(sim.getTime()));
+		sim.getMasterScheduler().addEvent(firstFailure);
+		sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
+
 				
+		// Main Loop of the Sim
 		while(sim.continueSim()){
+			
+			logger.trace("Sim time: " + sim.getTime());
+			if (sim.getTime()%1000 == 0){
+				logger.info("Sim time: " + sim.getTime());
+			}
+			
+			//Process the next event
 			sim.getNextEvent().handle(sim);
+			
+			//Record metrics
 			sim.getRecorders().getTimeMetricsRecorder().record(sim);
 		}
 		

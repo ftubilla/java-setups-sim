@@ -20,7 +20,7 @@ public class Repair extends Event {
 
 		//Generate the next failure
 		double nextTimeToFailure = sim.getTheFailuresGenerator().nextTimeInterval();
-		sim.getFailuresSchedule().addEvent(new Failure(sim.getTime() + nextTimeToFailure));
+		sim.getMasterScheduler().addEvent(new Failure(sim.getTime() + nextTimeToFailure));
 		logger.debug("Finished repairing the machine. Next TTF is " + nextTimeToFailure);
 		sim.getMachine().repair();
 		sim.getPolicy().updateControl(sim);

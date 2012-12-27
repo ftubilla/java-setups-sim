@@ -1,17 +1,20 @@
 package sim;
 
-import metrics.*;
+import metrics.Metrics;
 import output.Recorders;
-import policies.*;
-import discreteEvent.*;
-import sim.Params;
-import system.*;
+import policies.IPolicy;
+import processes.demand.DeterministicBatchesDemandProcess;
+import processes.demand.IDemandProcess;
+import processes.generators.IRandomTimeIntervalGenerator;
+import system.Machine;
+import discreteEvent.Event;
+import discreteEvent.MasterScheduler;
 
 public class Sim {
 
 	private Params params;
-	private Schedule failuresSchedule;
-	private Schedule productionSchedule;
+	private MasterScheduler masterScheduler;
+	private IDemandProcess demandProcess;
 	private IRandomTimeIntervalGenerator theFailuresGenerator;
 	private IRandomTimeIntervalGenerator theRepairsGenerator;
 	private Event latestEvent;
@@ -28,8 +31,7 @@ public class Sim {
 
 	public Sim() {
 		this.time = 0.0;
-		this.failuresSchedule = new Schedule("Failures", /* dumpable= */false);
-		this.productionSchedule = new Schedule("Production", /* dumpable= */true);
+		this.masterScheduler = new MasterScheduler(this);
 	}
 
 	public boolean continueSim() {
@@ -83,36 +85,16 @@ public class Sim {
 		return this.time;
 	}
 
-	public Schedule getFailuresSchedule() {
-		return failuresSchedule;
-	}
-
-	public Schedule getProductionSchedule() {
-		return productionSchedule;
+	public MasterScheduler getMasterScheduler(){
+		return masterScheduler;
 	}
 
 	public boolean eventsComplete() {
-		return (productionSchedule.eventsComplete() && failuresSchedule
-				.eventsComplete());
+		return masterScheduler.eventsComplete();
 	}
 
 	public Event getNextEvent() {
-		if (eventsComplete()) {
-			return null;
-		}
-		if (productionSchedule.eventsComplete()) {
-			return failuresSchedule.getNextEvent();
-		}
-		if (failuresSchedule.eventsComplete()) {
-			return productionSchedule.getNextEvent();
-		}
-		if (productionSchedule.nextEventTime() <= failuresSchedule
-				.nextEventTime()) {
-			return productionSchedule.getNextEvent();
-		} else {
-			return failuresSchedule.getNextEvent();
-		}
-
+		return masterScheduler.getNextEvent();
 	}
 
 	public Event getLatestEvent() {
@@ -155,4 +137,11 @@ public class Sim {
 		this.recorders = recorders;
 	}
 
+	public IDemandProcess getDemandProcess(){
+		return demandProcess;
+	}
+	
+	public void setDemandProcess(IDemandProcess demandProcess){
+		this.demandProcess=demandProcess;
+	}
 }

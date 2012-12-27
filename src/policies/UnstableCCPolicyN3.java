@@ -14,7 +14,7 @@ public class UnstableCCPolicyN3 implements IPolicy {
 	public void updateControl(Sim sim) {
 		//Strictly speaking, this example policy is intended for reliable systems
 		if (sim.getMachine().getFailureState() == FailureState.DOWN){
-			sim.getProductionSchedule().dumpEvents();
+			sim.getMasterScheduler().dumpEvents();
 		}
 		else{
 			//Machine is UP
@@ -64,20 +64,20 @@ public class UnstableCCPolicyN3 implements IPolicy {
 				
 					//System.out.println("Changing to " + changeTo);
 					// Add the changeover event
-					sim.getProductionSchedule().addEvent(new Changeover(sim.getTime(),
+					sim.getMasterScheduler().addEvent(new Changeover(sim.getTime(),
 							sim.getMachine().getItemById(changeTo)));
 					
 				} else {
 					// Continue Producing
 					double workRemaining = sim.getMachine().getSetup().workToTarget();
 					sim.getMachine().setSprint();
-					sim.getProductionSchedule().addEvent(new ControlEvent(sim.getTime() + workRemaining));
+					sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime() + workRemaining));
 				}	
 			} 
 			else if (sim.getMachine().getOperationalState() == OperationalState.SETUP){
 				// Start producing
 				sim.getMachine().setSprint();
-				sim.getProductionSchedule().addEvent(new ControlEvent(sim.getTime()));
+				sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
 			}
 			
 		}
