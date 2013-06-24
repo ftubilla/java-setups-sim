@@ -19,12 +19,10 @@ public class SimRun {
 	
 	public static void run(Sim sim){
 		
-		
-		//TODO Send this to setup
+
 		Event firstFailure = new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval());
 		sim.getMasterScheduler().addEvent(firstFailure);
 		sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
-
 				
 		// Main Loop of the Sim
 		while(sim.continueSim()){
@@ -35,7 +33,12 @@ public class SimRun {
 			}
 			
 			//Process the next event
-			sim.getNextEvent().handle(sim);
+			try {
+				sim.getNextEvent().handle(sim);
+			} catch (NullPointerException e){
+				logger.fatal("Event returned was null!");
+				System.exit(-1);
+			}
 			
 			//Record metrics
 			sim.getRecorders().getTimeMetricsRecorder().record(sim);

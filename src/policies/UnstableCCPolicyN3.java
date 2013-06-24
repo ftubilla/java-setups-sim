@@ -69,7 +69,7 @@ public class UnstableCCPolicyN3 implements IPolicy {
 					
 				} else {
 					// Continue Producing
-					double workRemaining = sim.getMachine().getSetup().workToTarget();
+					double workRemaining = sim.getMachine().getSetup().minPossibleWorkToTarget(sim.getDemandProcess());
 					sim.getMachine().setSprint();
 					sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime() + workRemaining));
 				}	
@@ -87,7 +87,7 @@ public class UnstableCCPolicyN3 implements IPolicy {
 	}
 
 	@Override
-	public void setup(Sim sim) {
+	public void setUp(Sim sim) {
 		// TODO Auto-generated method stub
 		assert sim.getParams().getNumItems() == 3;		
 	}

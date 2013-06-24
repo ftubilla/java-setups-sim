@@ -39,8 +39,7 @@ public class MasterScheduler {
 	 * determined by the method based on the event's class, as defined in
 	 * Schedule Type.
 	 * 
-	 * @param Event
-	 *            to add
+	 * @param Event to add
 	 */
 	public void addEvent(Event e) {
 		if (e != null) {
@@ -156,6 +155,29 @@ public class MasterScheduler {
 			}
 		}
 	}
+	
+	/**
+	 * Holds all schedules that are delayable.
+	 */
+	public void holdDelayableEvents(){
+		for (ScheduleType st : ScheduleType.values()){
+			if (st.isDelayable()){
+				schedules.get(st).holdEvents();
+			}
+		}
+	}
+	
+	/**
+	 * Releases all events that were held and delays them.
+	 */
+	public void releaseAndDelayEvents(){
+		for (ScheduleType st : ScheduleType.values()){
+			if (st.isDelayable() && schedules.get(st).isOnHold()){
+				schedules.get(st).releaseAndDelayEvents();
+			}
+		}
+	}
+	
 
 	/**
 	 * Adds a trigger to the schedule, which will be called (and removed)

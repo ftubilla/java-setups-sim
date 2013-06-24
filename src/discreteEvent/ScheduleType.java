@@ -13,9 +13,12 @@ public enum ScheduleType {
 	
 	// Note: the order of declaration here is important because it determines which
 	// type of event(s) get processed first if two or more events occur at the same time!
-	DEMAND(/*dumpable*/ false, /*delayable*/ false),
-	CONTROL(/*dumpable*/ true, /*delayable*/ false),
-	FAILURES(/*dumpable*/ false, /*delayable*/ true);
+				    //  dumpable?      delayable?    
+	DEMAND			(false,  			false),
+	PRODUCTION		(false, 			true),
+	CONTROL			(true, 				false),
+	FAILURES		(false, 		    true),
+	REPAIRS			(false,				false);
 
 	private final boolean dumpable;		//In a dumpable schedule, we can clear the queue of events at any time
 	private final boolean delayable;
@@ -36,13 +39,20 @@ public enum ScheduleType {
 		if (eventClass.equals(DemandArrival.class)){
 			return DEMAND;
 		} 
+		if (eventClass.equals(ProductionDeparture.class)){
+			return PRODUCTION;
+		}
 		if (eventClass.equals(ControlEvent.class) || eventClass.equals(Changeover.class)){
 			return CONTROL;
 		}
-		if (eventClass.equals(Failure.class) || eventClass.equals(Repair.class)){
+		if (eventClass.equals(Failure.class)){
 			return FAILURES;
-		} else {
-			throw new AssertionError("This event has not a schedule type defined!");
+		} 
+		if (eventClass.equals(Repair.class)){
+			return REPAIRS;
+		}
+		else {
+			throw new AssertionError("This event has no schedule type defined!");
 		}
 	}
 	

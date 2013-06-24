@@ -6,25 +6,33 @@
 
 package sim;
 
-import java.util.*;
+import java.util.List;
+
+import org.codehaus.jackson.annotate.JsonProperty;
 
 public class Params {
 
-	private int numItems;
-	private List<Double> demandRates;
-	private List<Double> productionRates;
-	private List<Double> setupTimes;
-	private List<Double> surplusTargets;
-	private double meanTimeToFail = 1.0;
-	private double meanTimeToRepair = 0.0;
-	private double finalTime;
-	private double metricsStartTime;
-
-
+	@JsonProperty private int numItems;
+	@JsonProperty private List<Double> demandRates;
+	@JsonProperty private List<Double> productionRates;
+	@JsonProperty private List<Double> setupTimes;
+	@JsonProperty private List<Double> surplusTargets;
+	@JsonProperty private double meanTimeToFail = 1.0;
+	@JsonProperty private double meanTimeToRepair = 0.0;
+	@JsonProperty private double finalTime;
+	@JsonProperty private double metricsStartTime;
+	@JsonProperty private long seedFailuresGenerator;
+	@JsonProperty private long seedRepairsGenerator;
 
 
 	private int initialSetup=0;
 	private List<Double> initialDemand;
+	
+	public Params(){
+		//Set up some defaults here
+		seedFailuresGenerator = System.currentTimeMillis();
+		seedRepairsGenerator = System.currentTimeMillis()+1;
+	}
 	
 	
 	public int getInitialSetup() {
@@ -73,6 +81,14 @@ public class Params {
 	
 	public double getMetricsStartTime() {
 		return metricsStartTime;
+	}
+
+	public long getSeedFailuresGenerator() {
+		return seedFailuresGenerator;
+	}
+
+	public long getSeedRepairsGenerator() {
+		return seedRepairsGenerator;
 	}
 	
 }

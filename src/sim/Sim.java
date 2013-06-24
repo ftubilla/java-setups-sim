@@ -3,9 +3,9 @@ package sim;
 import metrics.Metrics;
 import output.Recorders;
 import policies.IPolicy;
-import processes.demand.DeterministicBatchesDemandProcess;
 import processes.demand.IDemandProcess;
 import processes.generators.IRandomTimeIntervalGenerator;
+import processes.production.IProductionProcess;
 import system.Machine;
 import discreteEvent.Event;
 import discreteEvent.MasterScheduler;
@@ -15,6 +15,7 @@ public class Sim {
 	private Params params;
 	private MasterScheduler masterScheduler;
 	private IDemandProcess demandProcess;
+	private IProductionProcess productionProcess;
 	private IRandomTimeIntervalGenerator theFailuresGenerator;
 	private IRandomTimeIntervalGenerator theRepairsGenerator;
 	private Event latestEvent;
@@ -22,15 +23,15 @@ public class Sim {
 	private IPolicy policy;
 	private Metrics metrics;
 	private Recorders recorders;
-	private double time;
+	private double time = 0.0;
 
+	private static double staticTimeCopy = 0.0;
 	public static final double SURPLUS_TOLERANCE = 1e-6;
 	public static final boolean DEBUG = false;
 	public static boolean TIME_TO_START_RECORDING = false;
 	public static double METRICS_INITIAL_TIME = 0.0;
 
 	public Sim() {
-		this.time = 0.0;
 		this.masterScheduler = new MasterScheduler(this);
 	}
 
@@ -79,9 +80,11 @@ public class Sim {
 
 	public void setTime(double newTime) {
 		this.time = newTime;
+		staticTimeCopy = this.time;
 	}
 
 	public double getTime() {
+		//The current time can also be read statically (see static method below)
 		return this.time;
 	}
 
@@ -143,5 +146,18 @@ public class Sim {
 	
 	public void setDemandProcess(IDemandProcess demandProcess){
 		this.demandProcess=demandProcess;
+	}
+
+	public IProductionProcess getProductionProcess() {
+		return productionProcess;
+	}
+
+	public void setProductionProcess(IProductionProcess productionProcess) {
+		this.productionProcess = productionProcess;
+		this.machine.setProductionProcess(productionProcess);
+	}
+	
+	public static double time(){
+		return staticTimeCopy;
 	}
 }

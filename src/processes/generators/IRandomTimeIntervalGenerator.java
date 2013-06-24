@@ -12,4 +12,12 @@ public interface IRandomTimeIntervalGenerator {
 
 	public double nextTimeInterval();
 	
+	/**
+	 * Should be call at the set up portion of the sim to cycle the generators a few
+	 * times before using them.
+	 * 
+	 * @param cycles
+	 */
+	public void warmUp(int cycles);
+	
 }

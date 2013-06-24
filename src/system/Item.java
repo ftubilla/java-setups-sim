@@ -8,7 +8,9 @@ package system;
 
 import org.apache.log4j.Logger;
 
-import sim.*;
+import processes.demand.IDemandProcess;
+import sim.Params;
+import sim.Sim;
 
 /**
  * A part or product type that can be produced by the machine.
@@ -44,10 +46,9 @@ public class Item {
 		setupTime = params.getSetupTimes().get(id);
 		setCumulativeDemand(params.getInitialDemand().get(id));
 		surplusTarget = params.getSurplusTargets().get(id);
-		logger.debug("Created Item " + id + " with demand rate: "
-				+ demandRate + " production rate: " + productionRate
-				+ " setup time: " + setupTime + " surplus target: "
-				+ surplusTarget);
+		logger.debug("Created Item " + id + " with demand rate: " + demandRate
+				+ " production rate: " + productionRate + " setup time: "
+				+ setupTime + " surplus target: " + surplusTarget);
 	}
 
 	public String toString() {
@@ -93,9 +94,29 @@ public class Item {
 		return surplus >= surplusTarget - Sim.SURPLUS_TOLERANCE;
 	}
 
-	public double workToTarget() {
-		return Math.max(0, (surplusTarget - surplus)
+	/**
+	 * Returns the minimum work needed to reach the surplus target.
+	 * 
+	 * @return
+	 */
+	public double minPossibleWorkToTarget(IDemandProcess demandProcess) {
+		//TODO Change productionRate to producitonProcess.maxPossibleRate
+		double deviation = Math.max(0, cumulativeDemand - cumulativeProduction);
+		double work = deviation/(productionRate-demandProcess.minPossibleRate(this));
+		return work;
+	}	
+			
+	/**
+	 * Computes the  work needed to reach the current target,
+	 * for the underlying, deterministic fluid model.
+	 * @return
+	 */
+	public double fluidModelWorkToTarget(){
+		double workToTarget = Math.max(0, (surplusTarget - surplus)
 				/ (productionRate - demandRate));
+		logger.trace("Work to target: " + workToTarget + " current surplus: "
+				+ surplus);
+		return workToTarget;
 	}
 
 	public int getId() {

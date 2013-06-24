@@ -25,5 +25,12 @@ public class ExponentiallyDistributedRandomTimeIntervalGenerator implements
 	public double nextTimeInterval() {
 		return -mean * Math.log(1 - generator.nextDouble());
 	}
+	
+	@Override
+	public void warmUp(int cycles) {
+		for (int i=0; i<cycles; i++){
+			generator.nextInt();
+		}
+	}
 
 }

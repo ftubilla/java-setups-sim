@@ -21,7 +21,7 @@ public class ContinuousDemandProcess implements IDemandProcess {
 
 	private static Logger logger = Logger
 			.getLogger(ContinuousDemandProcess.class);
-	private double latestUpdateTime = 0.0;
+
 
 	@Override
 	public DemandArrival getNextDemandArrival(Item item, double currentTime) {
@@ -39,6 +39,8 @@ public class ContinuousDemandProcess implements IDemandProcess {
 		logger.debug("Initializing continuous demand process. Adding a BeforeEventListener to update the demand "
 				+ "at the beginning of each event.");
 		Event.addBeforeEventListener(new BeforeEventListener() {
+			
+			private double latestUpdateTime=0;
 			// This function will be executed before handling any event, so that
 			// it is guaranteed that we start the handling of the event with
 			// updated demand info.
@@ -55,6 +57,13 @@ public class ContinuousDemandProcess implements IDemandProcess {
 			}
 		});
 
+	}
+
+	@Override
+	public double minPossibleRate(Item item) {
+		// Since we have a deterministic process, the minimum rate is simply the
+		// actual demand rate.
+		return item.getDemandRate();
 	}
 
 }

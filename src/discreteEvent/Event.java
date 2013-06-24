@@ -28,9 +28,7 @@ import system.Machine.FailureState;
 public class Event implements Comparable<Event> {
 
 	private static Logger logger = Logger.getLogger(Event.class);
-	//TODO IF we want to move towards a parallelizable implementation, where multiple
-	// sim instances are running at the same time, we'll need to move all these static
-	// methods to the sim instance
+
 	private static List<BeforeEventListener> beforeEventListeners;
 
 	static {
@@ -84,9 +82,10 @@ public class Event implements Comparable<Event> {
 
 					switch (sim.getMachine().getOperationalState()) {
 					case SPRINT:
-						item.setCumulativeProduction(item
-								.getCumulativeProduction()
-								+ item.getProductionRate() * deltaTime);
+					//TODO Remove these commented lines and move the metrics to a listener.
+//						item.setCumulativeProduction(item
+//								.getCumulativeProduction()
+//								+ item.getProductionRate() * deltaTime);
 						// Update Metrics
 						sim.getMetrics()
 								.getTimeFractions()
@@ -95,9 +94,9 @@ public class Event implements Comparable<Event> {
 						break;
 
 					case CRUISE:
-						item.setCumulativeProduction(item
-								.getCumulativeProduction()
-								+ item.getDemandRate() * deltaTime);
+//						item.setCumulativeProduction(item
+//								.getCumulativeProduction()
+//								+ item.getDemandRate() * deltaTime);
 						// Update Metrics
 						sim.getMetrics()
 								.getTimeFractions()

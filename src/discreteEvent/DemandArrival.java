@@ -8,8 +8,8 @@ import system.Item;
 public class DemandArrival extends Event {
 
 	private static Logger logger = Logger.getLogger(DemandArrival.class);
-	private static int idCount = 0;
-
+	private static int count=0;
+	
 	private Item item;
 	private double demand;
 
@@ -25,8 +25,8 @@ public class DemandArrival extends Event {
 		super(time);
 		this.item = item;
 		this.demand = demand;
-		DemandArrival.idCount++;
-		logger.debug("Creating demand arrival " + DemandArrival.idCount
+		DemandArrival.count++;
+		logger.debug("Creating demand arrival " + this.getId()
 				+ " for Item " + item.getId() + " with qty " + demand);
 	}
 
@@ -38,6 +38,8 @@ public class DemandArrival extends Event {
 		// Generate next arrival
 		sim.getMasterScheduler().addEvent(
 				sim.getDemandProcess().getNextDemandArrival(item, sim.getTime()));
+		// Generate a control event
+		sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
 	}
 
 	public Item getItem() {
@@ -49,6 +51,6 @@ public class DemandArrival extends Event {
 	}
 
 	public static int getCount() {
-		return DemandArrival.idCount;
+		return DemandArrival.count;
 	}
 }

@@ -23,7 +23,8 @@ public class RoundRobinPolicy implements IPolicy {
 	public void updateControl(Sim sim) {
 
 		if (sim.getMachine().getFailureState() == FailureState.DOWN) {
-			// Flush the production schedule
+			// Flush the control schedule
+			// TODO Refactor the name of this method to dumpDumpableEvents or something more elegant
 			sim.getMasterScheduler().dumpEvents();
 		}
 
@@ -38,7 +39,7 @@ public class RoundRobinPolicy implements IPolicy {
 
 				} else {
 					double workRemaining = sim.getMachine().getSetup()
-							.workToTarget();
+							.minPossibleWorkToTarget(sim.getDemandProcess());
 					logger.debug("Sprint until the next control event after "
 							+ workRemaining);
 					sim.getMachine().setSprint();
@@ -59,7 +60,7 @@ public class RoundRobinPolicy implements IPolicy {
 	}
 
 	@Override
-	public void setup(Sim sim) {
+	public void setUp(Sim sim) {
 
 		machine = sim.getMachine();
 		itemsIterator = machine.iterator();

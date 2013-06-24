@@ -39,5 +39,12 @@ public class BinaryDistributedRandomTimeIntervalGenerator implements
 			return timeInterval2;
 		}
 	}
+	
+	@Override
+	public void warmUp(int cycles) {
+		for (int i=0; i<cycles; i++){
+			generator.nextInt();
+		}
+	}
 
 }

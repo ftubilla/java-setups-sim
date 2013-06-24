@@ -10,44 +10,50 @@ import java.io.File;
 
 import metrics.Metrics;
 
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import output.Recorders;
 import policies.RoundRobinPolicy;
-import processes.demand.DeterministicBatchesDemandProcess;
+import processes.demand.ContinuousDemandProcess;
 import processes.generators.ExponentiallyDistributedRandomTimeIntervalGenerator;
 import processes.generators.IRandomTimeIntervalGenerator;
+import processes.production.ContinuousProductionProcess;
 import system.Machine;
 
 public class SimSetup {
+
+	private static Logger logger = Logger.getLogger(SimSetup.class);
 
 	public static void setup(Sim sim) {
 
 		// Read data
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			Params params = mapper.readValue(new File("json/inputs.json"),
-					Params.class);
+			Params params = mapper.readValue(new File("json/inputs.json"), Params.class);
 			sim.setParams(params);
 		} catch (Exception e) {
-			System.err.println("Problem reading input json file!");
+			logger.fatal("Problem reading input json file!");
+			e.printStackTrace();
+			System.exit(-1);
 		}
+		
 
-		// TODO Send this to a different config file? that uses the MTTF and
-		// MTTR
 		// Set the Failures/Repairs Generator
+		long seedFailures = sim.getParams().getSeedFailuresGenerator();
 		// IRandomTimeIntervalGenerator failuresGenerator = new
-		// BinaryDistributedRandomTimeIntervalGenerator(1,4,0.5,6);
-		long seed1 = System.currentTimeMillis();
-		long seed2 = seed1 + 1;
-		IRandomTimeIntervalGenerator failuresGenerator = new ExponentiallyDistributedRandomTimeIntervalGenerator(
-				seed1, 5);
+		// BinaryDistributedRandomTimeIntervalGenerator(seedFailures,4,0.5,6);
+		IRandomTimeIntervalGenerator failuresGenerator = 
+				new ExponentiallyDistributedRandomTimeIntervalGenerator(seedFailures,sim.getParams().getMeanTimeToFail());
+		failuresGenerator.warmUp(100);
 		sim.setTheFailuresGenerator(failuresGenerator);
 
+		long seedRepairs = sim.getParams().getSeedRepairsGenerator();
 		// IRandomTimeIntervalGenerator repairsGenerator = new
-		// BinaryDistributedRandomTimeIntervalGenerator(1,1,1.0,0);
-		IRandomTimeIntervalGenerator repairsGenerator = new ExponentiallyDistributedRandomTimeIntervalGenerator(
-				seed2, 1);
+		// BinaryDistributedRandomTimeIntervalGenerator(seed,1,1.0,0);
+		IRandomTimeIntervalGenerator repairsGenerator = 
+				new ExponentiallyDistributedRandomTimeIntervalGenerator(seedRepairs,sim.getParams().getMeanTimeToRepair());
+		repairsGenerator.warmUp(100);
 		sim.setTheRepairsGenerator(repairsGenerator);
 
 		// Consistency checks
@@ -55,32 +61,38 @@ public class SimSetup {
 		// System has enough capacity
 		double rho = 0;
 		for (int i = 0; i < sim.getParams().getNumItems(); i++) {
-			rho += sim.getParams().getDemandRates().get(i)
-					/ sim.getParams().getProductionRates().get(i);
+			rho += sim.getParams().getDemandRates().get(i) / sim.getParams().getProductionRates().get(i);
 		}
 
 		double e = sim.getParams().getMeanTimeToFail()
-				/ (sim.getParams().getMeanTimeToFail() + sim.getParams()
-						.getMeanTimeToRepair());
+				/ (sim.getParams().getMeanTimeToFail() + sim.getParams().getMeanTimeToRepair());
 		if (rho >= e) {
 			System.err.println("Warning: rho >= e!");
 		}
 
 		// Summarize system props
-		System.out.println(sim);
+		logger.info(sim);
 
 		// Create the machine
-		sim.setMachine(new Machine(sim.getParams()));
-		
+		sim.setMachine(new Machine(sim.getParams(), sim.getMasterScheduler()));
+
 		// Set up the demand process
-		sim.setDemandProcess(new DeterministicBatchesDemandProcess());
+		// sim.setDemandProcess(new DeterministicBatchesDemandProcess());
+		sim.setDemandProcess(new ContinuousDemandProcess());
+
 		sim.getDemandProcess().init(sim);
+
+		// Set up the production process
+		sim.setProductionProcess(new ContinuousProductionProcess());
+		// sim.setProductionProcess(new DeterministicBatchesProductionProcess());
+
+		sim.getProductionProcess().init(sim);
 
 		// Load the policy
 		sim.setPolicy(new RoundRobinPolicy());
 
-		// Setup the policy
-		sim.getPolicy().setup(sim);
+		// Set up the policy
+		sim.getPolicy().setUp(sim);
 
 		// Initialize the metrics and recorders
 		sim.setMetrics(new Metrics(sim));
