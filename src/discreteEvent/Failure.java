@@ -15,9 +15,8 @@ public class Failure extends Event {
 	}
 
 	@Override
-	public void handle(Sim sim) {
+	public void mainHandle(Sim sim) {
 
-		super.handle(sim);
 		// Repair machine and delay the production schedule
 		double repairTime = sim.getTheRepairsGenerator().nextTimeInterval();
 		logger.debug("Processing failure event. Machine will be repaired after "

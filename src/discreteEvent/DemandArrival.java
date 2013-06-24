@@ -31,8 +31,8 @@ public class DemandArrival extends Event {
 	}
 
 	@Override
-	public void handle(Sim sim) {
-		super.handle(sim);
+	public void mainHandle(Sim sim) {
+
 		// Update cumulative demand
 		item.setCumulativeDemand(item.getCumulativeDemand() + demand);
 		// Generate next arrival

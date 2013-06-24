@@ -15,8 +15,8 @@ public class ControlEvent extends Event {
 	}
 	
 	@Override
-	public void handle(Sim sim){
-		super.handle(sim);
+	public void mainHandle(Sim sim){
+
 		logger.debug("Processing control event at time " + sim.getTime());
 		sim.getPolicy().updateControl(sim);
 		

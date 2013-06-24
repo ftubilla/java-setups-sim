@@ -21,8 +21,7 @@ public class Changeover extends Event {
 	}
 
 	@Override
-	public void handle(Sim sim) {
-		super.handle(sim);
+	public void mainHandle(Sim sim) {
 
 		// Set the changeover, delay upcoming failures/repairs, and call the
 		// policy when done

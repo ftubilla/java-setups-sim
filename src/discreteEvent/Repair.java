@@ -15,9 +15,8 @@ public class Repair extends Event {
 	}
 	
 	@Override
-	public void handle(Sim sim){
-		super.handle(sim);
-
+	public void mainHandle(Sim sim){
+		
 		//Generate the next failure
 		double nextTimeToFailure = sim.getTheFailuresGenerator().nextTimeInterval();
 		sim.getMasterScheduler().addEvent(new Failure(sim.getTime() + nextTimeToFailure));
