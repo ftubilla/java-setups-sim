@@ -45,7 +45,7 @@ public class ContinuousDemandProcess implements IDemandProcess {
 			// it is guaranteed that we start the handling of the event with
 			// updated demand info.
 			@Override
-			public void execute(Event event) {
+			public void execute(Event event, Sim sim) {
 				double deltaTime = event.getTime() - latestUpdateTime;
 				if (deltaTime > 0) {
 					for (Item item : sim.getMachine()) {

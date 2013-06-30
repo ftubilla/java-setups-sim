@@ -6,16 +6,21 @@
 
 package sim;
 
+import metrics.TimeFractionsMetrics;
+
 import org.apache.log4j.Logger;
 
-import metrics.*;
-import system.*;
-import discreteEvent.*;
-import output.*;
+import system.Item;
+import discreteEvent.ControlEvent;
+import discreteEvent.Event;
+import discreteEvent.Failure;
+import discreteEvent.Repair;
 
 public class SimRun {
 
 	private static Logger logger = Logger.getLogger(SimRun.class);
+		
+	private static ProgressBar bar;
 	
 	public static void run(Sim sim){
 		
@@ -23,27 +28,35 @@ public class SimRun {
 		Event firstFailure = new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval());
 		sim.getMasterScheduler().addEvent(firstFailure);
 		sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
-				
+		bar = new ProgressBar(5, sim.getParams().getFinalTime());
+		
 		// Main Loop of the Sim
 		while(sim.continueSim()){
 			
 			logger.trace("Sim time: " + sim.getTime());
-			if (sim.getTime()%1000 == 0){
-				logger.info("Sim time: " + sim.getTime());
-			}
+			bar.display(sim.getTime());			
 			
+			// Check if it's time to start recording data
+			if (!Sim.TIME_TO_START_RECORDING
+					&& sim.getTime() >= sim.getParams().getMetricsStartTime()) {
+				logger.debug("Time to start recording data. Sim time: "
+						+ sim.getTime());
+				Sim.METRICS_INITIAL_TIME = sim.getTime();
+				Sim.TIME_TO_START_RECORDING = true;
+			}
+								
 			//Process the next event
 			try {
 				sim.getNextEvent().handle(sim);
 			} catch (NullPointerException e){
 				logger.fatal("Event returned was null!");
+				e.printStackTrace();
 				System.exit(-1);
 			}
-			
-			//Record metrics
-			sim.getRecorders().getTimeMetricsRecorder().record(sim);
+
 		}
 		
+		bar.display(sim.getTime());
 		
 		sim.getRecorders().closeAll();
 		

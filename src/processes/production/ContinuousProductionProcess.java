@@ -44,7 +44,7 @@ public class ContinuousProductionProcess implements IProductionProcess {
 			 * state of the machine.
 			 */
 			@Override
-			public void execute(Event event) {
+			public void execute(Event event, Sim sim) {
 				if (sim.getMachine().getFailureState() == Machine.FailureState.UP) {
 					double deltaTime = event.getTime() - sim.getTime();
 					for (Item item : sim.getMachine()) {

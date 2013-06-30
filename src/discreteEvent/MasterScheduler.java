@@ -20,6 +20,8 @@ public class MasterScheduler {
 
 	private static Logger logger = Logger.getLogger(MasterScheduler.class);
 
+	
+	private boolean trace = logger.isTraceEnabled();
 	private Map<ScheduleType, Schedule> schedules;
 	private Queue<IScheduleTrigger> scheduleTriggers;
 
@@ -41,9 +43,10 @@ public class MasterScheduler {
 	 * 
 	 * @param Event to add
 	 */
-	public void addEvent(Event e) {
+	public void addEvent(Event e) {			
 		if (e != null) {
-			logger.debug("Adding event " + e.getId()
+			assert e.time >= Sim.time() : "Cannot add events that occur in the past!";
+			logger.trace("Adding event " + e
 					+ " to the master schedule");
 			schedules.get(ScheduleType.getType(e)).addEvent(e);
 
@@ -51,7 +54,7 @@ public class MasterScheduler {
 			// the current triggers
 			int currentTriggers = scheduleTriggers.size();
 			for (int i = 0; i < currentTriggers; i++) {
-				logger.debug("Calling trigger "
+				logger.trace("Calling trigger "
 						+ scheduleTriggers.peek().getId());
 				scheduleTriggers.poll().trigger(e);
 			}
@@ -78,8 +81,10 @@ public class MasterScheduler {
 				nextEventTime = schedules.get(st).nextEventTime();
 			}
 		}
-		logger.debug("Next event occuring is of schedule type " + nextType
+		if (trace) {
+			logger.trace("Next event occuring is of schedule type " + nextType
 				+ " and occurs at " + nextEventTime);
+		}
 		return (schedules.get(nextType).getNextEvent());
 	}
 
@@ -101,8 +106,10 @@ public class MasterScheduler {
 				nextEventTime = schedules.get(st).nextEventTime();
 			}
 		}
-		logger.debug("Next event occuring is of type " + nextType
+		if (trace) {
+			logger.trace("Next event occuring is of type " + nextType
 				+ " and occurs at " + nextEventTime);
+		}
 		return (schedules.get(nextType).nextEventTime());
 	}
 
@@ -138,6 +145,7 @@ public class MasterScheduler {
 	public void dumpEvents() {
 		for (ScheduleType st : ScheduleType.values()) {
 			if (st.isDumpable()) {
+				if (trace) {logger.trace("Dumping events on " + st);}
 				schedules.get(st).dumpEvents();
 			}
 		}
@@ -151,6 +159,7 @@ public class MasterScheduler {
 	public void delayEvents(double delay) {
 		for (ScheduleType st : ScheduleType.values()) {
 			if (st.isDelayable()) {
+				if (trace) {logger.trace("Delaying events on " + st);}
 				schedules.get(st).delayEvents(delay);
 			}
 		}
@@ -162,6 +171,7 @@ public class MasterScheduler {
 	public void holdDelayableEvents(){
 		for (ScheduleType st : ScheduleType.values()){
 			if (st.isDelayable()){
+				if (trace) {logger.trace("Holding events on " + st);}
 				schedules.get(st).holdEvents();
 			}
 		}
@@ -173,6 +183,7 @@ public class MasterScheduler {
 	public void releaseAndDelayEvents(){
 		for (ScheduleType st : ScheduleType.values()){
 			if (st.isDelayable() && schedules.get(st).isOnHold()){
+				if (trace) {logger.trace("Releasing events on " + st);}
 				schedules.get(st).releaseAndDelayEvents();
 			}
 		}
@@ -184,7 +195,7 @@ public class MasterScheduler {
 	 * whenever a new event is added.
 	 */
 	public void addTrigger(IScheduleTrigger scheduleTrigger) {
-		logger.debug("Adding trigger " + scheduleTrigger.getId());
+		logger.trace("Adding trigger " + scheduleTrigger.getId());
 		scheduleTriggers.add(scheduleTrigger);
 	}
 }

@@ -17,12 +17,13 @@ public class Repair extends Event {
 	@Override
 	public void mainHandle(Sim sim){
 		
+		sim.getMachine().repair();
+		sim.getPolicy().updateControl(sim);
+		
 		//Generate the next failure
 		double nextTimeToFailure = sim.getTheFailuresGenerator().nextTimeInterval();
 		sim.getMasterScheduler().addEvent(new Failure(sim.getTime() + nextTimeToFailure));
 		logger.debug("Finished repairing the machine. Next TTF is " + nextTimeToFailure);
-		sim.getMachine().repair();
-		sim.getPolicy().updateControl(sim);
 	}
 	
 	

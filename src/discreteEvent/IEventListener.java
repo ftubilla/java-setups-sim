@@ -1,5 +1,7 @@
 package discreteEvent;
 
+import sim.Sim;
+
 /**
  * An interface for closures that can be called before or after an event occurs.
  * Note: One shouldn't rely on the order of execution of different listeners
@@ -15,7 +17,7 @@ public interface IEventListener {
 	 * The method called when the event occurs. 
 	 * @param event that triggered the listener
 	 */
-	public void execute(Event event);
+	public void execute(Event event, Sim sim);
 
 	public int getId();
 }

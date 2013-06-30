@@ -1,5 +1,7 @@
 package sim;
 
+import org.apache.log4j.Logger;
+
 import metrics.Metrics;
 import output.Recorders;
 import policies.IPolicy;
@@ -12,6 +14,9 @@ import discreteEvent.MasterScheduler;
 
 public class Sim {
 
+	private static Logger logger = Logger.getLogger(Sim.class);
+	
+	private boolean trace = logger.isTraceEnabled();	
 	private Params params;
 	private MasterScheduler masterScheduler;
 	private IDemandProcess demandProcess;
@@ -79,6 +84,7 @@ public class Sim {
 	}
 
 	public void setTime(double newTime) {
+		if (trace) {logger.trace("Setting sim time to " + newTime);}
 		this.time = newTime;
 		staticTimeCopy = this.time;
 	}

@@ -27,10 +27,13 @@ public class Schedule {
 
 	private static Logger logger = Logger.getLogger(Schedule.class);
 
+	private boolean trace = logger.isTraceEnabled();
 	private Queue<Event> eventQueue;
 	private ScheduleType type;
 	private boolean isOnHold;
 	private Double onHoldSince;
+	private double lastEventTime=0;
+	private double lastInterEventTime;
 
 
 	public Schedule(ScheduleType type) {
@@ -43,26 +46,33 @@ public class Schedule {
 	}
 
 	public void addEvent(Event e) {
-		logger.debug("Adding event " + e.getClass().getSimpleName() + " "
-				+ e.getId() + " to schedule " + type);
+		assert !isOnHold : "Cannot add events to a schedule that is on hold!";
+		if (trace){logger.trace("Adding " + e + " to " + this);}
 		this.eventQueue.add(e);
 	}
 
 	public Event getNextEvent() {
 		if (!isOnHold){
-			return this.eventQueue.poll();
+			Event returnEvent = eventQueue.poll();
+			if (trace){logger.trace("Returning " + returnEvent + " from " + this);}
+			lastInterEventTime = returnEvent.time - lastEventTime;
+			lastEventTime = returnEvent.time;			
+			return returnEvent;
 		} else {
+			if (trace){logger.trace(this + " is on hold. Returning next event null");}
 			return null;
 		}
 	}
 
 	public double nextEventTime() {
-		if (eventQueue.isEmpty() || isOnHold){
-			logger.trace("Next event time is infinity for Schedule " + this.getType());
-			return Double.MAX_VALUE;
+		double nextTime;
+		if (eventQueue.isEmpty() || isOnHold){			
+			nextTime = Double.MAX_VALUE;
 		} else {
-		return this.eventQueue.peek().getTime();
+			nextTime = eventQueue.peek().getTime();
 		}
+		if (trace) {logger.trace("Next event time is " + nextTime + " for " + this);}
+		return nextTime;
 	}
 
 	public boolean eventsComplete() {
@@ -70,10 +80,10 @@ public class Schedule {
 	}
 
 	public void delayEvents(double delay) {
-		assert type.isDelayable() : "Cannot delay this type of schedule!";
+		assert type.isDelayable() : "Cannot delay " + this;
 		assert !isOnHold : "Cannot delay a schedule that is currently on hold!";
 		delayEventsRecursive(delay);
-		logger.debug("Delayed all events in schedule " + type + " by "
+		logger.debug("Delayed all events in " + this + " by "
 				+ delay);
 	}
 		
@@ -96,7 +106,7 @@ public class Schedule {
 	public void holdEvents(){
 		assert type.isDelayable() : "Cannot hold a nondelayable schedule!";
 		assert !isOnHold : "Schedule is already on hold!";
-		logger.debug("Putting schedule " + type + " on hold");
+		logger.debug("Putting " + this + " on hold");
 		isOnHold = true;
 		onHoldSince = Sim.time();
 	}
@@ -106,16 +116,16 @@ public class Schedule {
 	 * of time that they were on hold.
 	 */
 	public void releaseAndDelayEvents(){
-		assert !isOnHold : "Cannot release a schedule that is not on hold!";
-		logger.debug("Releasing schedule " + type + " and delaying its events");
-		delayEvents(Sim.time() - onHoldSince);
+		assert isOnHold : "Cannot release a schedule that is not on hold!";
+		logger.debug("Releasing " + this + " and delaying its events");
 		isOnHold = false;
+		delayEvents(Sim.time() - onHoldSince);
 		onHoldSince = null;
 	}
 	
 	public void dumpEvents() {
 		assert type.isDumpable() : "Cannot dump this type of schedule!";
-		logger.debug("Dumping all events in schedule " + type);
+		logger.debug("Dumping all events in " + this);
 		eventQueue.clear();
 	}
 
@@ -126,4 +136,19 @@ public class Schedule {
 	public boolean isOnHold(){
 		return isOnHold;
 	}
+	
+	/**
+	 * Returns the last interarrival time between two consecutive events in the same
+	 * schedule.
+	 * @return
+	 */
+	public double getLastInterEventTime(){
+		return lastInterEventTime;
+	}
+	
+	@Override
+	public String toString(){
+		return "Schedule:" + type; 
+	}
+	
 }
