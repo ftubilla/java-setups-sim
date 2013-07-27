@@ -39,6 +39,7 @@ public class Item {
 	private double inventory;
 	private double backlog;
 
+	
 	public Item(int id, Params params) {
 		this.id = id;
 		demandRate = params.getDemandRates().get(id);
@@ -49,6 +50,7 @@ public class Item {
 		logger.debug("Created Item " + id + " with demand rate: " + demandRate
 				+ " production rate: " + productionRate + " setup time: "
 				+ setupTime + " surplus target: " + surplusTarget);
+		
 	}
 
 	public String toString() {
@@ -129,6 +131,10 @@ public class Item {
 
 	public double getSurplusDeviation() {
 		return surplusTarget - surplus;
+	}
+	
+	public double getSurplusTarget() {
+		return surplusTarget;
 	}
 
 	public double getInventory() {

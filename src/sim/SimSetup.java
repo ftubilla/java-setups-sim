@@ -15,13 +15,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import output.Recorders;
 import policies.IPolicy;
-import policies.PolicyParams;
-import processes.demand.DemandProcessParams;
 import processes.demand.IDemandProcess;
 import processes.generators.ExponentiallyDistributedRandomTimeIntervalGenerator;
 import processes.generators.IRandomTimeIntervalGenerator;
 import processes.production.IProductionProcess;
-import processes.production.ProductionProcessParams;
 import system.Machine;
 
 public class SimSetup {
@@ -76,19 +73,22 @@ public class SimSetup {
 		// Summarize system props
 		logger.info(sim);
 
+
 		// Create the machine
 		sim.setMachine(new Machine(sim.getParams(), sim.getMasterScheduler()));
-
+		
 		// Set up the demand process
 		sim.setDemandProcess(ClassLoader.load("processes.demand", sim.getParams().getDemandProcessParams().getName(), 
 				IDemandProcess.class));
 		sim.getDemandProcess().init(sim);
-
+		
 		// Set up the production process
 		sim.setProductionProcess(ClassLoader.load("processes.production", sim.getParams().getProductionProcessParams().getName(), 
 				IProductionProcess.class));
 		sim.getProductionProcess().init(sim);
 
+	
+		
 		// Load the policy
 		sim.setPolicy(ClassLoader.load("policies", sim.getParams().getPolicyParams().getName(), IPolicy.class));
 		sim.getPolicy().setUp(sim);

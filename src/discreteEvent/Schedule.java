@@ -83,8 +83,7 @@ public class Schedule {
 		assert type.isDelayable() : "Cannot delay " + this;
 		assert !isOnHold : "Cannot delay a schedule that is currently on hold!";
 		delayEventsRecursive(delay);
-		logger.debug("Delayed all events in " + this + " by "
-				+ delay);
+		logger.debug("Delayed all events in " + this + " by " + delay);
 	}
 		
 	private void delayEventsRecursive(double delay){

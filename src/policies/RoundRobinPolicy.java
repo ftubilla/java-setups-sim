@@ -6,63 +6,31 @@ import org.apache.log4j.Logger;
 
 import sim.Sim;
 import system.Item;
-import system.Machine;
-import system.Machine.FailureState;
-import system.Machine.OperationalState;
-import discreteEvent.Changeover;
-import discreteEvent.ControlEvent;
 
-public class RoundRobinPolicy implements IPolicy {
+public class RoundRobinPolicy extends AbstractPolicy {
 
 	private static Logger logger = Logger.getLogger(RoundRobinPolicy.class);
 
 	private Iterator<Item> itemsIterator;
-	private Machine machine;
 
+	
 	@Override
-	public void updateControl(Sim sim) {
-
-		if (sim.getMachine().getFailureState() == FailureState.DOWN) {
-			// Flush the control schedule
-			// TODO Refactor the name of this method to dumpDumpableEvents or something more elegant
-			sim.getMasterScheduler().dumpEvents();
+	public void machineReady(){
+		
+		if (machine.getSetup().onOrAboveTarget()) {			
+			startChangeover(nextItem());		
+		} else {
+			double workRemaining = machine.getSetup().minPossibleWorkToTarget(demandProcess);
+			machine.setSprint();
+			updateControlAfter(workRemaining);
 		}
-
-		if (sim.getMachine().getFailureState() == FailureState.UP) {
-
-			if (sim.getMachine().getOperationalState() != OperationalState.SETUP) {
-				if (sim.getMachine().getSetup().onOrAboveTarget()) {
-
-					logger.debug("Scheduling a changeover to a new item");
-					sim.getMasterScheduler().addEvent(
-							new Changeover(sim.getTime(), nextItem()));
-
-				} else {
-					double workRemaining = sim.getMachine().getSetup()
-							.minPossibleWorkToTarget(sim.getDemandProcess());
-					logger.debug("Sprint until the next control event after "
-							+ workRemaining);
-					sim.getMachine().setSprint();
-					sim.getMasterScheduler().addEvent(
-							new ControlEvent(sim.getTime() + workRemaining));
-				}
-			} else if (sim.getMachine().getOperationalState() == OperationalState.SETUP) {
-				logger.debug("The machine is ready to start producing new item."
-						+ " Next control event will determine how much work to do");
-				sim.getMachine().setSprint();
-				sim.getMasterScheduler().addEvent(
-						new ControlEvent(sim.getTime()));
-			}
-
-		}
-
-		return;
+		
 	}
 
+	
 	@Override
 	public void setUp(Sim sim) {
-
-		machine = sim.getMachine();
+		super.setUp(sim);
 		itemsIterator = machine.iterator();
 		// Set the iterator to point towards the initial setup
 		while (itemsIterator.hasNext()) {

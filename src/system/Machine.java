@@ -24,6 +24,9 @@ import discreteEvent.ScheduleType;
 public class Machine implements Iterable<Item> {
 	
 	private static Logger logger = Logger.getLogger(Machine.class);
+	
+	public boolean trace = logger.isTraceEnabled();
+	
 	public static enum FailureState {UP, DOWN};
 	public static enum OperationalState {SPRINT, CRUISE, SETUP, IDLE};
 	
@@ -34,6 +37,7 @@ public class Machine implements Iterable<Item> {
 	private FailureState failureState;
 	private MasterScheduler masterScheduler;
 	private IProductionProcess productionProcess;
+	private double changingOverUntil;
 	
 	
 	public Machine(Params params, MasterScheduler masterScheduler){
@@ -83,6 +87,7 @@ public class Machine implements Iterable<Item> {
 	}
 	
 	public void breakDown() {
+		assert isSetupComplete() : "The machine cannot fail while it is changing setups!";
 		logger.debug("Setting the machine to FailureState DOWN");
 		this.failureState = FailureState.DOWN;
 		interruptProduction();
@@ -94,15 +99,27 @@ public class Machine implements Iterable<Item> {
 		resumeProduction();
 	}
 	
-	public void changeSetup(Item newSetup){
-		logger.debug("Changing setup of the machine from " + setup + " to " + newSetup);
+	public void startChangeover(Item newSetup){
+		logger.debug("Starting setup change from " + setup + " to " + newSetup);
 		assert operationalState != OperationalState.SETUP : "The machine is already changing setups";	
 		assert failureState != FailureState.DOWN : "The machine cannot change setups while it's down";
-		this.setup = newSetup;
-		this.operationalState = OperationalState.SETUP;
+		changingOverUntil = newSetup.getSetupTime() + Sim.time();
+		setup = newSetup;
+		operationalState = OperationalState.SETUP;
 	}
 	
+	public boolean isSetupComplete() {
+		if(this.operationalState == OperationalState.SETUP) {
+			if (trace){logger.trace("It is currently " + Sim.time() + " and the machine will be changing over until "
+					+ changingOverUntil);}
+			return Sim.time() >= changingOverUntil;
+		} else {
+			return true;
+		}
+	}
+		
 	public void setIdle(){
+		assert isSetupComplete() : "Cannot change state of the machine until the setup is complete";
 		if (!isIdling()){
 			logger.debug("The machine is set to IDLE");
 			this.operationalState = OperationalState.IDLE;
@@ -111,6 +128,7 @@ public class Machine implements Iterable<Item> {
 	}
 	
 	public void setCruise(){
+		assert isSetupComplete() : "Cannot change state of the machine until the setup is complete";
 		if (!isCruising()){
 			assert failureState != FailureState.DOWN : "The machine cannot cruise if it's down";
 			logger.debug("The machine is set to CRUISE");
@@ -122,6 +140,7 @@ public class Machine implements Iterable<Item> {
 	}
 	
 	public void setSprint(){
+		assert isSetupComplete() : "Cannot change state of the machine until the setup is complete";
 		if (!isSprinting()) {
 			assert failureState != FailureState.DOWN : "The machine cannot sprint if it's down";
 			logger.debug("The machine is set to SPRINT");
@@ -146,10 +165,17 @@ public class Machine implements Iterable<Item> {
 	public void setProductionProcess(IProductionProcess productionProcess){
 		this.productionProcess = productionProcess;
 	}
-		
+	
+	public MachineSnapshot getSnapshot(){
+		return new MachineSnapshot(this);
+	}
+	
 	public boolean isIdling(){return operationalState==OperationalState.IDLE;}
 	public boolean isCruising(){return operationalState==OperationalState.CRUISE;}
 	public boolean isSprinting(){return operationalState==OperationalState.SPRINT;}
+	public boolean isDown() {return failureState == FailureState.DOWN;}
+	public boolean isUp() {return failureState == FailureState.UP;}
+	public boolean isChangingSetups() {return operationalState == OperationalState.SETUP;}
 	
 	private void resumeProduction(){
 		logger.trace("Resuming production of machine");
@@ -164,5 +190,10 @@ public class Machine implements Iterable<Item> {
 		logger.trace("Interrupting production");
 		masterScheduler.holdDelayableEvents();
 	}
+
+	public double getNextSetupCompleteTime() {
+		return changingOverUntil;
+	}
+
 	
 }

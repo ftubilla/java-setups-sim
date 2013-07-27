@@ -74,6 +74,9 @@ public class SimRun {
 					(sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item) + 
 					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.REPAIR).get(item)));
 			
+			System.out.println("Average Surplus deviation: " +
+					sim.getMetrics().getAverageSurplusMetrics().getAverageSurplusDeviation(item));
+			
 			System.out.println("---------------------------");
 		}
 

@@ -9,6 +9,8 @@ public class Changeover extends Event {
 
 	private static int idCount = 0;
 	private static Logger logger = Logger.getLogger(Changeover.class);
+	
+	private boolean trace = logger.isTraceEnabled();
 
 	private Item changeTo;
 
@@ -27,11 +29,12 @@ public class Changeover extends Event {
 		// policy when done
 		double changeoverTime = sim.getParams().getSetupTimes()
 				.get(changeTo.getId());
-		logger.debug("Changing the machine's setup to Item " + changeTo.getId()
-				+ " with a changeover time " + changeoverTime);
-		sim.getMachine().changeSetup(changeTo);
-		logger.debug("Delaying all failure events by " + changeoverTime);
+		if (trace) {logger.trace("Changing the machine's setup to Item " + changeTo.getId()
+				+ " with a changeover time " + changeoverTime);}
+		sim.getMachine().startChangeover(changeTo);
+		if (trace){logger.debug("Delaying all failure events by " + changeoverTime);}
 		sim.getMasterScheduler().delayEvents(changeoverTime);
+		if (trace) {logger.trace("Scheduling a new control event for time " + sim.getTime() + changeoverTime);}
 		sim.getMasterScheduler().addEvent(
 				new ControlEvent(sim.getTime() + changeoverTime));
 
