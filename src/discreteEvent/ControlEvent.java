@@ -17,8 +17,10 @@ public class ControlEvent extends Event {
 	@Override
 	public void mainHandle(Sim sim){
 
-		logger.debug("Processing control event at time " + sim.getTime());
-		sim.getPolicy().updateControl(sim);
+		//Because any other scheduled Control Event will be redundant after handling this one, we clear the queue
+		sim.getMasterScheduler().dumpEvents();
+		logger.debug("Processing " + this);
+		sim.getPolicy().updateControl(sim);				
 		
 	}
 	

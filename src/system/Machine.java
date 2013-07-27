@@ -95,9 +95,9 @@ public class Machine implements Iterable<Item> {
 	}
 	
 	public void changeSetup(Item newSetup){
-		assert operationalState != OperationalState.SETUP : "The machine is already changing setups";
-		assert failureState != FailureState.DOWN : "The machine cannot change setups while it's down";
 		logger.debug("Changing setup of the machine from " + setup + " to " + newSetup);
+		assert operationalState != OperationalState.SETUP : "The machine is already changing setups";	
+		assert failureState != FailureState.DOWN : "The machine cannot change setups while it's down";
 		this.setup = newSetup;
 		this.operationalState = OperationalState.SETUP;
 	}

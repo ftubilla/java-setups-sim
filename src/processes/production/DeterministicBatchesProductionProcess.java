@@ -2,18 +2,15 @@ package processes.production;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import sim.Sim;
 import system.Item;
-import system.Machine;
-import system.Machine.OperationalState;
 import discreteEvent.MasterScheduler;
 import discreteEvent.ProductionDeparture;
 
 public class DeterministicBatchesProductionProcess implements IProductionProcess {
 
-	private Map<Item, Double> batchSizes;
+	private Map<Item, Integer> batchSizes;
 	private Map<Item, Double> interDepartureTimes;
 	private MasterScheduler masterScheduler;
 
@@ -25,12 +22,11 @@ public class DeterministicBatchesProductionProcess implements IProductionProcess
 	@Override
 	public void init(Sim sim) {
 
-		batchSizes = new HashMap<Item, Double>(sim.getMachine().getNumItems());
+		batchSizes = new HashMap<Item, Integer>(sim.getMachine().getNumItems());
 		interDepartureTimes = new HashMap<Item, Double>(sim.getMachine().getNumItems());
 		masterScheduler = sim.getMasterScheduler();
-		Random generator = new Random();
 		for (Item item : sim.getMachine()) {
-			batchSizes.put(item, 4.0/* generator.nextDouble() */);
+			batchSizes.put(item,sim.getParams().getProductionProcessParams().getProductionBatchSize());
 			interDepartureTimes.put(item, batchSizes.get(item) / item.getProductionRate());
 		}
 		//Add the first production

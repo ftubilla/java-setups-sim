@@ -2,7 +2,6 @@ package processes.demand;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import sim.Sim;
 import system.Item;
@@ -10,7 +9,7 @@ import discreteEvent.DemandArrival;
 
 public class DeterministicBatchesDemandProcess implements IDemandProcess {
 
-	private Map<Item, Double> batchSizes;
+	private Map<Item, Integer> batchSizes;
 	private Map<Item, Double> interArrivalTimes;
 
 	@Override
@@ -22,12 +21,13 @@ public class DeterministicBatchesDemandProcess implements IDemandProcess {
 	@Override
 	public void init(Sim sim) {
 
-		batchSizes = new HashMap<Item, Double>(sim.getMachine().getNumItems());
+		batchSizes = new HashMap<Item, Integer>(sim.getMachine().getNumItems());
 		interArrivalTimes = new HashMap<Item, Double>(sim.getMachine()
 				.getNumItems());
-		Random generator = new Random();
+
+		int batchSize = sim.getParams().getDemandProcessParams().getDemandBatchSize();
 		for (Item item : sim.getMachine()) {
-			batchSizes.put(item, 10.0/* generator.nextDouble() */);
+			batchSizes.put(item, batchSize);
 			interArrivalTimes.put(item,
 					batchSizes.get(item) / item.getDemandRate());
 			sim.getMasterScheduler()
@@ -36,7 +36,6 @@ public class DeterministicBatchesDemandProcess implements IDemandProcess {
 									+ interArrivalTimes.get(item), batchSizes
 									.get(item)));
 		}
-
 	}
 
 	@Override

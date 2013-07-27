@@ -42,7 +42,7 @@ public abstract class Event implements Comparable<Event> {
 		this.time = time;
 		this.id = idCount;
 		Event.idCount++;
-		logger.trace("Created new event " + this.getClass() + " " + id + " for time " + time);
+		logger.trace("Created " + this);
 	}
 
 	public int compareTo(Event otherEvent) {

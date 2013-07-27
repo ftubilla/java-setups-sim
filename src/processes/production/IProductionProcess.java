@@ -2,7 +2,6 @@ package processes.production;
 
 import sim.Sim;
 import system.Item;
-import system.Machine;
 import discreteEvent.ProductionDeparture;
 
 /**
@@ -11,7 +10,7 @@ import discreteEvent.ProductionDeparture;
  *
  */
 public interface IProductionProcess {
-
+	
 	public ProductionDeparture getNextProductionDeparture(Item item, double currentTime);
 	
 	public void init(Sim sim);

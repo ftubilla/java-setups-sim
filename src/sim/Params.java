@@ -10,6 +10,10 @@ import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import policies.PolicyParams;
+import processes.demand.DemandProcessParams;
+import processes.production.ProductionProcessParams;
+
 public class Params {
 
 	@JsonProperty private int numItems;
@@ -23,6 +27,9 @@ public class Params {
 	@JsonProperty private double metricsStartTime;
 	@JsonProperty private long seedFailuresGenerator;
 	@JsonProperty private long seedRepairsGenerator;
+	@JsonProperty private DemandProcessParams demandProcessParams;
+	@JsonProperty private ProductionProcessParams productionProcessParams;
+	@JsonProperty private PolicyParams policyParams;
 
 
 	private int initialSetup=0;
@@ -89,6 +96,18 @@ public class Params {
 
 	public long getSeedRepairsGenerator() {
 		return seedRepairsGenerator;
+	}
+	
+	public DemandProcessParams getDemandProcessParams(){
+		return demandProcessParams;
+	}
+	
+	public ProductionProcessParams getProductionProcessParams(){
+		return productionProcessParams;
+	}
+	
+	public PolicyParams getPolicyParams(){
+		return policyParams;
 	}
 	
 }
