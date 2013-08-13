@@ -13,24 +13,20 @@ public class RoundRobinPolicy extends AbstractPolicy {
 
 	private Iterator<Item> itemsIterator;
 
-	
 	@Override
-	public void machineReady(){
-		
-		if (machine.getSetup().onOrAboveTarget()) {			
-			startChangeover(nextItem());		
-		} else {
-			double workRemaining = machine.getSetup().minPossibleWorkToTarget(demandProcess);
-			machine.setSprint();
-			updateControlAfter(workRemaining);
-		}
-		
+	protected boolean isTimeToChangeOver() {
+		return machine.getSetup().onOrAboveTarget();
 	}
-
 	
 	@Override
-	public void setUp(Sim sim) {
-		super.setUp(sim);
+	protected double doUntilNextUpdate() {
+		machine.setSprint();
+		return machine.getSetup().minPossibleWorkToTarget(demandProcess);
+	}
+	
+	@Override
+	public void setUpPolicy(Sim sim) {
+		super.setUpPolicy(sim);
 		itemsIterator = machine.iterator();
 		// Set the iterator to point towards the initial setup
 		while (itemsIterator.hasNext()) {
@@ -43,11 +39,12 @@ public class RoundRobinPolicy extends AbstractPolicy {
 		}
 	}
 
-	private Item nextItem() {
+	protected Item nextItem() {
 		if (!itemsIterator.hasNext()) {
 			itemsIterator = machine.iterator();
 		}
 		return itemsIterator.next();
 	}
+
 
 }

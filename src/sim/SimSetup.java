@@ -86,12 +86,10 @@ public class SimSetup {
 		sim.setProductionProcess(ClassLoader.load("processes.production", sim.getParams().getProductionProcessParams().getName(), 
 				IProductionProcess.class));
 		sim.getProductionProcess().init(sim);
-
-	
-		
+			
 		// Load the policy
 		sim.setPolicy(ClassLoader.load("policies", sim.getParams().getPolicyParams().getName(), IPolicy.class));
-		sim.getPolicy().setUp(sim);
+		sim.getPolicy().setUpPolicy(sim);
 
 		// Initialize the metrics and recorders
 		sim.setMetrics(new Metrics(sim));

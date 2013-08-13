@@ -77,6 +77,12 @@ public class SimRun {
 			System.out.println("Average Surplus deviation: " +
 					sim.getMetrics().getAverageSurplusMetrics().getAverageSurplusDeviation(item));
 			
+			System.out.println("Average Inventory: " + 
+					sim.getMetrics().getAverageSurplusMetrics().getAverageInventory(item));
+			
+			System.out.println("Average backlog: " + 
+					sim.getMetrics().getAverageSurplusMetrics().getAverageBacklog(item));
+			
 			System.out.println("---------------------------");
 		}
 

@@ -1,10 +1,11 @@
-package policies;
+package policies.hzp;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import policies.AbstractPolicy;
 import system.Item;
 
 public class HedgingZonePolicy extends AbstractPolicy {
@@ -13,19 +14,16 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	@SuppressWarnings("unused")
 	private boolean debug = logger.isDebugEnabled();
 	private boolean trace = logger.isTraceEnabled();
-
-		
+	
 	@Override
-	protected void machineReady() {
-		
-		if (machine.getSetup().onOrAboveTarget()) {
-			startChangeover(nextItem());
-		} else {
-			double workRemaining = machine.getSetup().minPossibleWorkToTarget(demandProcess);
-			machine.setSprint();
-			updateControlAfter(workRemaining);
-		}
-		
+	protected boolean isTimeToChangeOver() {
+		return machine.getSetup().onOrAboveTarget();
+	}
+	
+	@Override
+	protected double doUntilNextUpdate() {		
+		machine.setSprint();
+		return machine.getSetup().minPossibleWorkToTarget(demandProcess);
 	}
 	
 //	private boolean isInTheHedgingZone(){
@@ -37,7 +35,8 @@ public class HedgingZonePolicy extends AbstractPolicy {
 //		return true;
 //	}
 	
-	private Item nextItem() {
+	@Override
+	protected Item nextItem() {
 		
 		Set<Item> readyItems = new HashSet<Item>();
 		double maxRatio = -1;

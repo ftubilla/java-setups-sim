@@ -87,7 +87,7 @@ public class UnstableCCPolicyN3 implements IPolicy {
 	}
 
 	@Override
-	public void setUp(Sim sim) {
+	public void setUpPolicy(Sim sim) {
 		// TODO Auto-generated method stub
 		assert sim.getParams().getNumItems() == 3;		
 	}

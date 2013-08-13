@@ -14,6 +14,7 @@ public class MachineSnapshot {
 	private boolean debug = logger.isDebugEnabled();
 	private boolean trace = logger.isTraceEnabled();
 	
+	private Map<Item,Double> surplus;
 	private Map<Item,Double> surplusDeviations;
 	private double snapshotTime;
 	
@@ -23,9 +24,11 @@ public class MachineSnapshot {
 			logger.trace("Creating snapshot of the machine at time " + Sim.time());
 		}
 		snapshotTime = Sim.time();
+		surplus = new LinkedHashMap<Item,Double>();
 		surplusDeviations = new LinkedHashMap<Item,Double>();
 		for (Item item : machine){
-			surplusDeviations.put(item, item.getSurplusDeviation());
+			surplus.put(item, item.getSurplus());
+			surplusDeviations.put(item, item.getSurplusDeviation());			
 		}		
 	}
 	
@@ -36,7 +39,10 @@ public class MachineSnapshot {
 	public double getSnapshotTime(){
 		return snapshotTime;
 	}
-	
+
+	public double getSurplus(Item item){
+		return surplus.get(item);
+	}
 	
 }
 

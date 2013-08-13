@@ -21,6 +21,8 @@ public class Params {
 	@JsonProperty private List<Double> productionRates;
 	@JsonProperty private List<Double> setupTimes;
 	@JsonProperty private List<Double> surplusTargets;
+	@JsonProperty private List<Double> inventoryHoldingCosts;
+	@JsonProperty private List<Double> backlogCosts;
 	@JsonProperty private double meanTimeToFail = 1.0;
 	@JsonProperty private double meanTimeToRepair = 0.0;
 	@JsonProperty private double finalTime;
@@ -108,6 +110,16 @@ public class Params {
 	
 	public PolicyParams getPolicyParams(){
 		return policyParams;
+	}
+
+
+	public List<Double> getInventoryHoldingCosts() {
+		return inventoryHoldingCosts;
+	}
+
+
+	public List<Double> getBacklogCosts() {
+		return backlogCosts;
 	}
 	
 }

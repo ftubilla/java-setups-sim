@@ -26,7 +26,6 @@ public class Item {
 	private double demandRate;
 	private double productionRate;
 	private double setupTime;
-	private double deviationCostRate;
 	private double inventoryCostRate;
 	private double backlogCostRate;
 	private double surplusTarget;
@@ -47,9 +46,12 @@ public class Item {
 		setupTime = params.getSetupTimes().get(id);
 		setCumulativeDemand(params.getInitialDemand().get(id));
 		surplusTarget = params.getSurplusTargets().get(id);
+		inventoryCostRate = params.getInventoryHoldingCosts().get(id);
+		backlogCostRate = params.getBacklogCosts().get(id);
 		logger.debug("Created Item " + id + " with demand rate: " + demandRate
 				+ " production rate: " + productionRate + " setup time: "
-				+ setupTime + " surplus target: " + surplusTarget);
+				+ setupTime + " surplus target: " + surplusTarget + " cost rates: inventory " + inventoryCostRate + 
+				" backlog " + backlogCostRate);
 		
 	}
 
@@ -103,8 +105,8 @@ public class Item {
 	 */
 	public double minPossibleWorkToTarget(IDemandProcess demandProcess) {
 		//TODO Change productionRate to producitonProcess.maxPossibleRate
-		double deviation = Math.max(0, cumulativeDemand - cumulativeProduction);
-		double work = deviation/(productionRate-demandProcess.minPossibleRate(this));
+		double positiveDeviation = Math.max(0, surplusTarget - surplus);
+		double work = positiveDeviation/(productionRate-demandProcess.minPossibleRate(this));
 		return work;
 	}	
 			
@@ -151,10 +153,6 @@ public class Item {
 
 	public double getProductionTime() {
 		return productionRate;
-	}
-
-	public double getDeviationCostRate() {
-		return deviationCostRate;
 	}
 
 	public double getInventoryCostRate() {
