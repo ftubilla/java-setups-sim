@@ -20,16 +20,26 @@ public class PolicyParams implements IParams{
 	
 	@JsonProperty private String name;
 	@JsonProperty private List<Double> lowerHedgingPoints;
-
+	
+	//Hedging Zone Policy Params
+	@JsonProperty private String priorityComparator="hzp.CMuComparatorWithTiesById";
+	@JsonProperty private boolean shouldCruise=false;
 	
 	public String getName(){
 		return this.name;
 	}
 	
-	public double getHedgingThreshold(Item item){
+	public double getHedgingThresholdDifference(Item item){
 		return item.getSurplusTarget()-lowerHedgingPoints.get(item.getId());
 	}
 	
+	public String getPriorityComparator(){
+		return priorityComparator;
+	}
+	
+	public boolean shouldCruise(){
+		return shouldCruise;
+	}
 	
 }
 

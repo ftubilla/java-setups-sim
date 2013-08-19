@@ -129,13 +129,11 @@ public class Machine implements Iterable<Item> {
 	
 	public void setCruise(){
 		assert isSetupComplete() : "Cannot change state of the machine until the setup is complete";
+		assert !productionProcess.isDiscrete() : "Cruising is currently NOT implemented on discrete production processes";
 		if (!isCruising()){
 			assert failureState != FailureState.DOWN : "The machine cannot cruise if it's down";
 			logger.debug("The machine is set to CRUISE");
 			this.operationalState = OperationalState.CRUISE;
-			//Note that cruising is in fact idling in a discrete production model and in a
-			//continuous material model this "interruption" has no effect
-			interruptProduction();
 		}
 	}
 	

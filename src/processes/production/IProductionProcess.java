@@ -16,5 +16,7 @@ public interface IProductionProcess {
 	public void init(Sim sim);
 	
 	public double maxPossibleRate(Item item);
+	
+	public boolean isDiscrete();
 
 }

@@ -40,4 +40,9 @@ public class DeterministicBatchesProductionProcess implements IProductionProcess
 		return Double.MAX_VALUE;
 	}
 
+	@Override
+	public boolean isDiscrete(){
+		return true;
+	}
+	
 }

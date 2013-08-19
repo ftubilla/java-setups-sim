@@ -2,11 +2,11 @@ package sim;
 
 import org.apache.log4j.Logger;
 
-public class ClassLoader {
+public class AlgorithmLoader {
 
-	private static Logger logger = Logger.getLogger(ClassLoader.class);
+	private static Logger logger = Logger.getLogger(AlgorithmLoader.class);
 
-	private ClassLoader(){
+	private AlgorithmLoader(){
 		/*
 		 * Not meant to be instantiated
 		 */

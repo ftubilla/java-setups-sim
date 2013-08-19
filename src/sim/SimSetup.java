@@ -78,17 +78,17 @@ public class SimSetup {
 		sim.setMachine(new Machine(sim.getParams(), sim.getMasterScheduler()));
 		
 		// Set up the demand process
-		sim.setDemandProcess(ClassLoader.load("processes.demand", sim.getParams().getDemandProcessParams().getName(), 
+		sim.setDemandProcess(AlgorithmLoader.load("processes.demand", sim.getParams().getDemandProcessParams().getName(), 
 				IDemandProcess.class));
 		sim.getDemandProcess().init(sim);
 		
 		// Set up the production process
-		sim.setProductionProcess(ClassLoader.load("processes.production", sim.getParams().getProductionProcessParams().getName(), 
+		sim.setProductionProcess(AlgorithmLoader.load("processes.production", sim.getParams().getProductionProcessParams().getName(), 
 				IProductionProcess.class));
 		sim.getProductionProcess().init(sim);
 			
 		// Load the policy
-		sim.setPolicy(ClassLoader.load("policies", sim.getParams().getPolicyParams().getName(), IPolicy.class));
+		sim.setPolicy(AlgorithmLoader.load("policies", sim.getParams().getPolicyParams().getName(), IPolicy.class));
 		sim.getPolicy().setUpPolicy(sim);
 
 		// Initialize the metrics and recorders

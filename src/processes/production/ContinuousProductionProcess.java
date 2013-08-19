@@ -77,4 +77,9 @@ public class ContinuousProductionProcess implements IProductionProcess {
 		return item.getProductionRate();
 	}
 
+	@Override
+	public boolean isDiscrete(){
+		return false;
+	}
+	
 }
