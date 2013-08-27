@@ -1,14 +1,27 @@
 package policies;
 
+import processes.demand.IDemandProcess;
+import processes.production.IProductionProcess;
+import sim.Sim;
+import system.Machine.FailureState;
+import system.Machine.OperationalState;
 import discreteEvent.Changeover;
 import discreteEvent.ControlEvent;
-import sim.Sim;
-import system.Machine.*;
 
 public class UnstableCCPolicyN3 implements IPolicy {
 
 	private final double K = 3.1;
 	private final double Delta = 3;
+	private IProductionProcess productionProcess;
+	private IDemandProcess demandProcess;
+	
+	@Override
+	public void setUpPolicy(Sim sim){
+		assert sim.getParams().getNumItems() == 3;	
+		this.productionProcess = sim.getProductionProcess();
+		this.demandProcess = sim.getDemandProcess();
+	}
+	
 	
 	@Override
 	public void updateControl(Sim sim) {
@@ -69,7 +82,7 @@ public class UnstableCCPolicyN3 implements IPolicy {
 					
 				} else {
 					// Continue Producing
-					double workRemaining = sim.getMachine().getSetup().minPossibleWorkToTarget(sim.getDemandProcess());
+					double workRemaining = sim.getMachine().getSetup().computeMinDeltaTimeToTarget(productionProcess, demandProcess);
 					sim.getMachine().setSprint();
 					sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime() + workRemaining));
 				}	
@@ -86,10 +99,10 @@ public class UnstableCCPolicyN3 implements IPolicy {
 
 	}
 
+
 	@Override
-	public void setUpPolicy(Sim sim) {
-		// TODO Auto-generated method stub
-		assert sim.getParams().getNumItems() == 3;		
+	public boolean isTargetBased() {
+		return true;
 	}
 
 }

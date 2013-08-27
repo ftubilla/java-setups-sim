@@ -69,17 +69,14 @@ public class ContinuousProductionProcess implements IProductionProcess {
 	}
 
 	@Override
-	public double maxPossibleRate(Item item) {
-		/**
-		 * The maximum production rate for this process is simply the machine's
-		 * average production rate.
-		 */
-		return item.getProductionRate();
+	public boolean isDiscrete(){
+		return false;
 	}
 
 	@Override
-	public boolean isDiscrete(){
-		return false;
+	public double getNextScheduledProductionDepartureTime(Item item) {
+		assert item.isUnderProduction() : "This method assumes that the item is under production!";
+		return Sim.time();
 	}
 	
 }

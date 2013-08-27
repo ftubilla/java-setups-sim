@@ -46,13 +46,13 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	
 	@Override
 	protected double doUntilNextUpdate() {	
-		if (policyParams.shouldCruise() && isInTheHedgingZone()){
+		if (policyParams.shouldCruise() && isInTheHedgingZone() && machine.getSetup().onTarget()){
+			//Only cruise when 1) it's enabled, 2) we are in the hedging zone, 3) we are at the target ZU
 			machine.setCruise();
-			return computeTimeToExitHedgingZone();
-			
+			return computeTimeToExitHedgingZone();			
 		} else {
 			machine.setSprint();
-			return machine.getSetup().minPossibleWorkToTarget(demandProcess);
+			return machine.getSetup().computeMinDeltaTimeToTarget(productionProcess, demandProcess);
 		}
 	}
 	
@@ -67,10 +67,9 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	}
 	
 	private double computeTimeToExitHedgingZone(){
-		//TODO This doesn't work with discrete processes!!
 		double minExitTime = Double.MAX_VALUE;
 		for (Item item : sortedItems){
-			double exitTime = (policyParams.getHedgingThresholdDifference(item)-item.getSurplusDeviation())/item.getDemandRate();
+			double exitTime = item.computeMinDeltaTimeToSurplusLevel(policyParams.getLowerHedgingPoint(item), productionProcess, demandProcess);
 			assert exitTime >= 0 : "The system is not in the hedging zone!";
 			if (exitTime < minExitTime){minExitTime = exitTime;}
 		}
@@ -122,6 +121,13 @@ public class HedgingZonePolicy extends AbstractPolicy {
 		
 		return null;
 	}
+
+	@Override
+	public boolean isTargetBased() {
+		return true;
+	}
+	
+	
 		
 }
 

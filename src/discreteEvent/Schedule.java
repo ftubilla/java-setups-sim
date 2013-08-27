@@ -63,6 +63,10 @@ public class Schedule {
 			return null;
 		}
 	}
+	
+	public Event peekNextEvent(){
+		return eventQueue.peek();
+	}
 
 	public double nextEventTime() {
 		double nextTime;

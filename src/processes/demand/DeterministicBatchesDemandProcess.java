@@ -11,11 +11,13 @@ public class DeterministicBatchesDemandProcess implements IDemandProcess {
 
 	private Map<Item, Integer> batchSizes;
 	private Map<Item, Double> interArrivalTimes;
+	private Map<Item, DemandArrival> scheduledArrivals;
 
 	@Override
 	public DemandArrival getNextDemandArrival(Item item, double currentTime) {
-		return new DemandArrival(item, currentTime
-				+ interArrivalTimes.get(item), batchSizes.get(item));
+		DemandArrival arrival = new DemandArrival(item, currentTime+interArrivalTimes.get(item), batchSizes.get(item));
+		scheduledArrivals.put(item, arrival);
+		return arrival;
 	}
 
 	@Override
@@ -24,25 +26,28 @@ public class DeterministicBatchesDemandProcess implements IDemandProcess {
 		batchSizes = new HashMap<Item, Integer>(sim.getMachine().getNumItems());
 		interArrivalTimes = new HashMap<Item, Double>(sim.getMachine()
 				.getNumItems());
-
+		scheduledArrivals = new HashMap<Item, DemandArrival>();
+		
 		int batchSize = sim.getParams().getDemandProcessParams().getDemandBatchSize();
 		for (Item item : sim.getMachine()) {
 			batchSizes.put(item, batchSize);
 			interArrivalTimes.put(item,
 					batchSizes.get(item) / item.getDemandRate());
-			sim.getMasterScheduler()
-					.addEvent(
-							new DemandArrival(item, sim.getTime()
-									+ interArrivalTimes.get(item), batchSizes
-									.get(item)));
+			DemandArrival arrival = new DemandArrival(item, sim.getTime()+interArrivalTimes.get(item), 
+					batchSizes.get(item));
+			sim.getMasterScheduler().addEvent(arrival);
+			scheduledArrivals.put(item, arrival);
 		}
 	}
 
 	@Override
-	public double minPossibleRate(Item item) {
-		// Because the demand arrives in batches and there are finite periods
-		// with no demand arriving, this rate can be 0.
-		return 0;
+	public boolean isDiscrete() {
+		return true;
+	}
+
+	@Override
+	public double getNextScheduledDemandArrivalTime(Item item) {
+		return scheduledArrivals.get(item).getTime();
 	}
 
 }

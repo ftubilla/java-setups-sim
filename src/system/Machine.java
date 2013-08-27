@@ -104,6 +104,7 @@ public class Machine implements Iterable<Item> {
 		assert operationalState != OperationalState.SETUP : "The machine is already changing setups";	
 		assert failureState != FailureState.DOWN : "The machine cannot change setups while it's down";
 		changingOverUntil = newSetup.getSetupTime() + Sim.time();
+		setup.unsetUnderProduction();
 		setup = newSetup;
 		operationalState = OperationalState.SETUP;
 	}
@@ -177,6 +178,7 @@ public class Machine implements Iterable<Item> {
 	
 	private void resumeProduction(){
 		logger.trace("Resuming production of machine");
+		setup.setUnderProduction();
 		masterScheduler.releaseAndDelayEvents();
 		if (masterScheduler.getSchedule(ScheduleType.PRODUCTION).eventsComplete()){
 			//Get new production event
@@ -192,6 +194,5 @@ public class Machine implements Iterable<Item> {
 	public double getNextSetupCompleteTime() {
 		return changingOverUntil;
 	}
-
 	
 }

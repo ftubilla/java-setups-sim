@@ -21,7 +21,7 @@ public class RoundRobinPolicy extends AbstractPolicy {
 	@Override
 	protected double doUntilNextUpdate() {
 		machine.setSprint();
-		return machine.getSetup().minPossibleWorkToTarget(demandProcess);
+		return machine.getSetup().computeMinDeltaTimeToTarget(productionProcess, demandProcess);
 	}
 	
 	@Override
@@ -44,6 +44,11 @@ public class RoundRobinPolicy extends AbstractPolicy {
 			itemsIterator = machine.iterator();
 		}
 		return itemsIterator.next();
+	}
+
+	@Override
+	public boolean isTargetBased() {
+		return true;
 	}
 
 

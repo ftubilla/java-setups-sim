@@ -30,18 +30,9 @@ public interface IDemandProcess {
 	 * @param sim
 	 */
 	public void init(Sim sim);
-
-	/**
-	 * Computes the minimum possible rate at which demand can accrue in the
-	 * given process. For example, in a continuous deterministic model, this
-	 * would correspond to the minimum slope or derivative of the cumulative
-	 * demand process. In a discrete model, this rate is 0 because there are
-	 * finite intervals during which no demand arrives.
-	 * 
-	 * @param item
-	 * @param period
-	 * @return
-	 */
-	public double minPossibleRate(Item item);
+	
+	public boolean isDiscrete();
+	
+	public double getNextScheduledDemandArrivalTime(Item item);
 
 }

@@ -60,10 +60,14 @@ public class ContinuousDemandProcess implements IDemandProcess {
 	}
 
 	@Override
-	public double minPossibleRate(Item item) {
-		// Since we have a deterministic process, the minimum rate is simply the
-		// actual demand rate.
-		return item.getDemandRate();
+	public boolean isDiscrete() {
+		return false;
+	}
+
+	@Override
+	public double getNextScheduledDemandArrivalTime(Item item) {
+		//Under the continuous model, we get an infinitesimal demand arrival at every second.
+		return Sim.time();
 	}
 
 }

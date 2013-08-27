@@ -19,6 +19,7 @@ import processes.demand.IDemandProcess;
 import processes.generators.ExponentiallyDistributedRandomTimeIntervalGenerator;
 import processes.generators.IRandomTimeIntervalGenerator;
 import processes.production.IProductionProcess;
+import system.Item;
 import system.Machine;
 
 public class SimSetup {
@@ -87,9 +88,19 @@ public class SimSetup {
 				IProductionProcess.class));
 		sim.getProductionProcess().init(sim);
 			
+		assert (sim.getProductionProcess().isDiscrete() && sim.getDemandProcess().isDiscrete()) || 
+			(!sim.getProductionProcess().isDiscrete() && !sim.getDemandProcess().isDiscrete()) :
+				"Mixed discrete and continuous processes is not supported!";
+			
 		// Load the policy
 		sim.setPolicy(AlgorithmLoader.load("policies", sim.getParams().getPolicyParams().getName(), IPolicy.class));
 		sim.getPolicy().setUpPolicy(sim);
+		if (sim.getPolicy().isTargetBased()){
+			for (Item item : sim.getMachine()){
+				assert item.getSurplusDeviation() >= 0 : "Cannot start above the target for a target-based policy!";
+			}
+		}
+		
 
 		// Initialize the metrics and recorders
 		sim.setMetrics(new Metrics(sim));

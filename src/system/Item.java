@@ -9,6 +9,7 @@ package system;
 import org.apache.log4j.Logger;
 
 import processes.demand.IDemandProcess;
+import processes.production.IProductionProcess;
 import sim.Params;
 import sim.Sim;
 
@@ -37,6 +38,7 @@ public class Item {
 	private double surplus;
 	private double inventory;
 	private double backlog;
+	private boolean isUnderProduction=false;	
 
 	
 	public Item(int id, Params params) {
@@ -89,6 +91,45 @@ public class Item {
 				+ inventory + " backlog: " + backlog);
 	}
 
+	
+	/**
+	 * Based on the production and demand processes, returns the earliest possible time interval when
+	 * the surplus of the item can reach a predetermined level. If the item is not currently under production,
+	 * the setup time is included.
+	 * 
+	 * @param surplusLevel
+	 * @param item
+	 * @return time interval
+	 */
+	public double computeMinDeltaTimeToSurplusLevel(double surplusLevel, IProductionProcess productionProcess,
+			IDemandProcess demandProcess) {
+							
+		if (!productionProcess.isDiscrete() && !demandProcess.isDiscrete()) {
+			double surplusDiff = surplusLevel - surplus;
+			if (surplusDiff <= 0){
+				return -surplusDiff/demandRate;
+			} else{
+				//If the item is not under production add setup time
+				double changeover = isUnderProduction ? 0.0 : setupTime;
+				return changeover + surplusDiff/(productionRate-demandRate);
+			}
+		} else {
+			double nextProductionDeparture = productionProcess.getNextScheduledProductionDepartureTime(this);
+			if (nextProductionDeparture == Double.MAX_VALUE){
+				//If there are no scheduled productions of this item, then the item is not under production
+				assert !isUnderProduction;
+				nextProductionDeparture = setupTime;
+			}
+			double nextDemandArrival = demandProcess.getNextScheduledDemandArrivalTime(this);
+			return Math.min(nextProductionDeparture, nextDemandArrival) - Sim.time();
+		}		
+	}
+	
+	public double computeMinDeltaTimeToTarget(IProductionProcess productionProcess, IDemandProcess demandProcess){
+		return computeMinDeltaTimeToSurplusLevel(surplusTarget, productionProcess, demandProcess);
+	}
+	
+	
 	public boolean onTarget() {
 		return Math.abs(surplus - surplusTarget) < Sim.SURPLUS_TOLERANCE ? true
 				: false;
@@ -97,32 +138,7 @@ public class Item {
 	public boolean onOrAboveTarget() {
 		return surplus >= surplusTarget - Sim.SURPLUS_TOLERANCE;
 	}
-
-	/**
-	 * Returns the minimum work needed to reach the surplus target.
-	 * 
-	 * @return
-	 */
-	public double minPossibleWorkToTarget(IDemandProcess demandProcess) {
-		//TODO Change productionRate to producitonProcess.maxPossibleRate
-		double positiveDeviation = Math.max(0, surplusTarget - surplus);
-		double work = positiveDeviation/(productionRate-demandProcess.minPossibleRate(this));
-		return work;
-	}	
-			
-	/**
-	 * Computes the  work needed to reach the current target,
-	 * for the underlying, deterministic fluid model.
-	 * @return
-	 */
-	public double fluidModelWorkToTarget(){
-		double workToTarget = Math.max(0, (surplusTarget - surplus)
-				/ (productionRate - demandRate));
-		logger.trace("Work to target: " + workToTarget + " current surplus: "
-				+ surplus);
-		return workToTarget;
-	}
-
+	
 	public int getId() {
 		return id;
 	}
@@ -171,4 +187,23 @@ public class Item {
 		return productionRate;
 	}
 
+	public boolean isUnderProduction(){
+		return isUnderProduction;
+	}
+	
+	public void setUnderProduction(){
+		if(logger.isTraceEnabled()){
+			logger.trace("Setting " + this + " under production");
+		}
+		isUnderProduction=true;
+	}
+	
+	public void unsetUnderProduction(){
+		if (logger.isTraceEnabled()){
+			logger.trace("Unsetting " + this + " under production");
+		}
+		isUnderProduction=false;
+	}
+	
+	
 }

@@ -32,6 +32,10 @@ public class PolicyParams implements IParams{
 	public double getHedgingThresholdDifference(Item item){
 		return item.getSurplusTarget()-lowerHedgingPoints.get(item.getId());
 	}
+
+	public double getLowerHedgingPoint(Item item) {
+		return lowerHedgingPoints.get(item.getId());
+	}
 	
 	public String getPriorityComparator(){
 		return priorityComparator;

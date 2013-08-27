@@ -5,8 +5,10 @@ import java.util.Map;
 
 import sim.Sim;
 import system.Item;
+import discreteEvent.Event;
 import discreteEvent.MasterScheduler;
 import discreteEvent.ProductionDeparture;
+import discreteEvent.ScheduleType;
 
 public class DeterministicBatchesProductionProcess implements IProductionProcess {
 
@@ -34,15 +36,20 @@ public class DeterministicBatchesProductionProcess implements IProductionProcess
 	}
 
 	@Override
-	public double maxPossibleRate(Item item) {
-		// Because a finite amount of production departs in an infinitesimal
-		// period, in theory the max rate here is infinity.
-		return Double.MAX_VALUE;
-	}
-
-	@Override
 	public boolean isDiscrete(){
 		return true;
 	}
+	
+	@Override
+	public double getNextScheduledProductionDepartureTime(Item item) {
+		Event nextEvent = masterScheduler.getSchedule(ScheduleType.PRODUCTION).peekNextEvent();
+		assert nextEvent instanceof ProductionDeparture;
+		if (nextEvent==null || ((ProductionDeparture) nextEvent).getItem()!=item){
+			//THere are no scheduled productions of this item
+			return Double.MAX_VALUE;
+		}
+		return nextEvent.getTime();
+	}
+	
 	
 }

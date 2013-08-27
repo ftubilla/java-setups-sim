@@ -3,6 +3,7 @@ package policies;
 import org.apache.log4j.Logger;
 
 import processes.demand.IDemandProcess;
+import processes.production.IProductionProcess;
 import sim.Sim;
 import system.Item;
 import system.Machine;
@@ -20,13 +21,17 @@ public abstract class AbstractPolicy implements IPolicy {
 	private Sim sim;
 	private double lastChangeoverTime = -1;
 	
+	protected Item currentSetup;
 	protected Machine machine;
 	protected IDemandProcess demandProcess;
+	protected IProductionProcess productionProcess;
 	protected PolicyParams policyParams;
 	
 	
 	public void updateControl(Sim sim){
 
+		currentSetup = machine.getSetup();
+		
 		if (machine.isDown()) {			
 			logger.trace("Machine is down.");
 			machineDown();			
@@ -65,6 +70,7 @@ public abstract class AbstractPolicy implements IPolicy {
 		this.sim = sim;
 		this.machine = sim.getMachine();
 		this.demandProcess = sim.getDemandProcess();
+		this.productionProcess = sim.getProductionProcess();
 		this.policyParams = sim.getParams().getPolicyParams();
 	}
 	

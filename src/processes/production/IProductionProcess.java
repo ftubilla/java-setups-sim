@@ -14,9 +14,9 @@ public interface IProductionProcess {
 	public ProductionDeparture getNextProductionDeparture(Item item, double currentTime);
 	
 	public void init(Sim sim);
-	
-	public double maxPossibleRate(Item item);
-	
+		
 	public boolean isDiscrete();
 
+	public double getNextScheduledProductionDepartureTime(Item item);
+	
 }
