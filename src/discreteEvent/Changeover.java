@@ -40,8 +40,4 @@ public class Changeover extends Event {
 
 	}
 
-	public static int getCount() {
-		return Changeover.idCount;
-	}
-
 }

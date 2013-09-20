@@ -27,8 +27,4 @@ public class Failure extends Event {
 		sim.getPolicy().updateControl(sim);
 	}
 
-	public static int getCount() {
-		return Failure.idCount;
-	}
-
 }

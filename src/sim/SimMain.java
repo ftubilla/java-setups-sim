@@ -9,6 +9,8 @@ package sim;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import output.Recorders;
+
 public class SimMain {
 
 	public static Sim sim;
@@ -20,9 +22,15 @@ public class SimMain {
 		Logger logger = Logger.getLogger(SimMain.class);
 		logger.info("Starting the simulation");
 		
-		sim = new Sim();
-		SimSetup.setup(sim);
+		//Get the params
+		logger.info("Reading params from json file");
+		Params params = JsonReader.read("inputs.json", Params.class);
+
+		sim = new Sim(params);
+		Recorders recorders = new Recorders();
+		SimSetup.setup(sim, recorders);
 		SimRun.run(sim);
+		recorders.closeAll();
 		
 	}
 	

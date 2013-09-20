@@ -6,10 +6,12 @@
 
 package discreteEvent;
 
-import java.util.*;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import org.apache.log4j.Logger;
 
+import sim.Clock;
 import sim.Sim;
 
 /**
@@ -32,17 +34,19 @@ public class Schedule {
 	private ScheduleType type;
 	private boolean isOnHold;
 	private Double onHoldSince;
+	private Clock clock;
 	private double lastEventTime=0;
 	private double lastInterEventTime;
 
 
-	public Schedule(ScheduleType type) {
+	public Schedule(ScheduleType type, Clock clock) {
 		this.eventQueue = new PriorityQueue<Event>();
 		this.type = type;
 		logger.debug("Creating schedule " + type + " dumpable? "
 				+ type.isDumpable() + " delayable? " + type.isDelayable());
 		this.isOnHold = false;
 		this.onHoldSince = null;
+		this.clock = clock;
 	}
 
 	public void addEvent(Event e) {
@@ -111,7 +115,7 @@ public class Schedule {
 		assert !isOnHold : "Schedule is already on hold!";
 		logger.debug("Putting " + this + " on hold");
 		isOnHold = true;
-		onHoldSince = Sim.time();
+		onHoldSince = clock.getTime();
 	}
 	
 	/**
@@ -122,7 +126,7 @@ public class Schedule {
 		assert isOnHold : "Cannot release a schedule that is not on hold!";
 		logger.debug("Releasing " + this + " and delaying its events");
 		isOnHold = false;
-		delayEvents(Sim.time() - onHoldSince);
+		delayEvents(clock.getTime() - onHoldSince);
 		onHoldSince = null;
 	}
 	

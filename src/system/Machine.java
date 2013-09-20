@@ -9,8 +9,8 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import processes.production.IProductionProcess;
+import sim.Clock;
 import sim.Params;
-import sim.Sim;
 import discreteEvent.MasterScheduler;
 import discreteEvent.ScheduleType;
 
@@ -37,17 +37,18 @@ public class Machine implements Iterable<Item> {
 	private FailureState failureState;
 	private MasterScheduler masterScheduler;
 	private IProductionProcess productionProcess;
+	private Clock clock;
 	private double changingOverUntil;
 	
 	
-	public Machine(Params params, MasterScheduler masterScheduler){
+	public Machine(Params params, Clock clock, MasterScheduler masterScheduler){
 		
 		int numItems = params.getNumItems();
 		itemMap = new HashMap<Integer,Item>(numItems);
 		items = new ArrayList<Item>(numItems);
 		//Create items and itemSet
 		for (int id = 0; id < params.getNumItems(); id++){
-			Item item = new Item(id, params);
+			Item item = new Item(id, clock, params);
 			items.add(item);
 			itemMap.put(id, item);
 		}
@@ -62,6 +63,7 @@ public class Machine implements Iterable<Item> {
 		operationalState = OperationalState.IDLE;
 		
 		this.masterScheduler = masterScheduler;
+		this.clock = clock;
 	}
 	
 	public Item getSetup() {
@@ -103,7 +105,7 @@ public class Machine implements Iterable<Item> {
 		logger.debug("Starting setup change from " + setup + " to " + newSetup);
 		assert operationalState != OperationalState.SETUP : "The machine is already changing setups";	
 		assert failureState != FailureState.DOWN : "The machine cannot change setups while it's down";
-		changingOverUntil = newSetup.getSetupTime() + Sim.time();
+		changingOverUntil = newSetup.getSetupTime() + clock.getTime();
 		setup.unsetUnderProduction();
 		setup = newSetup;
 		operationalState = OperationalState.SETUP;
@@ -111,9 +113,9 @@ public class Machine implements Iterable<Item> {
 	
 	public boolean isSetupComplete() {
 		if(this.operationalState == OperationalState.SETUP) {
-			if (trace){logger.trace("It is currently " + Sim.time() + " and the machine will be changing over until "
+			if (trace){logger.trace("It is currently " + clock.getTime() + " and the machine will be changing over until "
 					+ changingOverUntil);}
-			return Sim.time() >= changingOverUntil;
+			return clock.getTime() >= changingOverUntil;
 		} else {
 			return true;
 		}
@@ -166,7 +168,7 @@ public class Machine implements Iterable<Item> {
 	}
 	
 	public MachineSnapshot getSnapshot(){
-		return new MachineSnapshot(this);
+		return new MachineSnapshot(this, clock);
 	}
 	
 	public boolean isIdling(){return operationalState==OperationalState.IDLE;}
@@ -182,7 +184,7 @@ public class Machine implements Iterable<Item> {
 		masterScheduler.releaseAndDelayEvents();
 		if (masterScheduler.getSchedule(ScheduleType.PRODUCTION).eventsComplete()){
 			//Get new production event
-			masterScheduler.addEvent(productionProcess.getNextProductionDeparture(setup, Sim.time()));
+			masterScheduler.addEvent(productionProcess.getNextProductionDeparture(setup, clock.getTime()));
 		}
 	}
 	

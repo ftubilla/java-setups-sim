@@ -27,8 +27,4 @@ public class Repair extends Event {
 	}
 	
 	
-	public static int getCount(){
-		return Repair.idCount;
-	}
-	
 }

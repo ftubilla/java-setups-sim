@@ -9,7 +9,7 @@ public class Metrics {
 	private AverageSurplusMetrics averageSurplus;
 	
 	public Metrics(Sim sim){
-		timeFractions = new TimeFractionsMetrics(sim.getMachine());
+		timeFractions = new TimeFractionsMetrics(sim);
 		averageSurplus = new AverageSurplusMetrics(sim);
 	}
 

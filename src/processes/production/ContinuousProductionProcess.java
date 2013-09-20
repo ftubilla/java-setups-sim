@@ -2,6 +2,7 @@ package processes.production;
 
 import org.apache.log4j.Logger;
 
+import sim.Clock;
 import sim.Sim;
 import system.Item;
 import system.Machine;
@@ -23,7 +24,8 @@ import discreteEvent.ProductionDeparture;
 public class ContinuousProductionProcess implements IProductionProcess {
 
 	private static Logger logger = Logger.getLogger(ContinuousProductionProcess.class);
-
+	private Clock clock;
+	
 	@Override
 	public ProductionDeparture getNextProductionDeparture(Item item, double currentTime) {
 		/**
@@ -37,6 +39,8 @@ public class ContinuousProductionProcess implements IProductionProcess {
 	@Override
 	public void init(final Sim sim) {
 		logger.debug("Initializing continuous production process");
+		
+		this.clock = sim.getClock();
 		Event.addBeforeEventListener(new BeforeEventListener() {
 			/**
 			 * This listener makes sure that every time that an event occurs,
@@ -65,7 +69,7 @@ public class ContinuousProductionProcess implements IProductionProcess {
 					}
 				}
 			}
-		});
+		},sim);
 	}
 
 	@Override
@@ -76,7 +80,7 @@ public class ContinuousProductionProcess implements IProductionProcess {
 	@Override
 	public double getNextScheduledProductionDepartureTime(Item item) {
 		assert item.isUnderProduction() : "This method assumes that the item is under production!";
-		return Sim.time();
+		return clock.getTime();
 	}
 	
 }

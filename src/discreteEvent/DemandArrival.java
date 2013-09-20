@@ -50,7 +50,4 @@ public class DemandArrival extends Event {
 		return demand;
 	}
 
-	public static int getCount() {
-		return DemandArrival.count;
-	}
 }

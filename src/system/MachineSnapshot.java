@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import sim.Clock;
 import sim.Sim;
 
 public class MachineSnapshot {
@@ -18,12 +19,12 @@ public class MachineSnapshot {
 	private Map<Item,Double> surplusDeviations;
 	private double snapshotTime;
 	
-	public MachineSnapshot(Machine machine){
+	public MachineSnapshot(Machine machine, Clock clock){
 		
 		if (trace){
-			logger.trace("Creating snapshot of the machine at time " + Sim.time());
+			logger.trace("Creating snapshot of the machine at time " + clock.getTime());
 		}
-		snapshotTime = Sim.time();
+		snapshotTime = clock.getTime();
 		surplus = new LinkedHashMap<Item,Double>();
 		surplusDeviations = new LinkedHashMap<Item,Double>();
 		for (Item item : machine){

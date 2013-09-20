@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import sim.Clock;
 import sim.Sim;
 import system.Item;
 import system.Machine;
@@ -24,8 +25,11 @@ public class AverageSurplusMetrics {
 	private Map<Item,Double> averageBacklog;
 	private Machine machine;
 	private MachineSnapshot lastMachineSnapshot;
+	private Clock clock;
 	
 	public AverageSurplusMetrics(Sim sim){
+		
+		this.clock = sim.getClock();
 		
 		//Initialize data structures
 		averageDeviation = new HashMap<Item,Double>();
@@ -45,7 +49,7 @@ public class AverageSurplusMetrics {
 					if (trace){logger.trace("Recording average surplus deviation costs");}
 					for (Item item : machine){
 						
-						double tb = Sim.time();
+						double tb = sim.getTime();
 						double ta = lastMachineSnapshot.getSnapshotTime();						
 						double area;
 						
@@ -67,19 +71,19 @@ public class AverageSurplusMetrics {
 				}				
 				lastMachineSnapshot = machine.getSnapshot();
 			}			
-		});		
+		}, sim);		
 	}
 	
 	public double getAverageSurplusDeviation(Item item){		
-		return averageDeviation.get(item)/(Sim.time()-Sim.METRICS_INITIAL_TIME);		
+		return averageDeviation.get(item)/(clock.getTime()-Sim.METRICS_INITIAL_TIME);		
 	}
 	
 	public double getAverageInventory(Item item){
-		return averageInventory.get(item)/(Sim.time()-Sim.METRICS_INITIAL_TIME);
+		return averageInventory.get(item)/(clock.getTime()-Sim.METRICS_INITIAL_TIME);
 	}
 	
 	public double getAverageBacklog(Item item){
-		return averageBacklog.get(item)/(Sim.time()-Sim.METRICS_INITIAL_TIME);
+		return averageBacklog.get(item)/(clock.getTime()-Sim.METRICS_INITIAL_TIME);
 	}
 		
 	/**

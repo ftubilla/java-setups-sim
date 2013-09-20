@@ -36,6 +36,7 @@ public class Params {
 
 	private int initialSetup=0;
 	private List<Double> initialDemand;
+	private boolean isLocked=false;
 	
 	public Params(){
 		//Set up some defaults here
@@ -43,7 +44,10 @@ public class Params {
 		seedRepairsGenerator = System.currentTimeMillis()+1;
 	}
 	
-	
+	public void lock(){
+		isLocked=true;
+	}
+		
 	public int getInitialSetup() {
 		return initialSetup;
 	}
@@ -120,6 +124,98 @@ public class Params {
 
 	public List<Double> getBacklogCosts() {
 		return backlogCosts;
+	}
+
+	//Setters. Don't forget to check if the params are locked!---------
+	
+	public void setNumItems(int numItems) {
+		assert !isLocked : "The params are locked!";
+		this.numItems = numItems;
+	}
+
+	public void setDemandRates(List<Double> demandRates) {
+		assert !isLocked : "The params are locked!";
+		this.demandRates = demandRates;
+	}
+
+	public void setProductionRates(List<Double> productionRates) {
+		assert !isLocked : "The params are locked!";
+		this.productionRates = productionRates;
+	}
+
+	public void setSetupTimes(List<Double> setupTimes) {
+		assert !isLocked : "The params are locked!";
+		this.setupTimes = setupTimes;
+	}
+
+	public void setSurplusTargets(List<Double> surplusTargets) {
+		assert !isLocked : "The params are locked!";
+		this.surplusTargets = surplusTargets;
+	}
+
+	public void setInventoryHoldingCosts(List<Double> inventoryHoldingCosts) {
+		assert !isLocked : "The params are locked!";
+		this.inventoryHoldingCosts = inventoryHoldingCosts;
+	}
+
+	public void setBacklogCosts(List<Double> backlogCosts) {
+		assert !isLocked : "The params are locked!";
+		this.backlogCosts = backlogCosts;
+	}
+
+	public void setMeanTimeToFail(double meanTimeToFail) {
+		assert !isLocked : "The params are locked!";
+		this.meanTimeToFail = meanTimeToFail;
+	}
+
+	public void setMeanTimeToRepair(double meanTimeToRepair) {
+		assert !isLocked : "The params are locked!";
+		this.meanTimeToRepair = meanTimeToRepair;
+	}
+
+	public void setFinalTime(double finalTime) {
+		assert !isLocked : "The params are locked!";
+		this.finalTime = finalTime;
+	}
+
+	public void setMetricsStartTime(double metricsStartTime) {
+		assert !isLocked : "The params are locked!";
+		this.metricsStartTime = metricsStartTime;
+	}
+
+	public void setSeedFailuresGenerator(long seedFailuresGenerator) {
+		assert !isLocked : "The params are locked!";
+		this.seedFailuresGenerator = seedFailuresGenerator;
+	}
+
+	public void setSeedRepairsGenerator(long seedRepairsGenerator) {
+		assert !isLocked : "The params are locked!";
+		this.seedRepairsGenerator = seedRepairsGenerator;
+	}
+
+	public void setDemandProcessParams(DemandProcessParams demandProcessParams) {
+		assert !isLocked : "The params are locked!";
+		this.demandProcessParams = demandProcessParams;
+	}
+
+	public void setProductionProcessParams(ProductionProcessParams productionProcessParams) {
+		assert !isLocked : "The params are locked!";
+		this.productionProcessParams = productionProcessParams;
+	}
+
+	public void setPolicyParams(PolicyParams policyParams) {
+		assert !isLocked : "The params are locked!";
+		this.policyParams = policyParams;
+	}
+
+	public void setInitialSetup(int initialSetup) {
+		assert !isLocked : "The params are locked!";
+		this.initialSetup = initialSetup;
+	}
+
+	public void setInitialDemand(List<Double> initialDemand) {
+		assert !isLocked : "The params are locked!";
+		this.initialDemand = initialDemand;
 	}
 	
 }

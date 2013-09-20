@@ -15,8 +15,12 @@ import discreteEvent.MasterScheduler;
 public class Sim {
 
 	private static Logger logger = Logger.getLogger(Sim.class);
-	
+	private static int sims=0;
+
+	@SuppressWarnings("unused")
 	private boolean trace = logger.isTraceEnabled();	
+	
+	private int id;
 	private Params params;
 	private MasterScheduler masterScheduler;
 	private IDemandProcess demandProcess;
@@ -28,7 +32,7 @@ public class Sim {
 	private IPolicy policy;
 	private Metrics metrics;
 	private Recorders recorders;
-	private double time = 0.0;
+	private Clock clock;
 
 	private static double staticTimeCopy = 0.0;
 	public static final double SURPLUS_TOLERANCE = 1e-6;
@@ -36,12 +40,18 @@ public class Sim {
 	public static boolean TIME_TO_START_RECORDING = false;
 	public static double METRICS_INITIAL_TIME = 0.0;
 
-	public Sim() {
+	public Sim(Params params) {
+		id = sims++;		
+		logger.info("Creating "+this);
+		this.clock = new Clock();
 		this.masterScheduler = new MasterScheduler(this);
+		logger.info("Setting and locking sim params");
+		params.lock();
+		this.params = params;
 	}
 
 	public boolean continueSim() {
-		return (time < params.getFinalTime() && !eventsComplete());
+		return (clock.getTime() < params.getFinalTime() && !eventsComplete());
 	}
 
 	public IRandomTimeIntervalGenerator getTheFailuresGenerator() {
@@ -62,7 +72,12 @@ public class Sim {
 		this.theRepairsGenerator = theRepairsGenerator;
 	}
 
+	@Override
 	public String toString() {
+		return "Sim:"+id;
+	}
+	
+	public String toStringVerbose() {
 		String output = "";
 		output += "System with the following parameters:\n" + "Demand Rates: "
 				+ this.getParams().getDemandRates() + "\n"
@@ -79,19 +94,17 @@ public class Sim {
 		return params;
 	}
 
-	public void setParams(Params params) {
-		this.params = params;
-	}
-
 	public void setTime(double newTime) {
-		if (trace) {logger.trace("Setting sim time to " + newTime);}
-		this.time = newTime;
-		staticTimeCopy = this.time;
+		clock.advanceClockTo(newTime);
+		staticTimeCopy = clock.getTime();
 	}
 
 	public double getTime() {
-		//The current time can also be read statically (see static method below)
-		return this.time;
+		return clock.getTime();
+	}
+	
+	public Clock getClock(){
+		return clock;
 	}
 
 	public MasterScheduler getMasterScheduler(){
@@ -163,7 +176,7 @@ public class Sim {
 		this.machine.setProductionProcess(productionProcess);
 	}
 	
-	public static double time(){
-		return staticTimeCopy;
+	public int getId(){
+		return id;
 	}
 }

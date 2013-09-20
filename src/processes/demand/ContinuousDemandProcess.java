@@ -2,6 +2,7 @@ package processes.demand;
 
 import org.apache.log4j.Logger;
 
+import sim.Clock;
 import sim.Sim;
 import system.Item;
 import discreteEvent.BeforeEventListener;
@@ -22,7 +23,8 @@ public class ContinuousDemandProcess implements IDemandProcess {
 	private static Logger logger = Logger
 			.getLogger(ContinuousDemandProcess.class);
 
-
+	private Clock clock;
+	
 	@Override
 	public DemandArrival getNextDemandArrival(Item item, double currentTime) {
 		// Because the demand is continuous, we would have to either generate
@@ -38,6 +40,8 @@ public class ContinuousDemandProcess implements IDemandProcess {
 
 		logger.debug("Initializing continuous demand process. Adding a BeforeEventListener to update the demand "
 				+ "at the beginning of each event.");
+		this.clock = sim.getClock();
+		
 		Event.addBeforeEventListener(new BeforeEventListener() {
 			
 			private double latestUpdateTime=0;
@@ -55,7 +59,7 @@ public class ContinuousDemandProcess implements IDemandProcess {
 					latestUpdateTime = event.getTime();
 				}
 			}
-		});
+		},sim);
 
 	}
 
@@ -67,7 +71,7 @@ public class ContinuousDemandProcess implements IDemandProcess {
 	@Override
 	public double getNextScheduledDemandArrivalTime(Item item) {
 		//Under the continuous model, we get an infinitesimal demand arrival at every second.
-		return Sim.time();
+		return clock.getTime();
 	}
 
 }

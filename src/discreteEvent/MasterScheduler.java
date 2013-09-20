@@ -7,6 +7,7 @@ import java.util.Queue;
 
 import org.apache.log4j.Logger;
 
+import sim.Clock;
 import sim.Sim;
 
 /**
@@ -24,15 +25,17 @@ public class MasterScheduler {
 	private boolean trace = logger.isTraceEnabled();
 	private Map<ScheduleType, Schedule> schedules;
 	private Queue<IScheduleTrigger> scheduleTriggers;
+	private Clock clock;
 
 	public MasterScheduler(Sim sim) {
 
 		logger.debug("Creating the master schedule and initializing each schedule");
 		schedules = new HashMap<ScheduleType, Schedule>();
 		for (ScheduleType st : ScheduleType.values()) {
-			schedules.put(st, new Schedule(st));
+			schedules.put(st, new Schedule(st, sim.getClock()));
 		}
 		scheduleTriggers = new LinkedList<IScheduleTrigger>();
+		this.clock = sim.getClock(); 
 
 	}
 
@@ -45,7 +48,7 @@ public class MasterScheduler {
 	 */
 	public void addEvent(Event e) {			
 		if (e != null) {
-			assert e.time >= Sim.time() : "Cannot add events that occur in the past!";
+			assert e.time >= clock.getTime() : "Cannot add events that occur in the past!";
 			logger.trace("Adding event " + e
 					+ " to the master schedule");
 			schedules.get(ScheduleType.getType(e)).addEvent(e);

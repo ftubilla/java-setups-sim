@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import processes.demand.IDemandProcess;
 import processes.production.IProductionProcess;
+import sim.Clock;
 import sim.Params;
 import sim.Sim;
 
@@ -32,6 +33,9 @@ public class Item {
 	private double surplusTarget;
 	private int id;
 
+	//References
+	private Clock clock;
+	
 	// Variables
 	private double cumulativeProduction;
 	private double cumulativeDemand;
@@ -41,8 +45,9 @@ public class Item {
 	private boolean isUnderProduction=false;	
 
 	
-	public Item(int id, Params params) {
+	public Item(int id, Clock clock, Params params) {
 		this.id = id;
+		this.clock = clock;
 		demandRate = params.getDemandRates().get(id);
 		productionRate = params.getProductionRates().get(id);
 		setupTime = params.getSetupTimes().get(id);
@@ -54,7 +59,6 @@ public class Item {
 				+ " production rate: " + productionRate + " setup time: "
 				+ setupTime + " surplus target: " + surplusTarget + " cost rates: inventory " + inventoryCostRate + 
 				" backlog " + backlogCostRate);
-		
 	}
 
 	public String toString() {
@@ -121,7 +125,7 @@ public class Item {
 				nextProductionDeparture = setupTime;
 			}
 			double nextDemandArrival = demandProcess.getNextScheduledDemandArrivalTime(this);
-			return Math.min(nextProductionDeparture, nextDemandArrival) - Sim.time();
+			return Math.min(nextProductionDeparture, nextDemandArrival) - clock.getTime();
 		}		
 	}
 	

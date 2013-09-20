@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import processes.demand.IDemandProcess;
 import processes.production.IProductionProcess;
+import sim.Clock;
 import sim.Sim;
 import system.Item;
 import system.Machine;
@@ -26,11 +27,13 @@ public abstract class AbstractPolicy implements IPolicy {
 	protected IDemandProcess demandProcess;
 	protected IProductionProcess productionProcess;
 	protected PolicyParams policyParams;
+	protected Clock clock;
 	
 	
 	public void updateControl(Sim sim){
 
 		currentSetup = machine.getSetup();
+		clock = sim.getClock();
 		
 		if (machine.isDown()) {			
 			logger.trace("Machine is down.");
@@ -58,7 +61,7 @@ public abstract class AbstractPolicy implements IPolicy {
 				updateControlAfter(0);
 				
 			} else {
-				double newControlTime = machine.getNextSetupCompleteTime() - Sim.time();
+				double newControlTime = machine.getNextSetupCompleteTime() - sim.getTime();
 				logger.debug("Nothing to do. Setups are non-preemptive. Scheduling a new control for time " + newControlTime);
 				updateControlAfter(newControlTime);
 			}
@@ -116,7 +119,7 @@ public abstract class AbstractPolicy implements IPolicy {
 				lastChangeoverTime);}
 		assert item != machine.getSetup() : "Cannot changeover to the current setup again!";
 		sim.getMasterScheduler().addEvent(new Changeover(sim.getTime(), item));
-		lastChangeoverTime = Sim.time();
+		lastChangeoverTime = clock.getTime();
 	}
 	
 	/**

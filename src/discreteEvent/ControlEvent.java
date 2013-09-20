@@ -24,10 +24,6 @@ public class ControlEvent extends Event {
 		
 	}
 	
-	public static int getCount(){
-		return ControlEvent.idCount;
-	}
-	
 }
 
 

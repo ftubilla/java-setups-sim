@@ -58,33 +58,31 @@ public class SimRun {
 		
 		bar.display(sim.getTime());
 		
-		sim.getRecorders().closeAll();
+		sim.getRecorders().recordEndOfSim(sim);
+
 		
 		System.out.println("*****SIM COMPLETE!******************");
-		System.out.println("Total Events: " + Event.getCount());
-		System.out.println("Total Failures: " + Failure.getCount());
-		System.out.println("Total Repairs: " + Repair.getCount());
-		for (Item item : sim.getMachine()){
-			for (TimeFractionsMetrics.Metric metric : TimeFractionsMetrics.Metric.values()){
-				System.out.println(metric.toString() + " " + item.getId() + " " + 
-						sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(metric).get(item)/(sim.getTime()-Sim.METRICS_INITIAL_TIME));
-			}
-			System.out.println("Efficiency ei: " + 
-					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item)/
-					(sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item) + 
-					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.REPAIR).get(item)));
-			
-			System.out.println("Average Surplus deviation: " +
-					sim.getMetrics().getAverageSurplusMetrics().getAverageSurplusDeviation(item));
-			
-			System.out.println("Average Inventory: " + 
-					sim.getMetrics().getAverageSurplusMetrics().getAverageInventory(item));
-			
-			System.out.println("Average backlog: " + 
-					sim.getMetrics().getAverageSurplusMetrics().getAverageBacklog(item));
-			
-			System.out.println("---------------------------");
-		}
+//		for (Item item : sim.getMachine()){
+//			for (TimeFractionsMetrics.Metric metric : TimeFractionsMetrics.Metric.values()){
+//				System.out.println(metric.toString() + " " + item.getId() + " " + 
+//						sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(metric).get(item)/(sim.getTime()-Sim.METRICS_INITIAL_TIME));
+//			}
+//			System.out.println("Efficiency ei: " + 
+//					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item)/
+//					(sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item) + 
+//					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.REPAIR).get(item)));
+//			
+//			System.out.println("Average Surplus deviation: " +
+//					sim.getMetrics().getAverageSurplusMetrics().getAverageSurplusDeviation(item));
+//			
+//			System.out.println("Average Inventory: " + 
+//					sim.getMetrics().getAverageSurplusMetrics().getAverageInventory(item));
+//			
+//			System.out.println("Average backlog: " + 
+//					sim.getMetrics().getAverageSurplusMetrics().getAverageBacklog(item));
+//			
+//			System.out.println("---------------------------");
+//		}
 
 	}
 	

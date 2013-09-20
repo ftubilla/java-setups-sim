@@ -21,8 +21,9 @@ public class TimeFractionsMetrics {
 	private Map<Metric,Map<Item,Double>> MetricToItemToFraction;
 	
 	
-	public TimeFractionsMetrics(final Machine machine){
+	public TimeFractionsMetrics(Sim sim){
 		MetricToItemToFraction = new HashMap<Metric,Map<Item,Double>>(Metric.values().length);
+		final Machine machine = sim.getMachine();
 		
 		for (Metric metric : Metric.values()){
 			MetricToItemToFraction.put(metric, new HashMap<Item,Double>(machine.getNumItems()));
@@ -35,10 +36,10 @@ public class TimeFractionsMetrics {
 		Event.addBeforeEventListener(new BeforeEventListener(){
 			@Override
 			public void execute(Event event, Sim sim){
-				double deltaTime = event.getTime() - Sim.time();
+				double deltaTime = event.getTime() - sim.getTime();
 				if (trace) {
 					logger.trace("Updating time fractions with delta time " + deltaTime + " current time " +
-							Sim.time());
+							sim.getTime());
 					}
 								
 				// Update the items' surpluses
@@ -54,7 +55,7 @@ public class TimeFractionsMetrics {
 					}
 				}
 			}
-		});	
+		},sim);	
 	}
 	
 	public void increment(Metric theMetric, Item theItem, Double theIncrement){

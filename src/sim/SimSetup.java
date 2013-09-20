@@ -6,12 +6,9 @@
 
 package sim;
 
-import java.io.File;
-
 import metrics.Metrics;
 
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import output.Recorders;
 import policies.IPolicy;
@@ -21,24 +18,15 @@ import processes.generators.IRandomTimeIntervalGenerator;
 import processes.production.IProductionProcess;
 import system.Item;
 import system.Machine;
+import discreteEvent.AfterEventListener;
+import discreteEvent.BeforeEventListener;
+import discreteEvent.Event;
 
 public class SimSetup {
 
 	private static Logger logger = Logger.getLogger(SimSetup.class);
-
-	public static void setup(Sim sim) {
-
-		// Read data
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			Params params = mapper.readValue(new File("json/inputs.json"), Params.class);
-			sim.setParams(params);
-		} catch (Exception e) {
-			logger.fatal("Problem reading input json file!");
-			e.printStackTrace();
-			System.exit(-1);
-		}
 		
+	public static void setup(Sim sim, Recorders recorders) {
 
 		// Set the Failures/Repairs Generator
 		long seedFailures = sim.getParams().getSeedFailuresGenerator();
@@ -76,7 +64,7 @@ public class SimSetup {
 
 
 		// Create the machine
-		sim.setMachine(new Machine(sim.getParams(), sim.getMasterScheduler()));
+		sim.setMachine(new Machine(sim.getParams(), sim.getClock(), sim.getMasterScheduler()));
 		
 		// Set up the demand process
 		sim.setDemandProcess(AlgorithmLoader.load("processes.demand", sim.getParams().getDemandProcessParams().getName(), 
@@ -101,10 +89,24 @@ public class SimSetup {
 			}
 		}
 		
-
 		// Initialize the metrics and recorders
 		sim.setMetrics(new Metrics(sim));
-		sim.setRecorders(new Recorders(sim));
+		sim.setRecorders(recorders);
+		
+		//The lines below make sure that the recorders' methods are called before/after each event
+		Event.addBeforeEventListener(new BeforeEventListener(){
+			@Override
+			public void execute(Event event, Sim sim) {
+				sim.getRecorders().recordBeforeEvent(sim, event);
+			}			
+		}, sim);
+		Event.addAfterEventListener(new AfterEventListener(){
+			@Override
+			public void execute(Event event, Sim sim) {
+				sim.getRecorders().recordAfterEvent(sim, event);
+			}			
+		}, sim);
+		
 
 	}
 }
