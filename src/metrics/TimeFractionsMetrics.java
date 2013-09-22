@@ -19,11 +19,12 @@ public class TimeFractionsMetrics {
 	public boolean trace = logger.isTraceEnabled();
 	
 	private Map<Metric,Map<Item,Double>> MetricToItemToFraction;
-	
+	private Clock clock;
 	
 	public TimeFractionsMetrics(Sim sim){
 		MetricToItemToFraction = new HashMap<Metric,Map<Item,Double>>(Metric.values().length);
 		final Machine machine = sim.getMachine();
+		clock = sim.getClock();
 		
 		for (Metric metric : Metric.values()){
 			MetricToItemToFraction.put(metric, new HashMap<Item,Double>(machine.getNumItems()));
@@ -59,7 +60,7 @@ public class TimeFractionsMetrics {
 	}
 	
 	public void increment(Metric theMetric, Item theItem, Double theIncrement){
-		if (Sim.TIME_TO_START_RECORDING){
+		if (clock.isTimeToRecordData()){
 			double oldValue = MetricToItemToFraction.get(theMetric).get(theItem);
 			MetricToItemToFraction.get(theMetric).put(theItem, oldValue + theIncrement);
 		}

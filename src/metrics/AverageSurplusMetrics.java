@@ -45,7 +45,7 @@ public class AverageSurplusMetrics {
 		Event.addAfterEventListener(new AfterEventListener(){
 			@Override
 			public void execute(Event event, Sim sim) {
-				if (Sim.TIME_TO_START_RECORDING && lastMachineSnapshot!=null){
+				if (sim.isTimeToRecordData() && lastMachineSnapshot!=null){
 					if (trace){logger.trace("Recording average surplus deviation costs");}
 					for (Item item : machine){
 						
@@ -75,15 +75,15 @@ public class AverageSurplusMetrics {
 	}
 	
 	public double getAverageSurplusDeviation(Item item){		
-		return averageDeviation.get(item)/(clock.getTime()-Sim.METRICS_INITIAL_TIME);		
+		return averageDeviation.get(item)/clock.getMetricsRecordingTime();		
 	}
 	
 	public double getAverageInventory(Item item){
-		return averageInventory.get(item)/(clock.getTime()-Sim.METRICS_INITIAL_TIME);
+		return averageInventory.get(item)/clock.getMetricsRecordingTime();
 	}
 	
 	public double getAverageBacklog(Item item){
-		return averageBacklog.get(item)/(clock.getTime()-Sim.METRICS_INITIAL_TIME);
+		return averageBacklog.get(item)/clock.getMetricsRecordingTime();
 	}
 		
 	/**

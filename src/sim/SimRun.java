@@ -6,15 +6,11 @@
 
 package sim;
 
-import metrics.TimeFractionsMetrics;
-
 import org.apache.log4j.Logger;
 
-import system.Item;
 import discreteEvent.ControlEvent;
 import discreteEvent.Event;
 import discreteEvent.Failure;
-import discreteEvent.Repair;
 
 public class SimRun {
 
@@ -29,22 +25,13 @@ public class SimRun {
 		sim.getMasterScheduler().addEvent(firstFailure);
 		sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
 		bar = new ProgressBar(5, sim.getParams().getFinalTime());
-		
+
 		// Main Loop of the Sim
 		while(sim.continueSim()){
 			
 			logger.trace("Sim time: " + sim.getTime());
 			bar.display(sim.getTime());			
-			
-			// Check if it's time to start recording data
-			if (!Sim.TIME_TO_START_RECORDING
-					&& sim.getTime() >= sim.getParams().getMetricsStartTime()) {
-				logger.debug("Time to start recording data. Sim time: "
-						+ sim.getTime());
-				Sim.METRICS_INITIAL_TIME = sim.getTime();
-				Sim.TIME_TO_START_RECORDING = true;
-			}
-								
+											
 			//Process the next event
 			try {
 				sim.getNextEvent().handle(sim);

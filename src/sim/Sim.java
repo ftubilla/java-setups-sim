@@ -33,17 +33,13 @@ public class Sim {
 	private Metrics metrics;
 	private Recorders recorders;
 	private Clock clock;
-
-	private static double staticTimeCopy = 0.0;
+	
 	public static final double SURPLUS_TOLERANCE = 1e-6;
-	public static final boolean DEBUG = false;
-	public static boolean TIME_TO_START_RECORDING = false;
-	public static double METRICS_INITIAL_TIME = 0.0;
 
 	public Sim(Params params) {
 		id = sims++;		
 		logger.info("Creating "+this);
-		this.clock = new Clock();
+		this.clock = new Clock(params.getMetricsStartTime());
 		this.masterScheduler = new MasterScheduler(this);
 		logger.info("Setting and locking sim params");
 		params.lock();
@@ -96,7 +92,6 @@ public class Sim {
 
 	public void setTime(double newTime) {
 		clock.advanceClockTo(newTime);
-		staticTimeCopy = clock.getTime();
 	}
 
 	public double getTime() {
@@ -179,4 +174,9 @@ public class Sim {
 	public int getId(){
 		return id;
 	}
+	
+	public boolean isTimeToRecordData() {
+		return clock.isTimeToRecordData();
+	}
+
 }

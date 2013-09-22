@@ -45,14 +45,13 @@ public class ExperimentMain {
 		Recorders recorders = new Recorders();
 		
 		ExecutorService executor = Executors.newFixedThreadPool(1);
-		for (int i=0; i<100; i++){
+		for (int i=0; i<500; i++){
 			
 			Params simParams = null;
 			try{
 				ObjectMapper mapper = new ObjectMapper();
 				simParams = mapper.readValue(new File("json/inputs.json"), Params.class);
-				simParams.setSeedFailuresGenerator(i);
-				simParams.setSeedFailuresGenerator(i+100);
+				simParams.setSeed(i);
 				final Sim sim = new Sim(simParams);
 				SimSetup.setup(sim, recorders);
 				Runnable worker = new Runnable(){

@@ -6,6 +6,8 @@
 
 package sim;
 
+import java.util.Random;
+
 import metrics.Metrics;
 
 import org.apache.log4j.Logger;
@@ -28,18 +30,17 @@ public class SimSetup {
 		
 	public static void setup(Sim sim, Recorders recorders) {
 
-		// Set the Failures/Repairs Generator
-		long seedFailures = sim.getParams().getSeedFailuresGenerator();
-		// IRandomTimeIntervalGenerator failuresGenerator = new
-		// BinaryDistributedRandomTimeIntervalGenerator(seedFailures,4,0.5,6);
+		// Set the Failures/Repairs generators
+		
+		Random seedGenerator = new Random(sim.getParams().getSeed());
+		
+		long seedFailures = seedGenerator.nextLong();
 		IRandomTimeIntervalGenerator failuresGenerator = 
 				new ExponentiallyDistributedRandomTimeIntervalGenerator(seedFailures,sim.getParams().getMeanTimeToFail());
 		failuresGenerator.warmUp(100);
 		sim.setTheFailuresGenerator(failuresGenerator);
 
-		long seedRepairs = sim.getParams().getSeedRepairsGenerator();
-		// IRandomTimeIntervalGenerator repairsGenerator = new
-		// BinaryDistributedRandomTimeIntervalGenerator(seed,1,1.0,0);
+		long seedRepairs = seedGenerator.nextLong();
 		IRandomTimeIntervalGenerator repairsGenerator = 
 				new ExponentiallyDistributedRandomTimeIntervalGenerator(seedRepairs,sim.getParams().getMeanTimeToRepair());
 		repairsGenerator.warmUp(100);

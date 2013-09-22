@@ -1,7 +1,5 @@
 package processes.generators;
 
-import java.util.*;
-
 import org.apache.log4j.Logger;
 
 public class ExponentiallyDistributedRandomTimeIntervalGenerator implements
@@ -11,12 +9,12 @@ public class ExponentiallyDistributedRandomTimeIntervalGenerator implements
 			.getLogger(ExponentiallyDistributedRandomTimeIntervalGenerator.class);
 
 	private double mean;
-	private Random generator;
+	private MersenneTwisterFast generator;
 
 	public ExponentiallyDistributedRandomTimeIntervalGenerator(long seed,
 			double mean) {
 		this.mean = mean;
-		this.generator = new Random(seed);
+		this.generator = new MersenneTwisterFast(seed);
 		logger.debug("Initializing generator with mean " + mean + " and seed "
 				+ seed);
 	}

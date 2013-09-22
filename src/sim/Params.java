@@ -27,8 +27,7 @@ public class Params {
 	@JsonProperty private double meanTimeToRepair = 0.0;
 	@JsonProperty private double finalTime;
 	@JsonProperty private double metricsStartTime;
-	@JsonProperty private long seedFailuresGenerator;
-	@JsonProperty private long seedRepairsGenerator;
+	@JsonProperty private long seed;
 	@JsonProperty private DemandProcessParams demandProcessParams;
 	@JsonProperty private ProductionProcessParams productionProcessParams;
 	@JsonProperty private PolicyParams policyParams;
@@ -40,8 +39,7 @@ public class Params {
 	
 	public Params(){
 		//Set up some defaults here
-		seedFailuresGenerator = System.currentTimeMillis();
-		seedRepairsGenerator = System.currentTimeMillis()+1;
+		seed = System.currentTimeMillis();
 	}
 	
 	public void lock(){
@@ -96,12 +94,8 @@ public class Params {
 		return metricsStartTime;
 	}
 
-	public long getSeedFailuresGenerator() {
-		return seedFailuresGenerator;
-	}
-
-	public long getSeedRepairsGenerator() {
-		return seedRepairsGenerator;
+	public long getSeed(){
+		return seed;
 	}
 	
 	public DemandProcessParams getDemandProcessParams(){
@@ -183,14 +177,9 @@ public class Params {
 		this.metricsStartTime = metricsStartTime;
 	}
 
-	public void setSeedFailuresGenerator(long seedFailuresGenerator) {
+	public void setSeed(long seed) {
 		assert !isLocked : "The params are locked!";
-		this.seedFailuresGenerator = seedFailuresGenerator;
-	}
-
-	public void setSeedRepairsGenerator(long seedRepairsGenerator) {
-		assert !isLocked : "The params are locked!";
-		this.seedRepairsGenerator = seedRepairsGenerator;
+		this.seed = seed;
 	}
 
 	public void setDemandProcessParams(DemandProcessParams demandProcessParams) {
