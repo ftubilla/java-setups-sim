@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import output.Recorders;
+import util.JsonReader;
 
 public class SimMain {
 
@@ -24,12 +25,12 @@ public class SimMain {
 		
 		//Get the params
 		logger.info("Reading params from json file");
-		Params params = JsonReader.read("inputs.json", Params.class);
+		Params params = JsonReader.readJson("inputs.json", Params.class);
 
 		sim = new Sim(params);
 		Recorders recorders = new Recorders();
 		SimSetup.setup(sim, recorders);
-		SimRun.run(sim);
+		SimRun.run(sim, /*verbose*/ true);
 		recorders.closeAll();
 		
 	}

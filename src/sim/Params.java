@@ -27,6 +27,7 @@ public class Params {
 	@JsonProperty private double meanTimeToRepair = 0.0;
 	@JsonProperty private double finalTime;
 	@JsonProperty private double metricsStartTime;
+	@JsonProperty private boolean recordHighFreq = false;
 	@JsonProperty private long seed;
 	@JsonProperty private DemandProcessParams demandProcessParams;
 	@JsonProperty private ProductionProcessParams productionProcessParams;
@@ -44,6 +45,7 @@ public class Params {
 	
 	public void lock(){
 		isLocked=true;
+		policyParams.lock();
 	}
 		
 	public int getInitialSetup() {
@@ -205,6 +207,14 @@ public class Params {
 	public void setInitialDemand(List<Double> initialDemand) {
 		assert !isLocked : "The params are locked!";
 		this.initialDemand = initialDemand;
+	}
+
+	public boolean isRecordHighFreqEnabled() {
+		return recordHighFreq;
+	}
+
+	public void setRecordHighFreq(boolean recordHighFreq) {
+		this.recordHighFreq = recordHighFreq;
 	}
 	
 }

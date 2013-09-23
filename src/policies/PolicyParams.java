@@ -25,6 +25,8 @@ public class PolicyParams implements IParams{
 	@JsonProperty private String priorityComparator="hzp.CMuComparatorWithTiesById";
 	@JsonProperty private boolean shouldCruise=false;
 	
+	private boolean isLocked = false;
+	
 	public String getName(){
 		return this.name;
 	}
@@ -43,6 +45,33 @@ public class PolicyParams implements IParams{
 	
 	public boolean shouldCruise(){
 		return shouldCruise;
+	}
+	
+	public void lock(){
+		logger.trace("Locking policy params");
+		isLocked = true;
+	}
+	
+		
+	//Setters
+	public void setName(String name){
+		assert !isLocked : "The params are locked!";
+		this.name = name;
+	}
+	
+	public void setLowerHedgingPoint(Item item, Double value){
+		assert !isLocked : "The params are locked!";
+		lowerHedgingPoints.add(item.getId(), value);
+	}
+	
+	public void setPriorityComparator(String priorityComparator){
+		assert !isLocked : "The params are locked!";
+		this.priorityComparator = priorityComparator;
+	}
+	
+	public void setShouldCruise(boolean shouldCruise){
+		assert !isLocked : "The params are locked!";
+		this.shouldCruise = shouldCruise; 
 	}
 	
 }

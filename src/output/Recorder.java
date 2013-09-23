@@ -18,7 +18,6 @@ public class Recorder {
 	private String filename;
 	private NumberFormat decimalFormatter;
 	
-	
 	public Recorder(String filename){
 		try{
 			logger.info("Creating " + this.getClass().getSimpleName());
@@ -79,7 +78,7 @@ public class Recorder {
 		}
 		writeToFile(header);
 	}
-			
+	
 	private void writeToFile(String line){
 		try{
 			writer.write(line);

@@ -9,9 +9,9 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import policies.AbstractPolicy;
-import sim.AlgorithmLoader;
 import sim.Sim;
 import system.Item;
+import util.AlgorithmLoader;
 
 public class HedgingZonePolicy extends AbstractPolicy {
 	private static Logger logger = Logger.getLogger(HedgingZonePolicy.class);

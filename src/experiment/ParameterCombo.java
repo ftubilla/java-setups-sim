@@ -57,7 +57,7 @@ public class ParameterCombo extends Combo<Double>{
 	
 	/**
 	 * Returns true if the parameter combination is the same as the given combination but just with the 
-	 * item labels permutated.
+	 * item labels permuted.
 	 * 
 	 * @param combo
 	 * @return boolean

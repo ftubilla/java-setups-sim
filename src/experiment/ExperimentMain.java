@@ -1,22 +1,24 @@
 package experiment;
 
-import java.io.File;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import output.Recorders;
 import sim.Params;
+import sim.ProgressBar;
 import sim.Sim;
 import sim.SimRun;
 import sim.SimSetup;
+import util.JsonReader;
 
 
 public class ExperimentMain {
-	private static Logger logger;
+	
+	private static Logger logger =  Logger.getLogger(ExperimentMain.class);
 
 	@SuppressWarnings("unused")
 	private boolean debug = logger.isDebugEnabled();
@@ -28,60 +30,41 @@ public class ExperimentMain {
 	public static void main(String[] args){
 	
 		PropertyConfigurator.configure("config/log4j.properties");	
-		logger = Logger.getLogger(ExperimentMain.class);
+		ExperimentParams expParams = JsonReader.readJson("experiment.json", ExperimentParams.class);		
+		final Recorders recorders = new Recorders();		
+		ExecutorService executor = Executors.newFixedThreadPool(expParams.getNumThreads());
 		
-		ExperimentParams expParams = null;
-
-		// Read data
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			expParams = mapper.readValue(new File("json/experiment.json"), ExperimentParams.class);
-		} catch (Exception e) {
-			logger.fatal("Problem reading input json files!");
-			e.printStackTrace();
-			System.exit(-1);
-		}
+		//Generate the parameter combinations
+		List<Params> simParams = ExperimentSimParamsGenerator.generate(expParams);
+		final ProgressBar bar = new ProgressBar(10, simParams.size());		
 		
-		Recorders recorders = new Recorders();
+		System.out.println("****EXPERIMENT START****");
+		bar.display();
 		
-		ExecutorService executor = Executors.newFixedThreadPool(1);
-		for (int i=0; i<500; i++){
-			
-			Params simParams = null;
-			try{
-				ObjectMapper mapper = new ObjectMapper();
-				simParams = mapper.readValue(new File("json/inputs.json"), Params.class);
-				simParams.setSeed(i);
-				final Sim sim = new Sim(simParams);
-				SimSetup.setup(sim, recorders);
-				Runnable worker = new Runnable(){
-					@Override
-					public void run() {
-						SimRun.run(sim);
-					}};
-				executor.execute(worker);
-			} catch (Exception e){
-				System.exit(-1);
-			}
-			
+		//Create the sim tasks
+		for (final Params params : simParams){	
+			Runnable worker = new Runnable(){
+				@Override
+				public void run(){
+					Sim sim = new Sim(params);
+					SimSetup.setup(sim, recorders);
+					SimRun.run(sim, false);
+					bar.addOneUnitOfProgress();
+					bar.display();
+				}
+			};
+			executor.execute(worker);			
 		}
 
 		executor.shutdown();
-		while (!executor.isTerminated()){
-			
+		while (!executor.isTerminated()){	
+			/* Wait for experiment to finish */
 		}		
-		logger.info("Finishing experiment");
+		System.out.println("****EXPERIMENT COMPLETED!****");
+		logger.info("Finished experiment");
 		recorders.closeAll();
 		
-//		System.out.println("Combo Item Value");
-//		int comboNum=0;
-//		for (ParameterCombo paramCombo : params.getDemandRateCombos()){
-//			for (int i=0; i<params.getNumItems(); i++){
-//				String row = comboNum + " " + i + " " + paramCombo.get(i) + " ";
-//				System.out.println(row);
-//			}
-//			comboNum++;
-//		}
+
 		
 	}
 	

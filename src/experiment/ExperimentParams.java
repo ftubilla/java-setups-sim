@@ -14,17 +14,33 @@ public class ExperimentParams {
 	private boolean trace = logger.isTraceEnabled();
 	
 	@JsonProperty private String name;
+	@JsonProperty private int numThreads;
+	@JsonProperty private String baseJson;
 	@JsonProperty private int numItems;
 	@JsonProperty private NormalizedParameterComboGenerator demandRates;
+	@JsonProperty private NormalizedParameterComboGenerator setupTimes;	
 	@JsonProperty private int replicates;
 	
 	public String getName(){
 		return name;
 	}
 	
-	public Iterable<ParameterCombo> getDemandRateCombos(){
+	public String getBaseJson(){
+		return baseJson;
+	}
+	
+	public int getNumThreads(){
+		return numThreads;
+	}
+	
+	public Iterable<ParameterCombo> getDemandRatesCombos(){
 		demandRates.generate(numItems);
 		return demandRates.getParameterCombos();
+	}
+	
+	public Iterable<ParameterCombo> getSetupTimesCombos(){
+		setupTimes.generate(numItems);
+		return setupTimes.getParameterCombos();
 	}
 	
 	public int getNumItems(){

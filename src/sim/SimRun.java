@@ -18,9 +18,8 @@ public class SimRun {
 		
 	private static ProgressBar bar;
 	
-	public static void run(Sim sim){
+	public static void run(Sim sim, boolean verbose){
 		
-
 		Event firstFailure = new Failure(sim.getTime() + sim.getTheFailuresGenerator().nextTimeInterval());
 		sim.getMasterScheduler().addEvent(firstFailure);
 		sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
@@ -30,7 +29,10 @@ public class SimRun {
 		while(sim.continueSim()){
 			
 			logger.trace("Sim time: " + sim.getTime());
-			bar.display(sim.getTime());			
+			if (verbose) {
+				bar.setProgress(sim.getTime());
+				bar.display();
+			}			
 											
 			//Process the next event
 			try {
@@ -43,33 +45,12 @@ public class SimRun {
 
 		}
 		
-		bar.display(sim.getTime());
+		if (verbose) {
+			bar.setProgress(sim.getTime());
+			bar.display();
+		}
 		
 		sim.getRecorders().recordEndOfSim(sim);
-
-		
-		System.out.println("*****SIM COMPLETE!******************");
-//		for (Item item : sim.getMachine()){
-//			for (TimeFractionsMetrics.Metric metric : TimeFractionsMetrics.Metric.values()){
-//				System.out.println(metric.toString() + " " + item.getId() + " " + 
-//						sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(metric).get(item)/(sim.getTime()-Sim.METRICS_INITIAL_TIME));
-//			}
-//			System.out.println("Efficiency ei: " + 
-//					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item)/
-//					(sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.SPRINT).get(item) + 
-//					sim.getMetrics().getTimeFractions().getMetricToItemToFraction().get(TimeFractionsMetrics.Metric.REPAIR).get(item)));
-//			
-//			System.out.println("Average Surplus deviation: " +
-//					sim.getMetrics().getAverageSurplusMetrics().getAverageSurplusDeviation(item));
-//			
-//			System.out.println("Average Inventory: " + 
-//					sim.getMetrics().getAverageSurplusMetrics().getAverageInventory(item));
-//			
-//			System.out.println("Average backlog: " + 
-//					sim.getMetrics().getAverageSurplusMetrics().getAverageBacklog(item));
-//			
-//			System.out.println("---------------------------");
-//		}
 
 	}
 	

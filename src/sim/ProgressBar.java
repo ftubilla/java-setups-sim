@@ -3,23 +3,32 @@ package sim;
 public class ProgressBar {
 
 	private int size;
-	private double simLength;
+	private double taskLength;
 	private char covered='+';
-	private int currentProgress;
+	private int currentBarProgress=0;
+	private double taskProgress=0.0;
 	private boolean first = true;
 	
-	public ProgressBar(int size, double simLength) {
+	public ProgressBar(int size, double taskLength) {
 		this.size = size;
-		this.simLength = simLength;
+		this.taskLength = taskLength;
+	}
+		
+	synchronized public void setProgress(double progress){
+		taskProgress += taskProgress + progress;
 	}
 	
-	public void display(double currentTime) {	
-		int progress = (int) Math.floor(size*currentTime/(1.0*simLength));
-		if (progress > currentProgress || first) {
+	synchronized public void addOneUnitOfProgress(){
+		taskProgress++;
+	}
+	
+	public void display() {	
+		int barProgress = (int) Math.floor(size*taskProgress/(1.0*taskLength));
+		if (barProgress > currentBarProgress || first) {
 			StringBuilder bar = new StringBuilder(size+2);
 			bar.append('[');
 			for (int i=0; i<=size; i++){
-				if (i<=progress){
+				if (i<=barProgress){
 					bar.append(covered);
 				} else {
 					bar.append(' ');
@@ -27,7 +36,7 @@ public class ProgressBar {
 			}
 			bar.append(']');
 			System.out.println(bar);
-			currentProgress = progress;
+			currentBarProgress = barProgress;
 			first = false;
 		}
 	}

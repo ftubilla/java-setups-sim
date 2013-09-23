@@ -24,7 +24,9 @@ public class Recorders {
 	public synchronized void recordBeforeEvent(Sim sim, Event event){
 		if (sim.isTimeToRecordData()) {
 			for (Recorder recorder : recorders) {
-				recorder.recordBeforeEvent(sim, event);
+				if (sim.getParams().isRecordHighFreqEnabled()){
+					recorder.recordBeforeEvent(sim, event);
+				}
 			}
 		}
 	}
@@ -32,7 +34,9 @@ public class Recorders {
 	public synchronized void recordAfterEvent(Sim sim, Event event){
 		if (sim.isTimeToRecordData()) {
 			for (Recorder recorder : recorders) {
-				recorder.recordAfterEvent(sim, event);
+				if (sim.getParams().isRecordHighFreqEnabled()){
+					recorder.recordAfterEvent(sim, event);
+				}
 			}
 		}
 	}
