@@ -45,7 +45,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	}
 	
 	@Override
-	protected double doUntilNextUpdate() {	
+	protected double onReady() {	
 		if (policyParams.shouldCruise() && isInTheHedgingZone() && machine.getSetup().onTarget()){
 			//Only cruise when 1) it's enabled, 2) we are in the hedging zone, 3) we are at the target ZU
 			machine.setCruise();

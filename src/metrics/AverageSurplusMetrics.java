@@ -10,8 +10,8 @@ import sim.Sim;
 import system.Item;
 import system.Machine;
 import system.MachineSnapshot;
-import discreteEvent.AfterEventListener;
 import discreteEvent.Event;
+import discreteEvent.EventListener;
 
 public class AverageSurplusMetrics {
 	private static Logger logger = Logger.getLogger(AverageSurplusMetrics.class);
@@ -42,7 +42,7 @@ public class AverageSurplusMetrics {
 			averageBacklog.put(item, 0.0);
 		}		
 	
-		Event.addAfterEventListener(new AfterEventListener(){
+		sim.getListenersCoordinator().addAfterEventListener(new EventListener(){
 			@Override
 			public void execute(Event event, Sim sim) {
 				if (sim.isTimeToRecordData() && lastMachineSnapshot!=null){
@@ -71,7 +71,7 @@ public class AverageSurplusMetrics {
 				}				
 				lastMachineSnapshot = machine.getSnapshot();
 			}			
-		}, sim);		
+		});		
 	}
 	
 	public double getAverageSurplusDeviation(Item item){		

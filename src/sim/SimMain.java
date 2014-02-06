@@ -25,7 +25,13 @@ public class SimMain {
 		
 		//Get the params
 		logger.info("Reading params from json file");
-		Params params = JsonReader.readJson("inputs.json", Params.class);
+		String json = null;
+		if (args.length == 0){
+			json = "inputs_N3.json";
+		} else {
+			json = args[0];
+		}
+		Params params = JsonReader.readJson(json, Params.class);
 
 		sim = new Sim(params);
 		Recorders recorders = new Recorders();

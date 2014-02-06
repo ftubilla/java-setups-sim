@@ -3,6 +3,8 @@ package policies;
 import org.apache.log4j.Logger;
 
 import system.Item;
+import discreteEvent.ControlEvent;
+import discreteEvent.SurplusControlEvent;
 
 public class ClearTheLargestDeviationPolicy extends AbstractPolicy {
 	private static Logger logger = Logger.getLogger(ClearTheLargestDeviationPolicy.class);
@@ -18,9 +20,10 @@ public class ClearTheLargestDeviationPolicy extends AbstractPolicy {
 	}
 
 	@Override
-	protected double doUntilNextUpdate() {
+	protected ControlEvent onReady() {
 		machine.setSprint();
-		return machine.getSetup().computeMinDeltaTimeToTarget(productionProcess, demandProcess);
+		return new SurplusControlEvent(currentSetup, currentSetup.getSurplusTarget(),
+				clock.getTime(),productionProcess,demandProcess);
 	}
 
 	@Override

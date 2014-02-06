@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 import sim.Clock;
 import sim.Sim;
 import system.Item;
-import discreteEvent.BeforeEventListener;
+import discreteEvent.EventListener;
 import discreteEvent.DemandArrival;
 import discreteEvent.Event;
 
@@ -42,7 +42,7 @@ public class ContinuousDemandProcess implements IDemandProcess {
 				+ "at the beginning of each event.");
 		this.clock = sim.getClock();
 		
-		Event.addBeforeEventListener(new BeforeEventListener() {
+		sim.getListenersCoordinator().addBeforeEventListener(new EventListener() {
 			
 			private double latestUpdateTime=0;
 			// This function will be executed before handling any event, so that
@@ -59,7 +59,7 @@ public class ContinuousDemandProcess implements IDemandProcess {
 					latestUpdateTime = event.getTime();
 				}
 			}
-		},sim);
+		});
 
 	}
 

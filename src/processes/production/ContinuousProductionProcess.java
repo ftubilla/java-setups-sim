@@ -6,7 +6,7 @@ import sim.Clock;
 import sim.Sim;
 import system.Item;
 import system.Machine;
-import discreteEvent.BeforeEventListener;
+import discreteEvent.EventListener;
 import discreteEvent.Event;
 import discreteEvent.ProductionDeparture;
 
@@ -41,7 +41,7 @@ public class ContinuousProductionProcess implements IProductionProcess {
 		logger.debug("Initializing continuous production process");
 		
 		this.clock = sim.getClock();
-		Event.addBeforeEventListener(new BeforeEventListener() {
+		sim.getListenersCoordinator().addBeforeEventListener(new EventListener() {
 			/**
 			 * This listener makes sure that every time that an event occurs,
 			 * the production of the current setup is updated according to the
@@ -69,7 +69,7 @@ public class ContinuousProductionProcess implements IProductionProcess {
 					}
 				}
 			}
-		},sim);
+		});
 	}
 
 	@Override

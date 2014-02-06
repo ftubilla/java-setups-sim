@@ -49,7 +49,7 @@ public class SimRun {
 			bar.setProgress(sim.getTime());
 			bar.display();
 		}
-		
+				
 		sim.getRecorders().recordEndOfSim(sim);
 
 	}

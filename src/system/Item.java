@@ -94,45 +94,6 @@ public class Item {
 		logger.trace("Item " + id + " surplus: " + surplus + " inventory: "
 				+ inventory + " backlog: " + backlog);
 	}
-
-	
-	/**
-	 * Based on the production and demand processes, returns the earliest possible time interval when
-	 * the surplus of the item can reach a predetermined level. If the item is not currently under production,
-	 * the setup time is included.
-	 * 
-	 * @param surplusLevel
-	 * @param item
-	 * @return time interval
-	 */
-	public double computeMinDeltaTimeToSurplusLevel(double surplusLevel, IProductionProcess productionProcess,
-			IDemandProcess demandProcess) {
-							
-		if (!productionProcess.isDiscrete() && !demandProcess.isDiscrete()) {
-			double surplusDiff = surplusLevel - surplus;
-			if (surplusDiff <= 0){
-				return -surplusDiff/demandRate;
-			} else{
-				//If the item is not under production add setup time
-				double changeover = isUnderProduction ? 0.0 : setupTime;
-				return changeover + surplusDiff/(productionRate-demandRate);
-			}
-		} else {
-			double nextProductionDeparture = productionProcess.getNextScheduledProductionDepartureTime(this);
-			if (nextProductionDeparture == Double.MAX_VALUE){
-				//If there are no scheduled productions of this item, then the item is not under production
-				assert !isUnderProduction;
-				nextProductionDeparture = setupTime;
-			}
-			double nextDemandArrival = demandProcess.getNextScheduledDemandArrivalTime(this);
-			return Math.min(nextProductionDeparture, nextDemandArrival) - clock.getTime();
-		}		
-	}
-	
-	public double computeMinDeltaTimeToTarget(IProductionProcess productionProcess, IDemandProcess demandProcess){
-		return computeMinDeltaTimeToSurplusLevel(surplusTarget, productionProcess, demandProcess);
-	}
-	
 	
 	public boolean onTarget() {
 		return Math.abs(surplus - surplusTarget) < Sim.SURPLUS_TOLERANCE ? true

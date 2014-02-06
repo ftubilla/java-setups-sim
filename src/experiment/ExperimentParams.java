@@ -17,8 +17,8 @@ public class ExperimentParams {
 	@JsonProperty private int numThreads;
 	@JsonProperty private String baseJson;
 	@JsonProperty private int numItems;
-	@JsonProperty private NormalizedParameterComboGenerator demandRates;
-	@JsonProperty private NormalizedParameterComboGenerator setupTimes;	
+	@JsonProperty private IParameterComboGenerator demandRates;
+	@JsonProperty private IParameterComboGenerator setupTimes;	
 	@JsonProperty private int replicates;
 	
 	public String getName(){

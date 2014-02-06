@@ -6,11 +6,6 @@
 
 package discreteEvent;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 
 import sim.Sim;
@@ -26,14 +21,6 @@ import sim.Sim;
 public abstract class Event implements Comparable<Event> {
 
 	private static Logger logger = Logger.getLogger(Event.class);
-
-	private static Map<Sim,List<BeforeEventListener>> beforeEventListeners;
-	private static Map<Sim,List<AfterEventListener>> afterEventListeners;
-
-	static {
-		beforeEventListeners = new LinkedHashMap<Sim,List<BeforeEventListener>>();
-		afterEventListeners = new LinkedHashMap<Sim,List<AfterEventListener>>();
-	}
 
 	protected double time;
 	protected double deltaTime;
@@ -69,14 +56,14 @@ public abstract class Event implements Comparable<Event> {
 	protected abstract void mainHandle(Sim sim);
 
 	private void beforeHandle(Sim sim) {
-		for (BeforeEventListener listener : beforeEventListeners.get(sim)) {
+		for (IEventListener listener : sim.getListenersCoordinator().getBeforeEventListeners()) {
 			logger.trace("Executing " + listener + " for " + this);
 			listener.execute(this, sim);
 		}
 	}
 
 	private void afterHandle(Sim sim) {
-		for (IEventListener listener : afterEventListeners.get(sim)) {
+		for (IEventListener listener : sim.getListenersCoordinator().getAfterEventListener()) {
 			logger.trace("Executing " + listener);
 			listener.execute(this, sim);
 		}
@@ -100,22 +87,6 @@ public abstract class Event implements Comparable<Event> {
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + ":" + id + " (" + time + ")";
-	}
-
-	public static void addBeforeEventListener(BeforeEventListener listener, Sim sim) {
-		logger.debug("Adding BeforeEventListener " + listener.getId() + " to " + sim);
-		if (!beforeEventListeners.containsKey(sim)){
-			beforeEventListeners.put(sim, new ArrayList<BeforeEventListener>());
-		}
-		beforeEventListeners.get(sim).add(listener);
-	}
-
-	public static void addAfterEventListener(AfterEventListener listener, Sim sim) {
-		logger.debug("Adding AfterEventListener " + listener.getId());
-		if (!afterEventListeners.containsKey(sim)){
-			afterEventListeners.put(sim, new ArrayList<AfterEventListener>());
-		}
-		afterEventListeners.get(sim).add(listener);
 	}
 
 }

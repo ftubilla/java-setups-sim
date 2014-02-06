@@ -7,11 +7,9 @@ import sim.Sim;
 public class ControlEvent extends Event {
 
 	private static Logger logger = Logger.getLogger(ControlEvent.class);
-	private static int idCount = 0;
 	
 	public ControlEvent(double time){
 		super(time);
-		ControlEvent.idCount++;
 	}
 	
 	@Override

@@ -10,6 +10,12 @@ import org.apache.log4j.Logger;
 import sim.Sim;
 import discreteEvent.Event;
 
+/**
+ * A thread-safe class for writing metrics to files.
+ * 
+ * @author ftubilla
+ *
+ */
 public class Recorder {
 	
 	private Logger logger = Logger.getLogger(Recorder.class);
@@ -81,8 +87,10 @@ public class Recorder {
 	
 	private void writeToFile(String line){
 		try{
-			writer.write(line);
-			writer.newLine();
+			synchronized(writer){
+				writer.write(line);
+				writer.newLine();
+			}
 		} catch (IOException e){
 			System.out.println("Problems writing line in " + filename);
 			System.exit(-1);

@@ -37,7 +37,7 @@ public abstract class AbstractPolicy implements IPolicy {
 		
 		if (machine.isDown()) {			
 			logger.trace("Machine is down.");
-			machineDown();			
+			onFailure();			
 		}
 		
 		if (machine.isUp()) {
@@ -49,21 +49,18 @@ public abstract class AbstractPolicy implements IPolicy {
 					startChangeover(nextItem());
 				} else {					
 					logger.trace("The machine is in the middle of a production run");
-					double nextUpdate = doUntilNextUpdate();
-					updateControlAfter(nextUpdate);
+					sim.getMasterScheduler().addEvent(onReady());
 				}
 				
-			} else if (machine.isSetupComplete()) {
-				
+			} else if (machine.isSetupComplete()) {				
 				logger.trace("The machine has finished its setup change." +
 						" Next control event will determine how much work to do");
 				machine.setSprint();
-				updateControlAfter(0);
+				sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
 				
 			} else {
-				double newControlTime = machine.getNextSetupCompleteTime() - sim.getTime();
-				logger.debug("Nothing to do. Setups are non-preemptive. Scheduling a new control for time " + newControlTime);
-				updateControlAfter(newControlTime);
+				logger.debug("Nothing to do. Setups are non-preemptive.");
+				sim.getMasterScheduler().addEvent(new ControlEvent(machine.getNextSetupCompleteTime()));
 			}
 		}								
 	}
@@ -81,7 +78,7 @@ public abstract class AbstractPolicy implements IPolicy {
 	 * Override with whatever logic the policy implements when the machine is down.
 	 * @param sim
 	 */
-	protected void machineDown(){
+	protected void onFailure(){
 		// Flush the control schedule
 		sim.getMasterScheduler().dumpEvents();
 	}
@@ -91,9 +88,9 @@ public abstract class AbstractPolicy implements IPolicy {
 	 * Override with any commands you want to execute during the run, and return the time when a new control update should 
 	 * occur.
 	 * 
-	 * @return double Time for next control update
+	 * @return ControlEvent An event for when the next update should occur
 	 */
-	protected abstract double doUntilNextUpdate();
+	protected abstract ControlEvent onReady();
 	
 	/**
 	 * Returns true if the machine should start changing over to some other item, given by nextItem.
@@ -121,19 +118,7 @@ public abstract class AbstractPolicy implements IPolicy {
 		sim.getMasterScheduler().addEvent(new Changeover(sim.getTime(), item));
 		lastChangeoverTime = clock.getTime();
 	}
-	
-	/**
-	 * A helper method to simplify the policy class. Adds a control update event
-	 * occurring updatePeriod time units after the current time.
-	 * @param updatePeriod
-	 * 
-	 */
-	protected void updateControlAfter(double updatePeriod){
-		if (trace) {logger.trace("Scheduling the next control event to occur after " +
-					updatePeriod + " time units");}
-		sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime() + updatePeriod));
-	}
-		
+
 }
 
 

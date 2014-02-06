@@ -12,7 +12,6 @@ import java.util.Queue;
 import org.apache.log4j.Logger;
 
 import sim.Clock;
-import sim.Sim;
 
 /**
  * A schedule keeps track of the upcoming events. If the schedule is dumpable,

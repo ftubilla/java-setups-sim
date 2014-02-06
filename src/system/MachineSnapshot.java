@@ -6,7 +6,6 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import sim.Clock;
-import sim.Sim;
 
 public class MachineSnapshot {
 	private static Logger logger = Logger.getLogger(MachineSnapshot.class);

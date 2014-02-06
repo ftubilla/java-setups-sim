@@ -19,7 +19,7 @@ public class RoundRobinPolicy extends AbstractPolicy {
 	}
 	
 	@Override
-	protected double doUntilNextUpdate() {
+	protected double onReady() {
 		machine.setSprint();
 		return machine.getSetup().computeMinDeltaTimeToTarget(productionProcess, demandProcess);
 	}

@@ -2,17 +2,16 @@ package discreteEvent;
 
 import sim.Sim;
 
-public abstract class AfterEventListener implements IEventListener {
+public abstract class EventListener implements IEventListener {
 
 	private static int count=0;
-		
+	
 	private int id;
-		
-	public AfterEventListener(){
+	
+	public EventListener(){
 		id=count++;
 	}
-		
-	@Override
+	
 	public abstract void execute(Event event, Sim sim);
 
 	@Override
@@ -22,9 +21,6 @@ public abstract class AfterEventListener implements IEventListener {
 	
 	@Override
 	public String toString(){
-		return "AfterEventListener:" + id;
+		return "EventListener:" + id;
 	}
-	
 }
-
-

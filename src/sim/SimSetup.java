@@ -21,9 +21,8 @@ import processes.production.IProductionProcess;
 import system.Item;
 import system.Machine;
 import util.AlgorithmLoader;
-import discreteEvent.AfterEventListener;
-import discreteEvent.BeforeEventListener;
 import discreteEvent.Event;
+import discreteEvent.EventListener;
 
 public class SimSetup {
 
@@ -96,18 +95,19 @@ public class SimSetup {
 		sim.setRecorders(recorders);
 		
 		//The lines below make sure that the recorders' methods are called before/after each event
-		Event.addBeforeEventListener(new BeforeEventListener(){
+		sim.getListenersCoordinator().addBeforeEventListener(new EventListener(){
 			@Override
 			public void execute(Event event, Sim sim) {
 				sim.getRecorders().recordBeforeEvent(sim, event);
 			}			
-		}, sim);
-		Event.addAfterEventListener(new AfterEventListener(){
+		});
+		
+		sim.getListenersCoordinator().addAfterEventListener(new EventListener(){
 			@Override
 			public void execute(Event event, Sim sim) {
 				sim.getRecorders().recordAfterEvent(sim, event);
-			}			
-		}, sim);
+			}		
+		});
 		
 
 	}

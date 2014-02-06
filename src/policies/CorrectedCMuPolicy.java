@@ -4,6 +4,8 @@ import org.apache.log4j.Logger;
 
 import sim.Sim;
 import system.Item;
+import discreteEvent.ControlEvent;
+import discreteEvent.SurplusControlEvent;
 
 public class CorrectedCMuPolicy extends AbstractPolicy {
 	private static Logger logger = Logger.getLogger(CorrectedCMuPolicy.class);
@@ -24,11 +26,12 @@ public class CorrectedCMuPolicy extends AbstractPolicy {
 	}
 
 	@Override
-	protected double doUntilNextUpdate() {
+	protected ControlEvent onReady() {
 		machine.setSprint();
 		//On each review period, we want to bring a change in the surplus of surplusLevelDelta
 		double surplusDelta = computeSurplusDelta(currentSetup);
-		return currentSetup.computeMinDeltaTimeToSurplusLevel(surplusDelta + currentSetup.getSurplus(), productionProcess, demandProcess);
+		return new SurplusControlEvent(currentSetup,surplusDelta + currentSetup.getSurplus(),clock.getTime(),
+				productionProcess,demandProcess);
 	}
 
 	@Override

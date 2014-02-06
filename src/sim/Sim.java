@@ -1,8 +1,9 @@
 package sim;
 
+import metrics.Metrics;
+
 import org.apache.log4j.Logger;
 
-import metrics.Metrics;
 import output.Recorders;
 import policies.IPolicy;
 import processes.demand.IDemandProcess;
@@ -10,6 +11,7 @@ import processes.generators.IRandomTimeIntervalGenerator;
 import processes.production.IProductionProcess;
 import system.Machine;
 import discreteEvent.Event;
+import discreteEvent.ListenersCoordinator;
 import discreteEvent.MasterScheduler;
 
 public class Sim {
@@ -23,6 +25,7 @@ public class Sim {
 	private int id;
 	private Params params;
 	private MasterScheduler masterScheduler;
+	private ListenersCoordinator listenersCoordinator;
 	private IDemandProcess demandProcess;
 	private IProductionProcess productionProcess;
 	private IRandomTimeIntervalGenerator theFailuresGenerator;
@@ -41,6 +44,7 @@ public class Sim {
 		logger.info("Creating "+this);
 		this.clock = new Clock(params.getMetricsStartTime());
 		this.masterScheduler = new MasterScheduler(this);
+		this.listenersCoordinator = new ListenersCoordinator();
 		logger.info("Setting and locking sim params");
 		params.lock();
 		this.params = params;
@@ -106,6 +110,10 @@ public class Sim {
 		return masterScheduler;
 	}
 
+	public ListenersCoordinator getListenersCoordinator(){
+		return listenersCoordinator;
+	}
+	
 	public boolean eventsComplete() {
 		return masterScheduler.eventsComplete();
 	}

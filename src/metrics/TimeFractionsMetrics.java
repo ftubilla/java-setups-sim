@@ -4,7 +4,7 @@ import java.util.*;
 
 import org.apache.log4j.Logger;
 
-import discreteEvent.BeforeEventListener;
+import discreteEvent.EventListener;
 import discreteEvent.Event;
 import system.*;
 import system.Machine.FailureState;
@@ -34,7 +34,7 @@ public class TimeFractionsMetrics {
 			}			
 		}
 		
-		Event.addBeforeEventListener(new BeforeEventListener(){
+		sim.getListenersCoordinator().addBeforeEventListener(new EventListener(){
 			@Override
 			public void execute(Event event, Sim sim){
 				double deltaTime = event.getTime() - sim.getTime();
@@ -56,7 +56,7 @@ public class TimeFractionsMetrics {
 					}
 				}
 			}
-		},sim);	
+		});	
 	}
 	
 	public void increment(Metric theMetric, Item theItem, Double theIncrement){
