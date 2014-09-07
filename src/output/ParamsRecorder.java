@@ -2,7 +2,8 @@ package output;
 
 import org.apache.log4j.Logger;
 
-import sim.Params;
+import params.Params;
+
 import sim.Sim;
 
 public class ParamsRecorder extends Recorder {

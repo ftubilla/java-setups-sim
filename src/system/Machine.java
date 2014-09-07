@@ -8,9 +8,9 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import params.Params;
 import processes.production.IProductionProcess;
 import sim.Clock;
-import sim.Params;
 import discreteEvent.MasterScheduler;
 import discreteEvent.ScheduleType;
 

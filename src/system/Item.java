@@ -8,7 +8,8 @@ package system;
 
 import org.apache.log4j.Logger;
 
-import sim.Params;
+import params.Params;
+
 import sim.Sim;
 
 /**

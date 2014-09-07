@@ -5,6 +5,7 @@ import metrics.Metrics;
 import org.apache.log4j.Logger;
 
 import output.Recorders;
+import params.Params;
 import policies.IPolicy;
 import processes.demand.IDemandProcess;
 import processes.generators.IRandomTimeIntervalGenerator;
@@ -45,8 +46,6 @@ public class Sim {
 		this.clock = new Clock(params.getMetricsStartTime());
 		this.masterScheduler = new MasterScheduler(this);
 		this.listenersCoordinator = new ListenersCoordinator();
-		logger.info("Setting and locking sim params");
-		params.lock();
 		this.params = params;
 	}
 
@@ -78,16 +77,7 @@ public class Sim {
 	}
 	
 	public String toStringVerbose() {
-		String output = "";
-		output += "System with the following parameters:\n" + "Demand Rates: "
-				+ this.getParams().getDemandRates() + "\n"
-				+ "Production Rates: " + this.getParams().getProductionRates()
-				+ "\n" + "MTTF: " + this.getParams().getMeanTimeToFail() + "\n"
-				+ "MTTR: " + this.getParams().getMeanTimeToRepair() + "\n"
-				+ "Setup times: " + this.getParams().getSetupTimes() + "\n"
-				+ "Initial setup: " + this.getParams().getInitialSetup();
-
-		return (output);
+		return String.format("Sim %d with parameters:\n%s", id, params);		
 	}
 
 	public Params getParams() {

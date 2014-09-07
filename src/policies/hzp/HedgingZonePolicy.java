@@ -39,7 +39,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	
 	@Override
 	protected boolean isTimeToChangeOver() {
-		if (policyParams.shouldCruise() && isInTheHedgingZone()){
+		if (policyParams.isCruising() && isInTheHedgingZone()){
 			//Changeovers never occur in the hedging zone
 			return false;
 		} else {
@@ -49,7 +49,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	
 	@Override
 	protected ControlEvent onReady() {	
-		if (policyParams.shouldCruise() && isInTheHedgingZone() && machine.getSetup().onTarget()){
+		if (policyParams.isCruising() && isInTheHedgingZone() && machine.getSetup().onTarget()){
 			//Only cruise when 1) it's enabled, 2) we are in the hedging zone, 3) we are at the target ZU
 			machine.setCruise();
 			return new ControlEvent(clock.getTime()+computeTimeToExitHedgingZone());			

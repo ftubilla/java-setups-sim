@@ -1,13 +1,16 @@
-package experiment;
+package params;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import policies.PolicyParams;
-import sim.Params;
 import util.JsonReader;
+
+import com.google.common.collect.ImmutableList;
+
+import experiment.ExperimentParams;
+import experiment.ParameterCombo;
 
 public class ExperimentSimParamsGenerator {
 	private static Logger logger = Logger.getLogger(ExperimentSimParamsGenerator.class);
@@ -40,8 +43,8 @@ public class ExperimentSimParamsGenerator {
 							setupTimes.add(item, setupTimesCombo.get(item));
 						}
 
-						params.setDemandRates(demandRates);
-						params.setSetupTimes(setupTimes);
+						params.setDemandRates(ImmutableList.copyOf(demandRates));
+						params.setSetupTimes(ImmutableList.copyOf(setupTimes));
 						params.setSeed(seed++);
 						PolicyParams policyParams = params.getPolicyParams();
 						policyParams.setName(policies[pol]);

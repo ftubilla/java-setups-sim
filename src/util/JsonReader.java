@@ -3,7 +3,11 @@ package util;
 import java.io.File;
 
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
+
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
+
 
 public class JsonReader {
 	private static Logger logger = Logger.getLogger(JsonReader.class);
@@ -22,6 +26,7 @@ public class JsonReader {
 		T object = null;
 		try {
 			ObjectMapper mapper = new ObjectMapper();
+			mapper.registerModule((Module) new GuavaModule());	//This is needed for deserializing Guava data types
 			object = mapper.readValue(new File("json/"+fileName), clazz);
 		} catch (Exception e) {
 			logger.fatal("Problem reading json file at json/" + fileName);

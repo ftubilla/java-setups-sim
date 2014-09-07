@@ -2,6 +2,8 @@ package policies;
 
 import org.apache.log4j.Logger;
 
+import params.PolicyParams;
+
 import sim.Clock;
 import sim.Sim;
 import system.Item;

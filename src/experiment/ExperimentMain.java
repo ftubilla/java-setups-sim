@@ -8,7 +8,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import output.Recorders;
-import sim.Params;
+import params.ExperimentSimParamsGenerator;
+import params.Params;
 import sim.ProgressBar;
 import sim.Sim;
 import sim.SimRun;

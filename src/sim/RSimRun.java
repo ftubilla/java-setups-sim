@@ -1,6 +1,7 @@
 package sim;
 
 import output.Recorders;
+import params.Params;
 import system.Item;
 import util.JsonReader;
 
