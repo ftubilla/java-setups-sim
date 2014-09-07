@@ -16,10 +16,10 @@ public class InterEventLengthsRecorder extends Recorder {
 	
 	@Override
 	public void recordBeforeEvent(Sim sim, Event event) {
-		ScheduleType st = ScheduleType.getType(event);
+		ScheduleType st = event.getScheduleType();
 		if (st == ScheduleType.FAILURES || st == ScheduleType.REPAIRS) {
 			record(sim.getId(), event.getClass().getSimpleName(),
-					sim.getMasterScheduler().getSchedule(ScheduleType.getType(event)).getLastInterEventTime());
+					sim.getMasterScheduler().getSchedule(event.getScheduleType()).getLastInterEventTime());
 		}
 
 	}

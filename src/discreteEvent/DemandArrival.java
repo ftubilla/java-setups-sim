@@ -8,8 +8,7 @@ import system.Item;
 public class DemandArrival extends Event {
 
 	private static Logger logger = Logger.getLogger(DemandArrival.class);
-	private static int count=0;
-	
+
 	private Item item;
 	private double demand;
 
@@ -25,7 +24,6 @@ public class DemandArrival extends Event {
 		super(time);
 		this.item = item;
 		this.demand = demand;
-		DemandArrival.count++;
 		logger.debug("Creating demand arrival " + this.getId()
 				+ " for Item " + item.getId() + " with qty " + demand);
 	}
@@ -48,6 +46,11 @@ public class DemandArrival extends Event {
 
 	public double getDemand() {
 		return demand;
+	}
+
+	@Override
+	public ScheduleType getScheduleType() {
+		return ScheduleType.DEMAND;
 	}
 
 }

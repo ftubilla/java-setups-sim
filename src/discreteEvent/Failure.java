@@ -7,11 +7,9 @@ import sim.Sim;
 public class Failure extends Event {
 
 	private static Logger logger = Logger.getLogger(Failure.class);
-	private static int idCount = 0;
 
 	public Failure(double time) {
 		super(time);
-		Failure.idCount++;
 	}
 
 	@Override
@@ -25,6 +23,11 @@ public class Failure extends Event {
 				new Repair(sim.getTime() + repairTime));
 		sim.getMachine().breakDown();
 		sim.getPolicy().updateControl(sim);
+	}
+
+	@Override
+	public ScheduleType getScheduleType() {
+		return ScheduleType.FAILURES;
 	}
 
 }

@@ -8,9 +8,6 @@ package system;
 
 import org.apache.log4j.Logger;
 
-import processes.demand.IDemandProcess;
-import processes.production.IProductionProcess;
-import sim.Clock;
 import sim.Params;
 import sim.Sim;
 
@@ -33,9 +30,6 @@ public class Item {
 	private double surplusTarget;
 	private int id;
 
-	//References
-	private Clock clock;
-	
 	// Variables
 	private double cumulativeProduction;
 	private double cumulativeDemand;
@@ -45,9 +39,8 @@ public class Item {
 	private boolean isUnderProduction=false;	
 
 	
-	public Item(int id, Clock clock, Params params) {
+	public Item(int id, Params params) {
 		this.id = id;
-		this.clock = clock;
 		demandRate = params.getDemandRates().get(id);
 		productionRate = params.getProductionRates().get(id);
 		setupTime = params.getSetupTimes().get(id);
@@ -102,6 +95,22 @@ public class Item {
 
 	public boolean onOrAboveTarget() {
 		return surplus >= surplusTarget - Sim.SURPLUS_TOLERANCE;
+	}
+	
+	/**
+	 * Computes the time required to reach a given surplus level assuming a fluid model
+	 * with no failures. The time computed <em>excludes setup time</em>. 
+	 * 
+	 * @param surplusLevel
+	 * @return double
+	 */
+	public double getFluidTimeToSurplusLevel(double surplusLevel) {
+		double surplusDiff = surplusLevel - this.getSurplus();
+		if (surplusDiff <= 0){
+			return -surplusDiff/this.getDemandRate();
+		} else{
+			return surplusDiff/(productionRate - demandRate);
+		}
 	}
 	
 	public int getId() {

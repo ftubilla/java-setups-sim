@@ -44,5 +44,10 @@ public class ProductionDeparture extends Event {
 		return ProductionDeparture.count;
 	}
 
+	@Override
+	public ScheduleType getScheduleType() {
+		return ScheduleType.PRODUCTION;
+	}
+
 
 }

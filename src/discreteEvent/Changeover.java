@@ -7,7 +7,6 @@ import system.*;
 
 public class Changeover extends Event {
 
-	private static int idCount = 0;
 	private static Logger logger = Logger.getLogger(Changeover.class);
 	
 	private boolean trace = logger.isTraceEnabled();
@@ -18,7 +17,6 @@ public class Changeover extends Event {
 	// changeover we will call the policy.
 	public Changeover(double time, Item changeTo) {
 		super(time);
-		Changeover.idCount++;
 		this.changeTo = changeTo;
 	}
 
@@ -38,6 +36,11 @@ public class Changeover extends Event {
 		sim.getMasterScheduler().addEvent(
 				new ControlEvent(sim.getTime() + changeoverTime));
 
+	}
+
+	@Override
+	public ScheduleType getScheduleType() {
+		return ScheduleType.CONTROL;
 	}
 
 }

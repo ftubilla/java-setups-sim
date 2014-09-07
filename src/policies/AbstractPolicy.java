@@ -2,8 +2,6 @@ package policies;
 
 import org.apache.log4j.Logger;
 
-import processes.demand.IDemandProcess;
-import processes.production.IProductionProcess;
 import sim.Clock;
 import sim.Sim;
 import system.Item;
@@ -24,8 +22,7 @@ public abstract class AbstractPolicy implements IPolicy {
 	
 	protected Item currentSetup;
 	protected Machine machine;
-	protected IDemandProcess demandProcess;
-	protected IProductionProcess productionProcess;
+	protected boolean hasDiscreteMaterial;
 	protected PolicyParams policyParams;
 	protected Clock clock;
 	
@@ -69,8 +66,7 @@ public abstract class AbstractPolicy implements IPolicy {
 	public void setUpPolicy(Sim sim){
 		this.sim = sim;
 		this.machine = sim.getMachine();
-		this.demandProcess = sim.getDemandProcess();
-		this.productionProcess = sim.getProductionProcess();
+		this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
 		this.policyParams = sim.getParams().getPolicyParams();
 	}
 	

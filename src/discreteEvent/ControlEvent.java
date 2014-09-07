@@ -21,6 +21,12 @@ public class ControlEvent extends Event {
 		sim.getPolicy().updateControl(sim);				
 		
 	}
+
+	@Override
+	public ScheduleType getScheduleType() {
+		return ScheduleType.CONTROL;
+	}
+	
 	
 }
 

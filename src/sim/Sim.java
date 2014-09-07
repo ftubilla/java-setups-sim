@@ -174,6 +174,11 @@ public class Sim {
 		return productionProcess;
 	}
 
+	public boolean hasDiscreteMaterial(){
+		//We cannot have mixed continuous and discrete processes, but just in case I check with OR.
+		return productionProcess.isDiscrete() || demandProcess.isDiscrete();
+	}
+	
 	public void setProductionProcess(IProductionProcess productionProcess) {
 		this.productionProcess = productionProcess;
 		this.machine.setProductionProcess(productionProcess);

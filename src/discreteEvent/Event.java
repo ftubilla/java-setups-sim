@@ -24,8 +24,8 @@ public abstract class Event implements Comparable<Event> {
 
 	protected double time;
 	protected double deltaTime;
-	private int id;
-	private static int idCount = 0;
+	private long id;
+	private static long idCount = 0;
 
 	public Event(double time) {
 		this.time = time;
@@ -52,8 +52,10 @@ public abstract class Event implements Comparable<Event> {
 		afterHandle(sim);
 	}
 
-	// This is the method that each new event should override
+	// This is the main method that each new event should override
 	protected abstract void mainHandle(Sim sim);
+	
+	public abstract ScheduleType getScheduleType(); 
 
 	private void beforeHandle(Sim sim) {
 		for (IEventListener listener : sim.getListenersCoordinator().getBeforeEventListeners()) {
@@ -80,7 +82,7 @@ public abstract class Event implements Comparable<Event> {
 		this.time = time;
 	}
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	

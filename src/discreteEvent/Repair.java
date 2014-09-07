@@ -7,11 +7,9 @@ import sim.Sim;
 public class Repair extends Event {
 	
 	private static Logger logger = Logger.getLogger(Repair.class);
-	private static int idCount = 0;
 	
 	public Repair(double time){
 		super(time);
-		Repair.idCount++;
 	}
 	
 	@Override
@@ -24,6 +22,11 @@ public class Repair extends Event {
 		double nextTimeToFailure = sim.getTheFailuresGenerator().nextTimeInterval();
 		sim.getMasterScheduler().addEvent(new Failure(sim.getTime() + nextTimeToFailure));
 		logger.debug("Finished repairing the machine. Next TTF is " + nextTimeToFailure);
+	}
+
+	@Override
+	public ScheduleType getScheduleType() {
+		return ScheduleType.REPAIRS;
 	}
 	
 	

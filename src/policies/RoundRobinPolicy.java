@@ -6,6 +6,8 @@ import org.apache.log4j.Logger;
 
 import sim.Sim;
 import system.Item;
+import discreteEvent.ControlEvent;
+import discreteEvent.SurplusControlEvent;
 
 public class RoundRobinPolicy extends AbstractPolicy {
 
@@ -19,9 +21,9 @@ public class RoundRobinPolicy extends AbstractPolicy {
 	}
 	
 	@Override
-	protected double onReady() {
+	protected ControlEvent onReady() {
 		machine.setSprint();
-		return machine.getSetup().computeMinDeltaTimeToTarget(productionProcess, demandProcess);
+		return new SurplusControlEvent(currentSetup,currentSetup.getSurplusTarget(),clock.getTime(),hasDiscreteMaterial);
 	}
 	
 	@Override

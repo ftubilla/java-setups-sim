@@ -12,8 +12,11 @@ import policies.AbstractPolicy;
 import sim.Sim;
 import system.Item;
 import util.AlgorithmLoader;
+import discreteEvent.ControlEvent;
+import discreteEvent.SurplusControlEvent;
 
 public class HedgingZonePolicy extends AbstractPolicy {
+	
 	private static Logger logger = Logger.getLogger(HedgingZonePolicy.class);
 
 	@SuppressWarnings("unused")
@@ -45,14 +48,15 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	}
 	
 	@Override
-	protected double onReady() {	
+	protected ControlEvent onReady() {	
 		if (policyParams.shouldCruise() && isInTheHedgingZone() && machine.getSetup().onTarget()){
 			//Only cruise when 1) it's enabled, 2) we are in the hedging zone, 3) we are at the target ZU
 			machine.setCruise();
-			return computeTimeToExitHedgingZone();			
+			return new ControlEvent(clock.getTime()+computeTimeToExitHedgingZone());			
 		} else {
 			machine.setSprint();
-			return machine.getSetup().computeMinDeltaTimeToTarget(productionProcess, demandProcess);
+			return new SurplusControlEvent(currentSetup, currentSetup.getSurplusTarget(),
+					clock.getTime(), hasDiscreteMaterial);
 		}
 	}
 	
@@ -69,7 +73,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	private double computeTimeToExitHedgingZone(){
 		double minExitTime = Double.MAX_VALUE;
 		for (Item item : sortedItems){
-			double exitTime = item.computeMinDeltaTimeToSurplusLevel(policyParams.getLowerHedgingPoint(item), productionProcess, demandProcess);
+			double exitTime = item.getFluidTimeToSurplusLevel(policyParams.getLowerHedgingPoint(item));			
 			assert exitTime >= 0 : "The system is not in the hedging zone!";
 			if (exitTime < minExitTime){minExitTime = exitTime;}
 		}

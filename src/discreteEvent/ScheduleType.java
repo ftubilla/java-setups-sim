@@ -27,34 +27,6 @@ public enum ScheduleType {
 		this.dumpable = dumpable;
 		this.delayable = delayable;
 	}
-
-	/**
-	 * Use this method to determine the schedule type of a given event. Note that 
-	 * each event must map one to one to a given schedule type, which is defined here.
-	 * @param event
-	 * @return The ScheduleType of this event
-	 */
-	public static ScheduleType getType(Event event){
-		Class<? extends Event> eventClass = event.getClass();
-		if (eventClass.equals(DemandArrival.class)){
-			return DEMAND;
-		} 
-		if (eventClass.equals(ProductionDeparture.class)){
-			return PRODUCTION;
-		}
-		if (eventClass.equals(ControlEvent.class) || eventClass.equals(Changeover.class)){
-			return CONTROL;
-		}
-		if (eventClass.equals(Failure.class)){
-			return FAILURES;
-		} 
-		if (eventClass.equals(Repair.class)){
-			return REPAIRS;
-		}
-		else {
-			throw new AssertionError("This event has no schedule type defined!");
-		}
-	}
 	
 	public boolean isDumpable(){
 		return dumpable;

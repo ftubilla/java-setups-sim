@@ -48,7 +48,7 @@ public class Machine implements Iterable<Item> {
 		items = new ArrayList<Item>(numItems);
 		//Create items and itemSet
 		for (int id = 0; id < params.getNumItems(); id++){
-			Item item = new Item(id, clock, params);
+			Item item = new Item(id, params);
 			items.add(item);
 			itemMap.put(id, item);
 		}

@@ -1,8 +1,7 @@
 package policies;
 
-import processes.demand.IDemandProcess;
-import processes.production.IProductionProcess;
 import sim.Sim;
+import system.Item;
 import system.Machine.FailureState;
 import system.Machine.OperationalState;
 import discreteEvent.Changeover;
@@ -12,14 +11,10 @@ public class UnstableCCPolicyN3 implements IPolicy {
 
 	private final double K = 3.1;
 	private final double Delta = 3;
-	private IProductionProcess productionProcess;
-	private IDemandProcess demandProcess;
 	
 	@Override
 	public void setUpPolicy(Sim sim){
 		assert sim.getParams().getNumItems() == 3;	
-		this.productionProcess = sim.getProductionProcess();
-		this.demandProcess = sim.getDemandProcess();
 	}
 	
 	
@@ -82,7 +77,8 @@ public class UnstableCCPolicyN3 implements IPolicy {
 					
 				} else {
 					// Continue Producing
-					double workRemaining = sim.getMachine().getSetup().computeMinDeltaTimeToTarget(productionProcess, demandProcess);
+					Item setup = sim.getMachine().getSetup();
+					double workRemaining = setup.getFluidTimeToSurplusLevel(setup.getSurplusTarget());
 					sim.getMachine().setSprint();
 					sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime() + workRemaining));
 				}	

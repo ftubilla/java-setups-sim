@@ -31,7 +31,7 @@ public class CorrectedCMuPolicy extends AbstractPolicy {
 		//On each review period, we want to bring a change in the surplus of surplusLevelDelta
 		double surplusDelta = computeSurplusDelta(currentSetup);
 		return new SurplusControlEvent(currentSetup,surplusDelta + currentSetup.getSurplus(),clock.getTime(),
-				productionProcess,demandProcess);
+				hasDiscreteMaterial);
 	}
 
 	@Override
@@ -51,8 +51,11 @@ public class CorrectedCMuPolicy extends AbstractPolicy {
 				if(trace){logger.trace("Skipping " + item + " because it is at its target already");}
 				continue;
 			}
-			double surplusDelta = computeSurplusDelta(item);
-			double timeToReach = item.computeMinDeltaTimeToSurplusLevel(surplusDelta + currentSetup.getSurplus(), productionProcess, demandProcess);
+			double surplusDelta = computeSurplusDelta(item);			
+			double timeToReach = item.getFluidTimeToSurplusLevel(surplusDelta + currentSetup.getSurplus());
+			if (!item.isUnderProduction()){
+				timeToReach += item.getSetupTime();
+			}
 			double averageMu = surplusDelta/timeToReach + item.getDemandRate();
 			double cMu = item.getBacklogCostRate()*averageMu;
 			if(trace){logger.trace("Average cmu for " + item + " is " + cMu);}

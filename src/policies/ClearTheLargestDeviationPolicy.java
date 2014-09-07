@@ -22,8 +22,7 @@ public class ClearTheLargestDeviationPolicy extends AbstractPolicy {
 	@Override
 	protected ControlEvent onReady() {
 		machine.setSprint();
-		return new SurplusControlEvent(currentSetup, currentSetup.getSurplusTarget(),
-				clock.getTime(),productionProcess,demandProcess);
+		return new SurplusControlEvent(currentSetup, currentSetup.getSurplusTarget(), clock.getTime(), hasDiscreteMaterial);
 	}
 
 	@Override

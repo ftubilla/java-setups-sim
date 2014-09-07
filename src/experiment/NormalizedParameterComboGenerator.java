@@ -8,8 +8,6 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import util.Node;
-
 /**
  * A class for generating parameter combinations for the items. All combinations
  * are assumed to sum up to 1, and thus only the values for N-1 of the items need

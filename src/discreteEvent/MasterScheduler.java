@@ -51,7 +51,7 @@ public class MasterScheduler {
 			assert e.time >= clock.getTime() : "Cannot add events that occur in the past!";
 			logger.trace("Adding event " + e
 					+ " to the master schedule");
-			schedules.get(ScheduleType.getType(e)).addEvent(e);
+			schedules.get(e.getScheduleType()).addEvent(e);
 
 			// Since the triggers can add new triggers, need to loop only over
 			// the current triggers
