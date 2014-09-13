@@ -31,7 +31,7 @@ public class ExperimentMain {
 	public static void main(String[] args){
 	
 		PropertyConfigurator.configure("config/log4j.properties");	
-		ExperimentParams expParams = JsonReader.readJson("experiment.json", ExperimentParams.class);		
+		ExperimentParams expParams = JsonReader.readJsonRelativePath("experiment.json", ExperimentParams.class);		
 		final Recorders recorders = new Recorders();		
 		ExecutorService executor = Executors.newFixedThreadPool(expParams.getNumThreads());
 		

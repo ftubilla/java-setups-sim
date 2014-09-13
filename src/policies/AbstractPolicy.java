@@ -48,7 +48,8 @@ public abstract class AbstractPolicy implements IPolicy {
 					startChangeover(nextItem());
 				} else {					
 					logger.trace("The machine is in the middle of a production run");
-					sim.getMasterScheduler().addEvent(onReady());
+					ControlEvent nextControl = onReady();
+					sim.getMasterScheduler().addEvent(nextControl);
 				}
 				
 			} else if (machine.isSetupComplete()) {				
@@ -58,7 +59,7 @@ public abstract class AbstractPolicy implements IPolicy {
 				sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
 				
 			} else {
-				logger.debug("Nothing to do. Setups are non-preemptive.");
+				logger.debug("Nothing to do. Setup in progress and it is non-preemptive.");
 				sim.getMasterScheduler().addEvent(new ControlEvent(machine.getNextSetupCompleteTime()));
 			}
 		}								

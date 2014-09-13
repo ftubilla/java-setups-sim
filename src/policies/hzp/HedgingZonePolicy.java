@@ -62,7 +62,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
 	
 	private boolean isInTheHedgingZone(){
 		for (Item item : sortedItems){
-			//Mathematically, we want strict inequality here, but here we need to use nonstrict to avoid getting stucked
+			//Mathematically, we want strict inequality here, but here we need to use nonstrict to avoid getting stuck
 			if (item.getSurplusDeviation() >= policyParams.getHedgingThresholdDifference(item)){
 				return false;
 			}

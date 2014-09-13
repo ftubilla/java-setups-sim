@@ -34,7 +34,7 @@ public class ExperimentSimParamsGenerator {
 				for (ParameterCombo demandRatesCombo : expParams.getDemandRatesCombos()) {
 					for (ParameterCombo setupTimesCombo : expParams.getSetupTimesCombos()) {
 
-						Params params = JsonReader.readJson(expParams.getBaseJson() + ".json", Params.class);
+						Params params = JsonReader.readJsonRelativePath(expParams.getBaseJson() + ".json", Params.class);
 
 						List<Double> demandRates = new ArrayList<Double>(expParams.getNumItems());
 						List<Double> setupTimes = new ArrayList<Double>(expParams.getNumItems());

@@ -32,7 +32,7 @@ public class SimMain {
 		} else {
 			json = args[0];
 		}
-		Params params = JsonReader.readJson(json, Params.class);
+		Params params = JsonReader.readJsonRelativePath(json, Params.class);
 
 		sim = new Sim(params);
 		Recorders recorders = new Recorders();

@@ -21,13 +21,25 @@ public class JsonReader {
 	private JsonReader(){
 		/*Do not instantiate*/
 	}
+		
 	
-	public static <T> T readJson(String fileName, Class<T> clazz){		
+	/**
+	 * Reads the json file in the json directory.
+	 *  
+	 * @param fileName
+	 * @param clazz
+	 * @return
+	 */
+	public static <T> T readJsonRelativePath(String fileName, Class<T> clazz){		
+		return readJsonAbsolutePath("json/" + fileName, clazz);
+	}
+	
+	public static <T> T readJsonAbsolutePath(String fileName, Class<T> clazz) {
 		T object = null;
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.registerModule((Module) new GuavaModule());	//This is needed for deserializing Guava data types
-			object = mapper.readValue(new File("json/"+fileName), clazz);
+			object = mapper.readValue(new File(fileName), clazz);
 		} catch (Exception e) {
 			logger.fatal("Problem reading json file at json/" + fileName);
 			e.printStackTrace();

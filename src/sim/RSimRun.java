@@ -15,7 +15,7 @@ public class RSimRun {
 		
 	public double[] run(String json){
 		
-		Params params = JsonReader.readJson(json, Params.class);
+		Params params = JsonReader.readJsonRelativePath(json, Params.class);
 		Sim sim = new Sim(params);
 		Recorders recorders = new Recorders();
 		SimSetup.setup(sim, recorders);
