@@ -12,13 +12,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @ToString
 @Getter
 @Setter(AccessLevel.PACKAGE)
-public class DemandProcessParams {
+public class DemandProcessParams extends AbstractParams {
 
 	@JsonProperty 
-	private String name;
+	protected String name;
 	
 	@JsonProperty 
-	public int demandBatchSize;
+	protected int demandBatchSize;
 
 }
 

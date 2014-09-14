@@ -14,20 +14,20 @@ import com.google.common.collect.ImmutableList;
 @ToString
 @Getter
 @Setter(AccessLevel.PACKAGE)
-public class PolicyParams {
+public class PolicyParams extends AbstractParams {
 
 	@JsonProperty
-	private String name;
+	protected String name;
 	
 	@JsonProperty
-	private ImmutableList<Double> lowerHedgingPoints;
+	protected ImmutableList<Double> lowerHedgingPoints;
 	
 	//Hedging Zone Policy Params
 	@JsonProperty 
-	private String priorityComparator="hzp.CMuComparatorWithTiesById";
+	protected String priorityComparator="hzp.CMuComparatorWithTiesById";
 	
 	@JsonProperty
-	private boolean isCruising=false;
+	protected boolean isCruising=false;
 
 	public double getHedgingThresholdDifference(Item item){
 		return item.getSurplusTarget()-lowerHedgingPoints.get(item.getId());

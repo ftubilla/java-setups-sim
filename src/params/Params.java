@@ -20,69 +20,69 @@ import com.google.common.collect.ImmutableList;
 @ToString
 @Getter
 @Setter(AccessLevel.PACKAGE)
-public class Params {
+public class Params extends AbstractParams {
 	
 	@JsonProperty
-	private int numItems;
+	protected int numItems;
 
 	@JsonProperty
 	@NonNull
-	private ImmutableList<Double> demandRates;
+	protected ImmutableList<Double> demandRates;
 	
 	@JsonProperty
 	@NonNull
-	private ImmutableList<Double> productionRates;
+	protected ImmutableList<Double> productionRates;
 
 	@JsonProperty
 	@NonNull
-	private ImmutableList<Double> setupTimes;
+	protected ImmutableList<Double> setupTimes;
 	
 	@JsonProperty
 	@NonNull
-	private ImmutableList<Double> surplusTargets;
+	protected ImmutableList<Double> surplusTargets;
 
 	@JsonProperty
 	@NonNull
-	private ImmutableList<Double> inventoryHoldingCosts;
+	protected ImmutableList<Double> inventoryHoldingCosts;
 
 	@JsonProperty
 	@NonNull
-	private ImmutableList<Double> backlogCosts;
+	protected ImmutableList<Double> backlogCosts;
 	
 	@JsonProperty
-	private double meanTimeToFail = 1.0;
+	protected double meanTimeToFail = 1.0;
 	
 	@JsonProperty
-	private double meanTimeToRepair = 0.0;
+	protected double meanTimeToRepair = 0.0;
 	
 	@JsonProperty
-	private double finalTime;
+	protected double finalTime;
 
 	@JsonProperty
-	private double metricsStartTime;
+	protected double metricsStartTime;
 	
 	@JsonProperty
-	private boolean recordHighFreq = false;
+	protected boolean recordHighFreq = false;
 	
 	@JsonProperty
-	private long seed;
+	protected long seed;
 	
 	@JsonProperty
-	private int initialSetup;
+	protected int initialSetup;
 	
 	@JsonProperty
-	private ImmutableList<Double> initialDemand;
-	
-	@JsonProperty
-	@NonNull
-	private DemandProcessParams demandProcessParams;
+	protected ImmutableList<Double> initialDemand;
 	
 	@JsonProperty
 	@NonNull
-	private ProductionProcessParams productionProcessParams;
+	protected DemandProcessParams demandProcessParams;
 	
 	@JsonProperty
 	@NonNull
-	private PolicyParams policyParams;
+	protected ProductionProcessParams productionProcessParams;
+	
+	@JsonProperty
+	@NonNull
+	protected PolicyParams policyParams;
 	
 }
