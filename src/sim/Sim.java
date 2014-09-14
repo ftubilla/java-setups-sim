@@ -1,9 +1,7 @@
 package sim;
 
+import lombok.extern.apachecommons.CommonsLog;
 import metrics.Metrics;
-
-import org.apache.log4j.Logger;
-
 import output.Recorders;
 import params.Params;
 import policies.IPolicy;
@@ -11,22 +9,22 @@ import processes.demand.IDemandProcess;
 import processes.generators.IRandomTimeIntervalGenerator;
 import processes.production.IProductionProcess;
 import system.Machine;
+import discreteEvent.ControlEvent;
 import discreteEvent.Event;
+import discreteEvent.Failure;
 import discreteEvent.ListenersCoordinator;
 import discreteEvent.MasterScheduler;
 
+@CommonsLog
 public class Sim {
 
-	private static Logger logger = Logger.getLogger(Sim.class);
 	private static int sims=0;
-
-	@SuppressWarnings("unused")
-	private boolean trace = logger.isTraceEnabled();	
 	
 	private int id;
-	private Params params;
-	private MasterScheduler masterScheduler;
-	private ListenersCoordinator listenersCoordinator;
+	private final Params params;
+	private final MasterScheduler masterScheduler;
+	private final ListenersCoordinator listenersCoordinator;
+	private ProgressBar bar;
 	private IDemandProcess demandProcess;
 	private IProductionProcess productionProcess;
 	private IRandomTimeIntervalGenerator theFailuresGenerator;
@@ -42,13 +40,54 @@ public class Sim {
 
 	public Sim(Params params) {
 		id = sims++;		
-		logger.info("Creating "+this);
+		log.info("Creating "+this);
 		this.clock = new Clock(params.getMetricsStartTime());
 		this.masterScheduler = new MasterScheduler(this);
 		this.listenersCoordinator = new ListenersCoordinator();
 		this.params = params;
 	}
 
+	/**
+	 * Runs the simulation. If verbose, it displays a progress bar.
+	 * 
+	 * @param verbose
+	 */
+	public void run(boolean verbose) {
+		
+		//Schedule the first failure and set a control event at that time
+		Event firstFailure = new Failure(getTime() + getTheFailuresGenerator().nextTimeInterval());		
+		this.getMasterScheduler().addEvent(firstFailure);
+		this.getMasterScheduler().addEvent(new ControlEvent(this.getTime()));
+		bar = new ProgressBar(5, getParams().getFinalTime());
+
+		// Main Loop of the Sim
+		while(continueSim()){
+			
+			log.trace("Sim time: " + getTime());
+			if (verbose) {
+				bar.setProgress(getTime());
+				bar.display();
+			}			
+											
+			//Process the next event
+			try {
+				getNextEvent().handle(this);
+			} catch (NullPointerException e){
+				log.fatal("Event returned was null!");
+				e.printStackTrace();
+				System.exit(-1);
+			}
+
+		}
+		
+		if (verbose) {
+			bar.setProgress(getTime());
+			bar.display();
+		}
+				
+		getRecorders().recordEndOfSim(this);
+	}
+	
 	public boolean continueSim() {
 		return (clock.getTime() < params.getFinalTime() && !eventsComplete());
 	}
