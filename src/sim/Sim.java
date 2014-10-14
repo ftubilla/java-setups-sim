@@ -54,8 +54,8 @@ public class Sim {
 	 */
 	public void run(boolean verbose) {
 		
-		//Schedule the first failure and set a control event at that time
-		Event firstFailure = new Failure(getTime() + getTheFailuresGenerator().nextTimeInterval());		
+		//Schedule the first failure and set an initial control event
+		Event firstFailure = new Failure(this.getTime() + getTheFailuresGenerator().nextTimeInterval());		
 		this.getMasterScheduler().addEvent(firstFailure);
 		this.getMasterScheduler().addEvent(new ControlEvent(this.getTime()));
 		bar = new ProgressBar(5, getParams().getFinalTime());

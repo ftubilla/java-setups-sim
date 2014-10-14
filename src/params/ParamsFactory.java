@@ -30,9 +30,13 @@ public class ParamsFactory {
 		
 		if (jsonDir.isDirectory()) {
 			for (final File jsonFile : jsonDir.listFiles()) {
-				log.info(String.format("Reading json %s from %s", jsonFile, jsonDir));
-				Params params = JsonReader.readJson(jsonFile, Params.class);
-				paramsList.add(params);
+				if (isJson(jsonFile)) {
+					log.info(String.format("Reading json %s from %s", jsonFile, jsonDir));
+					Params params = JsonReader.readJson(jsonFile, Params.class);
+					paramsList.add(params);
+				} else {
+					log.info(String.format("Ignoring file %s from %s", jsonFile, jsonDir));
+				}
 			}
 		} else {
 			log.info(String.format("Reading json %s", jsonDir));
@@ -41,6 +45,13 @@ public class ParamsFactory {
 		}
 		
 		return paramsList;
+	}
+	
+	private boolean isJson(File file) {
+		String[] splitByTermination = file.getName().split("\\.");
+		int len = splitByTermination.length;
+		//Check that the last termination is json (there could be more than one . in the file name)
+		return splitByTermination[len - 1].equals("json");
 	}
 	
 }

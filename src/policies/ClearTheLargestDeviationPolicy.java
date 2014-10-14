@@ -1,18 +1,12 @@
 package policies;
 
-import org.apache.log4j.Logger;
-
+import lombok.extern.apachecommons.CommonsLog;
 import system.Item;
 import discreteEvent.ControlEvent;
 import discreteEvent.SurplusControlEvent;
 
+@CommonsLog
 public class ClearTheLargestDeviationPolicy extends AbstractPolicy {
-	private static Logger logger = Logger.getLogger(ClearTheLargestDeviationPolicy.class);
-
-	@SuppressWarnings("unused")
-	private boolean debug = logger.isDebugEnabled();
-	private boolean trace = logger.isTraceEnabled();
-
 
 	@Override
 	protected boolean isTimeToChangeOver() {
@@ -36,19 +30,19 @@ public class ClearTheLargestDeviationPolicy extends AbstractPolicy {
 				largestDeviation = item.getSurplusDeviation();
 				nextItem = item;
 			}
-			if (trace){logger.trace(item + " has a surplus deviation of " + item.getSurplusDeviation());}
+			log.trace(item + " has a surplus deviation of " + item.getSurplusDeviation());
 		}
 		
 		
 		if (nextItem != null){
 			//Most likely scenario
-			if (trace){logger.trace("Next item to produce is " + nextItem + " which has the largest surplus deviation");}
+			log.trace("Next item to produce is " + nextItem + " which has the largest surplus deviation");
 		} else {
 			//If all items have the same deviation, find the next item that's not the current setup		
 			for (Item item : machine){
 				if (item != machine.getSetup()){
 					nextItem = item;
-					if (trace){logger.trace("All items had the same surplus deviation. Changing over to the next item " + nextItem);}
+					log.trace("All items had the same surplus deviation. Changing over to the next item " + nextItem);
 					break;
 				}
 			}			

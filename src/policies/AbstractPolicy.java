@@ -99,7 +99,7 @@ public abstract class AbstractPolicy implements IPolicy {
 	
 	/**
 	 * Implements the decision rule for selecting the next item if a changeover is valid.
-	 * If the state does not allow a changeover, the returned item is undefined (could be null).
+	 * If the state does not allow a changeover, returns <code>null</code>.
 	 * @return
 	 */
 	protected abstract Item nextItem();

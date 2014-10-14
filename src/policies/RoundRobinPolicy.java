@@ -1,6 +1,7 @@
 package policies;
 
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -11,9 +12,7 @@ import discreteEvent.SurplusControlEvent;
 
 public class RoundRobinPolicy extends AbstractPolicy {
 
-	private static Logger logger = Logger.getLogger(RoundRobinPolicy.class);
-
-	private Iterator<Item> itemsIterator;
+	private Map<Item, Item> nextItemMap = new HashMap<Item, Item>();
 
 	@Override
 	protected boolean isTimeToChangeOver() {
@@ -29,23 +28,29 @@ public class RoundRobinPolicy extends AbstractPolicy {
 	@Override
 	public void setUpPolicy(Sim sim) {
 		super.setUpPolicy(sim);
-		itemsIterator = machine.iterator();
-		// Set the iterator to point towards the initial setup
-		while (itemsIterator.hasNext()) {
-			if (sim.getParams().getInitialSetup() == itemsIterator.next()
-					.getId()) {
-				logger.debug("Setting items iterator to start at item "
-						+ sim.getParams().getInitialSetup());
-				break;
+		//Fill the transition map from item to the next.
+		Item firstItem = null;
+		Item prevItem = null;
+		for (Item item : machine) {
+			if (firstItem == null) {
+				firstItem = item;
+				prevItem = item;
 			}
+			nextItemMap.put(prevItem, item);
+			prevItem = item;
 		}
+		nextItemMap.put(prevItem, firstItem);
 	}
 
+	@Override
 	protected Item nextItem() {
-		if (!itemsIterator.hasNext()) {
-			itemsIterator = machine.iterator();
+		if (isTimeToChangeOver()){
+			assert nextItemMap.containsKey(currentSetup) : "The next Item map should contain an entry for the current setup " + currentSetup;
+			//Note that by using a map, the function is idempotent (i.e., repeated calls to the function with the same current setup give the same result)
+			return nextItemMap.get(currentSetup);
+		} else {
+			return null;
 		}
-		return itemsIterator.next();
 	}
 
 	@Override
