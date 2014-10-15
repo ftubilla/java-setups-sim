@@ -2,13 +2,15 @@ package policies;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import junit.framework.TestCase;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.common.collect.ImmutableList;
 
 import params.Params;
 import params.PolicyParams;
@@ -16,7 +18,9 @@ import sim.Clock;
 import sim.Sim;
 import system.Machine;
 
-public class AbstractPolicyTest extends TestCase {
+import com.google.common.collect.ImmutableList;
+
+public abstract class AbstractPolicyTest extends TestCase {
 	
 	protected AbstractPolicy policy;
 	
@@ -53,6 +57,12 @@ public class AbstractPolicyTest extends TestCase {
 		assertTrue("The item is above its target", policy.isTimeToChangeOver());		
 	}
 	
+	@Test
+	public abstract void testNextItem();
+	
+	@Test
+	public abstract void testIsTargetBased();
+	
 	/**
 	 * Creates a mocked Sim instance based on the given params.
 	 * 
@@ -68,6 +78,39 @@ public class AbstractPolicyTest extends TestCase {
 		return sim;
 	}
 	
+	/**
+	 * Fills the remaining mocked params
+	 * @param params
+	 */
+	protected void fillRemainingMockedParams(Params params) {
+		int numItems = params.getNumItems();
+		List<Double> onesDouble = new ArrayList<Double>();
+		List<Double> zerosDouble = new ArrayList<Double>();
+		List<Double> oneOverNumItemsDouble = new ArrayList<Double>();
+		for (int i=0; i<numItems; i++){
+			onesDouble.add(1.0);
+			zerosDouble.add(0.0);
+			oneOverNumItemsDouble.add(1.0 / numItems);
+		}
+		if (params.getBacklogCosts() == null || params.getBacklogCosts().isEmpty()) {
+			when(params.getBacklogCosts()).thenReturn(ImmutableList.copyOf(onesDouble));
+		}
+		if (params.getInventoryHoldingCosts() == null || params.getInventoryHoldingCosts().isEmpty()) {
+			when(params.getInventoryHoldingCosts()).thenReturn(ImmutableList.copyOf(onesDouble));
+		}
+		if (params.getInitialDemand() == null || params.getInitialDemand().isEmpty()) {
+			when(params.getInitialDemand()).thenReturn(ImmutableList.copyOf(zerosDouble));
+		}
+		if (params.getProductionRates() == null || params.getProductionRates().isEmpty()) {
+			when(params.getProductionRates()).thenReturn(ImmutableList.copyOf(onesDouble));
+		}
+		if (params.getDemandRates() == null || params.getDemandRates().isEmpty()) {
+			when(params.getDemandRates()).thenReturn(ImmutableList.copyOf(oneOverNumItemsDouble));
+		}
+		if (params.getSetupTimes() == null || params.getSetupTimes().isEmpty()) {
+			when(params.getSetupTimes()).thenReturn(ImmutableList.copyOf(onesDouble));
+		}		
+	}
 	
 	
 }

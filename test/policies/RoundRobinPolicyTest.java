@@ -20,11 +20,13 @@ public class RoundRobinPolicyTest extends AbstractPolicyTest {
 		policy = new RoundRobinPolicy();
 	}
 
+	@Override
 	@Test
 	public void testIsTargetBased() {
 		assertTrue("Round Robin is target based", policy.isTargetBased());
 	}
 	
+	@Override
 	@Test
 	public void testNextItem() {
 		Params params = mock(Params.class);

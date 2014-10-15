@@ -3,8 +3,6 @@ package policies;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 import sim.Sim;
 import system.Item;
 import discreteEvent.ControlEvent;
