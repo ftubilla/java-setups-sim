@@ -50,6 +50,9 @@ public abstract class AbstractPolicyTest extends TestCase {
 		when(params.getPolicyParams()).thenReturn(mock(PolicyParams.class));
 		policy.setUpPolicy(getSim(params));
 		assertFalse("The item is still below target", policy.isTimeToChangeOver());
+		
+		//Make sure that if it's not time to changeover, we return null
+		assertNull("If it's not time to change over, nextItem() should return null", policy.nextItem());
 	
 		//Now move the targets down and check that we are still below
 		when(params.getSurplusTargets()).thenReturn(ImmutableList.of(-10.0,-10.0));

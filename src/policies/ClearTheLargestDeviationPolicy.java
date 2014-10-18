@@ -22,6 +22,10 @@ public class ClearTheLargestDeviationPolicy extends AbstractPolicy {
 	@Override
 	protected Item nextItem() {
 		
+		if (!isTimeToChangeOver()){
+			return null;
+		}
+		
 		double largestDeviation = 0.0;
 		Item nextItem = null;
 		
