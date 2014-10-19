@@ -6,7 +6,10 @@
 
 package sim;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,6 +20,8 @@ import org.apache.log4j.PropertyConfigurator;
 import output.Recorders;
 import params.Params;
 import params.ParamsFactory;
+
+import com.google.common.io.Files;
 
 /**
  * Main class for running a single or a series of simulation experiments in parallel.
@@ -86,8 +91,39 @@ public class SimMain {
 		System.out.println("****EXPERIMENT COMPLETED!****");
 		log.info("Finished experiment");
 		recorders.closeAll();
+		
+		try {
+			archiveOutput(args[0]);
+		} catch (Exception e) {
+			log.error("Could not archive output files!");
+			e.printStackTrace();
+		}
 				
 	}
 	
+	/**
+	 * Copy all output files to the archive folder
+	 */
+	private static void archiveOutput(String inputsFolderPath) throws Exception {
+		
+		//Get the name of the inputs folder
+		String[] inputsPathComponents = inputsFolderPath.split(File.separator);
+		String inputsFolderName = inputsPathComponents[inputsPathComponents.length - 1]; 
+		
+		//Make a directory in archive to hold the test results
+		Date now = new Date();
+		String timestamp = new SimpleDateFormat("yyyyMMddHHmm").format(now);
+		File archiveDir = new File(String.format("archive%s%s_%s", File.separator, inputsFolderName, timestamp));
+		archiveDir.mkdir();
+		
+		//Copy all files
+		File outputDir = new File("output");		
+		for (File outputFile : outputDir.listFiles()) {
+			log.info(String.format("Copying %s to %s", outputFile.getPath(), archiveDir.getPath()));  
+			File destFile = new File(archiveDir + File.separator + outputFile.getName());
+			Files.copy(outputFile, destFile);
+		}		
+		
+	}
 	
 }
