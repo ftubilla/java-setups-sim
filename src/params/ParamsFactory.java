@@ -33,6 +33,7 @@ public class ParamsFactory {
 				if (isJson(jsonFile)) {
 					log.info(String.format("Reading json %s from %s", jsonFile, jsonDir));
 					Params params = JsonReader.readJson(jsonFile, Params.class);
+					params.setFile(jsonFile.getPath());
 					paramsList.add(params);
 				} else {
 					log.info(String.format("Ignoring file %s from %s", jsonFile, jsonDir));

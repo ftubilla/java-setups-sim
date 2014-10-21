@@ -85,4 +85,6 @@ public class Params extends AbstractParams {
 	@NonNull
 	protected PolicyParams policyParams;
 	
+	protected String file;
+	
 }
