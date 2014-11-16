@@ -3,6 +3,7 @@ package optimization;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class DoubleIndexOptimizationVar<I1, I2> implements Iterable<I1> {
@@ -26,6 +27,14 @@ public class DoubleIndexOptimizationVar<I1, I2> implements Iterable<I1> {
 		}
 	}
 
+	public Iterable<I2> get(I1 index1) {
+		if (variables.containsKey(index1)) {
+			return variables.get(index1);
+		} else {
+			return Lists.<I2>newArrayList();
+		}
+	}
+	
 	@Override
 	public Iterator<I1> iterator() {
 		return variables.keySet().iterator();
