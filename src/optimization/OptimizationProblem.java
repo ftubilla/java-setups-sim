@@ -43,7 +43,7 @@ public class OptimizationProblem {
 	private ConvexMultivariateRealFunction objectiveFunction;
 	private final OptimizationRequest optimizationRequest;
 	private final LPOptimizationRequest initialPointOptimizationRequest;
-	private Double optimalCost;
+	@Getter private Double optimalCost;
 	
 	public OptimizationProblem(String name){
 		stringBuilder.append(name).append("\n");
@@ -149,10 +149,11 @@ public class OptimizationProblem {
 		//Set the objective function
 		optimizationRequest.setF0(objectiveFunction);
 		
-		//Set the initial point (equalities-feasible)
+		//Set the initial point
 		double[] x0;
 		if (!userDefinedInitialValues) {
 			initialPointOptimizationRequest.setC(new double[numVariables]);
+			initialPointOptimizationRequest.setToleranceFeas(toleranceFeas*0.1); //Get better tol for the initial point
 			LPPrimalDualMethod lp = new LPPrimalDualMethod();
 			lp.setLPOptimizationRequest(initialPointOptimizationRequest);
 			lp.optimize();		
@@ -174,7 +175,8 @@ public class OptimizationProblem {
 		optimizationRequest.setCheckKKTSolutionAccuracy(true);
 		optimizationRequest.setToleranceFeas(toleranceFeas);
 		optimizationRequest.setTolerance(tolerance);
-		
+		optimizationRequest.setInteriorPointMethod(JOptimizer.PRIMAL_DUAL_METHOD);
+				
 		//optimization
 		JOptimizer opt = new JOptimizer();
 		opt.setOptimizationRequest(optimizationRequest);

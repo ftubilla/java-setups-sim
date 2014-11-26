@@ -2,7 +2,7 @@ package lowerbounds;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
@@ -14,6 +14,7 @@ import optimization.Posynomial;
 import optimization.SingleIndexOptimizationVar;
 import params.Params;
 
+import com.google.common.collect.Sets;
 import com.joptimizer.functions.ConvexMultivariateRealFunction;
 
 /**
@@ -27,14 +28,29 @@ public abstract class AbstractLowerBound {
 
 	private final Params params;
 	private final String name;
-	private Map<Integer, Double> idealFrequencies;
-	private Map<Integer, Double> cruisingFraction;
 	@Getter private Double lowerBound;
 	@Getter private Boolean isCruising;
+	private final SingleIndexOptimizationVar<Integer> setupFreq;
+	private final DoubleIndexOptimizationVar<Integer, Integer> transitionFreq;
+	private final SingleIndexOptimizationVar<Integer> nonCruisingFrac;
+	private final OptimizationProblem opt;
+	private final List<Integer> items;
 	
 	public AbstractLowerBound(String name, Params params) {
 		this.name = name;
 		this.params = params;
+		items = new ArrayList<Integer>(params.getNumItems());
+		for (int i=0; i<params.getNumItems(); i++){
+			items.add(i);
+		}
+		//Make the variables
+		setupFreq = new SingleIndexOptimizationVar<Integer>("n", items);
+		transitionFreq = new DoubleIndexOptimizationVar<Integer, Integer>("n", items, items);
+		nonCruisingFrac = new SingleIndexOptimizationVar<Integer>("pnc", items);
+		opt = new OptimizationProblem(name + "_" + params.getFile()); 
+		opt.addVar(setupFreq);
+		opt.addVar(transitionFreq);
+		opt.addVar(nonCruisingFrac);
 	}
 	
 	public abstract Posynomial getObjectivePosynomial(Params params, 
@@ -43,24 +59,6 @@ public abstract class AbstractLowerBound {
 			SingleIndexOptimizationVar<Integer> nonCruisingFrac);
 	
 	public void compute() throws Exception {
-		
-		final List<Integer> items = new ArrayList<Integer>(params.getNumItems());
-		for (int i=0; i<params.getNumItems(); i++){
-			items.add(i);
-		}
-		
-		//Make the variables
-		final SingleIndexOptimizationVar<Integer> setupFreq =
-				new SingleIndexOptimizationVar<Integer>("n", items);
-		final DoubleIndexOptimizationVar<Integer, Integer> transitionFreq = 
-				new DoubleIndexOptimizationVar<Integer, Integer>("n", items, items);
-		final SingleIndexOptimizationVar<Integer> nonCruisingFrac =
-				new SingleIndexOptimizationVar<Integer>("pnc", items);
-		
-		final OptimizationProblem opt = new OptimizationProblem("J_opt_" + params.getFile()); 
-		opt.addVar(setupFreq);
-		opt.addVar(transitionFreq);
-		opt.addVar(nonCruisingFrac);
 		
 		final Posynomial objPosynomial = getObjectivePosynomial(params, setupFreq, transitionFreq, nonCruisingFrac);
 		ConvexMultivariateRealFunction objFunction = objPosynomial.getConvexFunction(opt.getVariablesMap());
@@ -109,19 +107,26 @@ public abstract class AbstractLowerBound {
 		
 		//No self-setups
 		// n_ii = 0
+		Set<OptimizationVar> selfSetupVars = Sets.newHashSet();
 		for (Integer i : items) {
 			OptimizationConstraint ctr = new OptimizationConstraint("no_self_setup_" + i);
-			ctr.addTerm(transitionFreq.get(i, i), 1.0);
+			OptimizationVar selfSetup = transitionFreq.get(i, i);
+			ctr.addTerm(selfSetup, 1.0);
 			ctr.eql(0.0);
 			opt.addConstraint(ctr);
+			selfSetupVars.add(selfSetup);
 		}
 		
 		//Nonnegativity
+		//It is important to exclude the self-setup variables because they're already =0 and
+		//JOptimizer's interior point method might fail if we add redundant constraints
 		for (OptimizationVar var : opt.getVariables()) {
-			OptimizationConstraint ctr = new OptimizationConstraint("nonnegative_" + var);
-			ctr.addTerm(var, 1.0);
-			ctr.gEql(0.0);
-			opt.addConstraint(ctr);
+			if (!selfSetupVars.contains(var)) {
+				OptimizationConstraint ctr = new OptimizationConstraint("nonnegative_" + var);
+				ctr.addTerm(var, 1.0);
+				ctr.gEql(0.0);
+				opt.addConstraint(ctr);
+			}
 		}
 		
 		//Upper bounds
@@ -132,13 +137,26 @@ public abstract class AbstractLowerBound {
 			opt.addConstraint(ctr);
 		}
 		
+		//Solve and store the solution
 		log.debug(String.format("Lower bound %s\nObjective: %s\nConstraints:\n%s", this, objPosynomial, opt));
+		opt.setTolerance(1e-5);
+		opt.setToleranceFeas(1e-5);
 		opt.solve();
-		for (OptimizationVar var : opt.getVariables()){
-			System.out.println(var + "=" + var.getSol());
-		}
-		
+		lowerBound = opt.getOptimalCost();
+				
 	}	
+	
+	public Double getIdealFrequency(int itemId) {
+		return setupFreq.get(itemId).getSol();
+	}
+	
+	public Double getCruisingFrac(int itemId) {
+		return 1 - nonCruisingFrac.get(itemId).getSol();
+	}
+	
+	public Double getTransitionFreq(int fromItem, int toItem) {
+		return transitionFreq.get(fromItem, toItem).getSol();
+	}
 	
 	@Override
 	public String toString(){
