@@ -6,9 +6,9 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
+import lombok.extern.apachecommons.CommonsLog;
+import lowerbounds.MakeToOrderLowerBound;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,16 +17,19 @@ import params.PolicyParams;
 import sim.Clock;
 import sim.Sim;
 import system.Machine;
+import util.SimBasicTest;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
-public abstract class AbstractPolicyTest extends TestCase {
+@CommonsLog
+public abstract class AbstractPolicyTest extends SimBasicTest {
 	
 	protected AbstractPolicy policy;
 	
 	@Before
 	public void setUp() throws Exception {	
-		PropertyConfigurator.configure("config/log4j.properties");		
+		super.setUp();
 	}
 	
 	@Test
@@ -48,6 +51,7 @@ public abstract class AbstractPolicyTest extends TestCase {
 		when(params.getInventoryHoldingCosts()).thenReturn(ImmutableList.of(1.0,1.0));
 		when(params.getBacklogCosts()).thenReturn(ImmutableList.of(1.0,1.0));
 		when(params.getPolicyParams()).thenReturn(mock(PolicyParams.class));
+		fillRemainingMockedParams(params);
 		policy.setUpPolicy(getSim(params));
 		assertFalse("The item is still below target", policy.isTimeToChangeOver());
 		
@@ -78,6 +82,13 @@ public abstract class AbstractPolicyTest extends TestCase {
 		when(sim.getMachine()).thenReturn(machine);
 		when(sim.hasDiscreteMaterial()).thenReturn(false);
 		when(sim.getParams()).thenReturn(params);		
+		MakeToOrderLowerBound lb = new MakeToOrderLowerBound("", params);
+		try {
+			lb.compute();
+		} catch (Exception e) {
+			log.error("Could not compute the make-to-order lower bound; the test may fail");
+		}
+		when(sim.getMakeToOrderLowerBound()).thenReturn(lb);
 		return sim;
 	}
 	
@@ -112,7 +123,27 @@ public abstract class AbstractPolicyTest extends TestCase {
 		}
 		if (params.getSetupTimes() == null || params.getSetupTimes().isEmpty()) {
 			when(params.getSetupTimes()).thenReturn(ImmutableList.copyOf(onesDouble));
-		}		
+		}	
+		
+		PolicyParams policyParams = params.getPolicyParams();
+		if (policyParams == null){
+			when(params.getPolicyParams()).thenReturn(mock(PolicyParams.class));
+		}
+		if (policyParams.getLowerHedgingPointsComputationMethod() == null) {
+			when(policyParams.getLowerHedgingPointsComputationMethod()).thenReturn(PolicyParams.DEFAULT_LOWER_HEDGING_POINTS_COMPUTATION_METHOD);
+		}
+		if (policyParams.getPriorityComparator() == null){
+			when(policyParams.getPriorityComparator()).thenReturn(PolicyParams.DEFAULT_PRIORITY_COMPARATOR);
+		}					
+		if (policyParams.getUserDefinedLowerHedgingPoints() == null){
+			Optional<ImmutableList<Double>> x = Optional.absent();
+			when(policyParams.getUserDefinedLowerHedgingPoints()).thenReturn(x);
+		}
+		if (policyParams.getUserDefinedIsCruising() == null){
+			Optional<Boolean> x = Optional.absent();
+			when(policyParams.getUserDefinedIsCruising()).thenReturn(x);
+		}
+		
 	}
 	
 	

@@ -26,7 +26,7 @@ import com.joptimizer.functions.ConvexMultivariateRealFunction;
 @CommonsLog
 public abstract class AbstractLowerBound {
 
-	private final Params params;
+	protected final Params params;
 	private final String name;
 	@Getter private Double lowerBound;
 	@Getter private Boolean isCruising;
@@ -70,7 +70,7 @@ public abstract class AbstractLowerBound {
 		OptimizationConstraint timeFractionsCtr = new OptimizationConstraint("time_fractions");
 		for (Integer i : items) {
 			double dI = params.getDemandRates().get(i);
-			double taoI = params.getProductionRates().get(i);
+			double taoI = 1.0 / params.getProductionRates().get(i);
 			timeFractionsCtr.addTerm(setupFreq.get(i), params.getSetupTimes().get(i));
 			timeFractionsCtr.addTerm(nonCruisingFrac.get(i), -(1-dI*taoI));
 		}
@@ -143,6 +143,12 @@ public abstract class AbstractLowerBound {
 		opt.setToleranceFeas(1e-5);
 		opt.solve();
 		lowerBound = opt.getOptimalCost();
+		log.debug(String.format("The lower bound cost is %.5f", lowerBound));
+		for (int i : items){
+			log.debug(String.format("The ideal setup frequency of item %d is %.5f", i, setupFreq.get(i).getSol()));
+			log.debug(String.format("The ideal cruising fraction of item %d is %.5f", 1, 
+					1-nonCruisingFrac.get(i).getSol()));
+		}
 				
 	}	
 	

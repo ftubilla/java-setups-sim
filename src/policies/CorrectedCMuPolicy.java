@@ -1,23 +1,27 @@
 package policies;
 
-import org.apache.log4j.Logger;
-
+import lombok.extern.apachecommons.CommonsLog;
+import policies.tuning.ILowerHedgingPointsComputationMethod;
 import sim.Sim;
 import system.Item;
+import util.AlgorithmLoader;
 import discreteEvent.ControlEvent;
 import discreteEvent.SurplusControlEvent;
 
+@CommonsLog
 public class CorrectedCMuPolicy extends AbstractPolicy {
-	private static Logger logger = Logger.getLogger(CorrectedCMuPolicy.class);
 
-	@SuppressWarnings("unused")
-	private boolean debug = logger.isDebugEnabled();
-	private boolean trace = logger.isTraceEnabled();
-
+	private ILowerHedgingPointsComputationMethod lowerHedgingPoints;
+	
 	@Override
 	public void setUpPolicy(Sim sim){
 		super.setUpPolicy(sim);
 		assert sim.getParams().getMeanTimeToFail() > sim.getParams().getFinalTime() : "Random case not yet implemented";
+		//Get the lower hedging points
+		lowerHedgingPoints = AlgorithmLoader.load("policies.tuning", 
+				policyParams.getLowerHedgingPointsComputationMethod(), 
+				ILowerHedgingPointsComputationMethod.class);
+		lowerHedgingPoints.compute(sim);
 	}	
 	
 	@Override
@@ -48,7 +52,9 @@ public class CorrectedCMuPolicy extends AbstractPolicy {
 		double maxCMu=-1;
 		for (Item item : machine){
 			if (item.onOrAboveTarget()){
-				if(trace){logger.trace("Skipping " + item + " because it is at its target already");}
+				if(log.isTraceEnabled()){
+					log.trace("Skipping " + item + " because it is at its target already");
+				}
 				continue;
 			}
 			double surplusDelta = computeSurplusDelta(item);			
@@ -58,22 +64,26 @@ public class CorrectedCMuPolicy extends AbstractPolicy {
 			}
 			double averageMu = surplusDelta/timeToReach + item.getDemandRate();
 			double cMu = item.getBacklogCostRate()*averageMu;
-			if(trace){logger.trace("Average cmu for " + item + " is " + cMu);}
+			if(log.isTraceEnabled()){log.trace("Average cmu for " + item + " is " + cMu);}
 			if (cMu > maxCMu){
 				maxCMu = cMu;
 				nextItem = item;
 			}
 		}
-		if(trace){logger.trace("Maximizing cmu is " + nextItem);}
+		if(log.isTraceEnabled()){log.trace("Maximizing cmu is " + nextItem);}
 		return nextItem;
 	}
 	
 	protected double computeSurplusDelta(Item item){
-		double surplusLevelDelta = policyParams.getHedgingThresholdDifference(item);
-		if(trace){logger.trace("If producing " + item + " we would like a Delta suplus of " + surplusLevelDelta);}
+		double surplusLevelDelta = item.getSurplusTarget() - lowerHedgingPoints.getLowerHedgingPoint(item);  
+		if(log.isTraceEnabled()){
+			log.trace("If producing " + item + " we would like a Delta suplus of " + surplusLevelDelta);
+		}
 		if (surplusLevelDelta + item.getSurplus() > item.getSurplusTarget()){
 			surplusLevelDelta = item.getSurplusTarget() - item.getSurplus();
-			if (trace){logger.trace("Truncating delta in surplus to " + surplusLevelDelta + " so that target is not exceeded");}
+			if (log.isTraceEnabled()){
+				log.trace("Truncating delta in surplus to " + surplusLevelDelta + " so that target is not exceeded");
+			}
 		}
 		assert surplusLevelDelta >= -1.0 : "Surplus delta cannot be " + surplusLevelDelta;
 		return surplusLevelDelta;

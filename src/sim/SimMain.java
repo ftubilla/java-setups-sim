@@ -65,6 +65,7 @@ public class SimMain {
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 		final ProgressBar bar = new ProgressBar(10, expParams.size());		
 		
+		long startTime = System.currentTimeMillis();
 		System.out.println("****EXPERIMENT START****");
 		bar.display();
 		
@@ -88,8 +89,11 @@ public class SimMain {
 		while (!executor.isTerminated()){	
 			/* Wait for experiment to finish */
 		}		
+		long endTime = System.currentTimeMillis();
+		double elapsedSec = (endTime - startTime) / 1000.0; 
 		System.out.println("****EXPERIMENT COMPLETED!****");
-		log.info("Finished experiment");
+		System.out.println(String.format("Total time %.2f sec", elapsedSec));
+		log.info(String.format("Finished experiment after %.2f sec", elapsedSec));
 		recorders.closeAll();
 		
 		try {

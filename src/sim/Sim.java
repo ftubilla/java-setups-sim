@@ -1,6 +1,8 @@
 package sim;
 
+import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
+import lowerbounds.MakeToOrderLowerBound;
 import metrics.Metrics;
 import output.Recorders;
 import params.Params;
@@ -35,6 +37,7 @@ public class Sim {
 	private Metrics metrics;
 	private Recorders recorders;
 	private Clock clock;
+	private MakeToOrderLowerBound makeToOrderLowerBound;
 	
 	public static final double SURPLUS_TOLERANCE = 1e-6;
 
@@ -219,6 +222,22 @@ public class Sim {
 	
 	public boolean isTimeToRecordData() {
 		return clock.isTimeToRecordData();
+	}
+	
+	/**
+	 * Lazily computes and returns the make-to-order lower bound
+	 * @return MakeToOrderLowerBound
+	 */
+	public MakeToOrderLowerBound getMakeToOrderLowerBound() {
+		if (makeToOrderLowerBound == null){
+			this.makeToOrderLowerBound = new MakeToOrderLowerBound("J_Sim:"+id, params);
+			try {
+				makeToOrderLowerBound.compute();
+			} catch (Exception e) {
+				log.warn("Could not compute the make to order lower bound");
+			}	
+		}
+		return makeToOrderLowerBound;
 	}
 
 }

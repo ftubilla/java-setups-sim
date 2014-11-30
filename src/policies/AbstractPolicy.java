@@ -1,9 +1,10 @@
 package policies;
 
+import lowerbounds.MakeToOrderLowerBound;
+
 import org.apache.log4j.Logger;
 
 import params.PolicyParams;
-
 import sim.Clock;
 import sim.Sim;
 import system.Item;
@@ -27,6 +28,7 @@ public abstract class AbstractPolicy implements IPolicy {
 	protected boolean hasDiscreteMaterial;
 	protected PolicyParams policyParams;
 	protected Clock clock;
+	protected MakeToOrderLowerBound makeToOrderLowerBound;
 	
 	
 	public void updateControl(Sim sim){
@@ -71,6 +73,7 @@ public abstract class AbstractPolicy implements IPolicy {
 		this.machine = sim.getMachine();
 		this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
 		this.policyParams = sim.getParams().getPolicyParams();
+		this.makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
 	}
 	
 	/**

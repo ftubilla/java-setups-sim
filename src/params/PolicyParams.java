@@ -5,9 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import system.Item;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 @NoArgsConstructor
@@ -15,27 +15,32 @@ import com.google.common.collect.ImmutableList;
 @Getter
 @Setter(AccessLevel.PACKAGE)
 public class PolicyParams extends AbstractParams {
-
+	
+	public static final String DEFAULT_PRIORITY_COMPARATOR = "CMuComparatorWithTiesById";
+	public static final String DEFAULT_LOWER_HEDGING_POINTS_COMPUTATION_METHOD = "MakeToOrderBoundBasedLowerHedgingPointsComputationMethod";
+	
 	@JsonProperty
 	protected String name;
 	
 	@JsonProperty
-	protected ImmutableList<Double> lowerHedgingPoints;
-	
-	//Hedging Zone Policy Params
+	protected Optional<ImmutableList<Double>> userDefinedLowerHedgingPoints;
+		
+	@JsonProperty
+	protected String lowerHedgingPointsComputationMethod = DEFAULT_LOWER_HEDGING_POINTS_COMPUTATION_METHOD;
+
 	@JsonProperty 
-	protected String priorityComparator="hzp.CMuComparatorWithTiesById";
+	protected String priorityComparator = DEFAULT_PRIORITY_COMPARATOR;
 	
 	@JsonProperty
-	protected boolean isCruising=false;
-
-	public double getHedgingThresholdDifference(Item item){
-		return item.getSurplusTarget()-lowerHedgingPoints.get(item.getId());
-	}
-
-	public double getLowerHedgingPoint(Item item) {
-		return lowerHedgingPoints.get(item.getId());
-	}
+	protected Optional<Boolean> userDefinedIsCruising;
+	
+	@Deprecated
+	@JsonProperty
+	protected ImmutableList<Double> lowerHedgingPoints;
+	
+	@Deprecated
+	@JsonProperty
+	protected boolean isCruising;
 
 }
 

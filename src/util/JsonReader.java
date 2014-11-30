@@ -23,7 +23,7 @@ public class JsonReader {
 	 * @return
 	 */
 	public static <T> T readJsonRelativePath(String fileName, Class<T> clazz){		
-		return readJsonAbsolutePath("inputs" + fileName, clazz);
+		return readJsonAbsolutePath("inputs/" + fileName, clazz);
 	}
 	
 	public static <T> T readJsonAbsolutePath(String fileName, Class<T> clazz) {
