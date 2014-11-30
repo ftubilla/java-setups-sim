@@ -28,8 +28,6 @@ public abstract class AbstractPolicy implements IPolicy {
 	protected boolean hasDiscreteMaterial;
 	protected PolicyParams policyParams;
 	protected Clock clock;
-	protected MakeToOrderLowerBound makeToOrderLowerBound;
-	
 	
 	public void updateControl(Sim sim){
 
@@ -73,9 +71,8 @@ public abstract class AbstractPolicy implements IPolicy {
 		this.machine = sim.getMachine();
 		this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
 		this.policyParams = sim.getParams().getPolicyParams();
-		this.makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
 	}
-	
+			
 	/**
 	 * Override with whatever logic the policy implements when the machine is down.
 	 * @param sim
@@ -119,6 +116,10 @@ public abstract class AbstractPolicy implements IPolicy {
 		assert item != machine.getSetup() : "Cannot changeover to the current setup again!";
 		sim.getMasterScheduler().addEvent(new Changeover(sim.getTime(), item));
 		lastChangeoverTime = clock.getTime();
+	}
+	
+	protected MakeToOrderLowerBound getMakeToOrderLowerBound(){
+		return sim.getMakeToOrderLowerBound();
 	}
 
 }

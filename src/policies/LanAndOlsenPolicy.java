@@ -1,6 +1,8 @@
 package policies;
 
 import lombok.extern.apachecommons.CommonsLog;
+import lowerbounds.MakeToOrderLowerBound;
+import sim.Sim;
 import system.Item;
 import discreteEvent.ControlEvent;
 import discreteEvent.SurplusControlEvent;
@@ -8,6 +10,14 @@ import discreteEvent.SurplusControlEvent;
 @CommonsLog
 public class LanAndOlsenPolicy extends AbstractPolicy {
 
+	private MakeToOrderLowerBound makeToOrderLowerBound;
+	
+	@Override
+	public void setUpPolicy(Sim sim){
+		super.setUpPolicy(sim);
+		makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
+	}
+	
 	@Override
 	public boolean isTargetBased() {
 		return true;

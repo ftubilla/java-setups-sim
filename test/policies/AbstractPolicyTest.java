@@ -125,10 +125,10 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
 			when(params.getSetupTimes()).thenReturn(ImmutableList.copyOf(onesDouble));
 		}	
 		
-		PolicyParams policyParams = params.getPolicyParams();
-		if (policyParams == null){
+		if (params.getPolicyParams() == null){
 			when(params.getPolicyParams()).thenReturn(mock(PolicyParams.class));
 		}
+		PolicyParams policyParams = params.getPolicyParams();
 		if (policyParams.getLowerHedgingPointsComputationMethod() == null) {
 			when(policyParams.getLowerHedgingPointsComputationMethod()).thenReturn(PolicyParams.DEFAULT_LOWER_HEDGING_POINTS_COMPUTATION_METHOD);
 		}
