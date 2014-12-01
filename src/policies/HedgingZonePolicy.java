@@ -111,10 +111,16 @@ public class HedgingZonePolicy extends AbstractPolicy {
 
 		//Add ready items
 		for (Item item : sortedItems){
+			
+			if (item.equals(currentSetup)){
+				continue;
+			}
+			
 			double itemThresholdDiff = item.getSurplusTarget() - lowerHedgingPoints.getLowerHedgingPoint(item);
 			if (item.getSurplusDeviation() > itemThresholdDiff) {
 				if (log.isTraceEnabled()) {
-					log.trace(item + " has deviation " + item.getSurplusDeviation() + " and thus is ready");
+					log.trace(String.format("%s had deviation %.4f > %.4f and thus it's ready",
+							item, item.getSurplusDeviation(), itemThresholdDiff));							
 				}
 				readyItems.add(item);
 			}

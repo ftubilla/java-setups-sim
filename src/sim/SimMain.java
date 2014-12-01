@@ -15,6 +15,8 @@ import java.util.concurrent.Executors;
 
 import lombok.extern.apachecommons.CommonsLog;
 
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
 import org.apache.log4j.PropertyConfigurator;
 
 import output.Recorders;
@@ -42,10 +44,13 @@ public class SimMain {
 	 * @param args
 	 */
 	public static void main(String[] args){
-		
+				
 		//Configure the logger
 		PropertyConfigurator.configure("config/log4j.properties");
 
+		//Define the command line options
+		//Options options = OptionBuilder.withArgName(name)("Number of threads").withArgName("threads")
+		
 		log.info("Starting the simulation experiment(s)");
 		String inputsPath = args[0];
 		log.info(String.format("Reading inputs from %s", inputsPath));

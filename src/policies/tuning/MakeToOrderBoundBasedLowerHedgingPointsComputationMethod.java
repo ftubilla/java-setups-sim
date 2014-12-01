@@ -30,8 +30,9 @@ public class MakeToOrderBoundBasedLowerHedgingPointsComputationMethod implements
 			double S = item.getSetupTime();
 			double d = item.getDemandRate();
 			double dZ = y - S*d;
-			log.debug(String.format("Setting DZ for %s to %.3f", item, dZ));
-			lowerHedgingPoints.put(item, dZ);
+			double lowerHP = item.getSurplusTarget() - dZ;
+			log.debug(String.format("Setting the lower hedging point for %s to %.3f", item, lowerHP));
+			lowerHedgingPoints.put(item, lowerHP);
 		}
 	}
 

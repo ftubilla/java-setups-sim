@@ -23,7 +23,7 @@ public class PolicyParams extends AbstractParams {
 	protected String name;
 	
 	@JsonProperty
-	protected Optional<ImmutableList<Double>> userDefinedLowerHedgingPoints;
+	protected Optional<ImmutableList<Double>> userDefinedLowerHedgingPoints = Optional.absent();
 		
 	@JsonProperty
 	protected String lowerHedgingPointsComputationMethod = DEFAULT_LOWER_HEDGING_POINTS_COMPUTATION_METHOD;
@@ -32,7 +32,7 @@ public class PolicyParams extends AbstractParams {
 	protected String priorityComparator = DEFAULT_PRIORITY_COMPARATOR;
 	
 	@JsonProperty
-	protected Optional<Boolean> userDefinedIsCruising;
+	protected Optional<Boolean> userDefinedIsCruising = Optional.absent();
 	
 	@Deprecated
 	@JsonProperty

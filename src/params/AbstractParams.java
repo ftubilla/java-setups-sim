@@ -38,8 +38,12 @@ public abstract class AbstractParams {
 						String compositeField = field.getName() + "." + triad[0];
 						valueTriads.add(new String[]{compositeField, triad[1], triad[2]});
 					}
-				} else {
-					valueTriads.add(new String[] {field.getName(), "NA", value.toString()});
+				} else {	
+					if (value != null) {
+						valueTriads.add(new String[] {field.getName(), "NA", value.toString()});
+					} else {
+						valueTriads.add(new String[] {field.getName(), "NA", "null"});
+					}
 				}
 			}
 		}
