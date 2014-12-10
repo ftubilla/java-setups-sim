@@ -164,6 +164,10 @@ public abstract class AbstractLowerBound {
 		return transitionFreq.get(fromItem, toItem).getSol();
 	}
 	
+	public int getNumItems() {
+		return items.size();
+	}
+	
 	@Override
 	public String toString(){
 		return name;

@@ -18,19 +18,19 @@ public class TimeFractionsMetrics {
 	public enum Metric {SPRINT, CRUISE, IDLE, SETUP, REPAIR};
 	public boolean trace = logger.isTraceEnabled();
 	
-	private Map<Metric,Map<Item,Double>> MetricToItemToFraction;
+	private Map<Metric,Map<Item,Double>> metricToItemToFraction;
 	private Clock clock;
 	
 	public TimeFractionsMetrics(Sim sim){
-		MetricToItemToFraction = new HashMap<Metric,Map<Item,Double>>(Metric.values().length);
+		metricToItemToFraction = new HashMap<Metric,Map<Item,Double>>(Metric.values().length);
 		final Machine machine = sim.getMachine();
 		clock = sim.getClock();
 		
 		for (Metric metric : Metric.values()){
-			MetricToItemToFraction.put(metric, new HashMap<Item,Double>(machine.getNumItems()));
+			metricToItemToFraction.put(metric, new HashMap<Item,Double>(machine.getNumItems()));
 			
 			for (Item item : machine){
-				MetricToItemToFraction.get(metric).put(item, 0.0);
+				metricToItemToFraction.get(metric).put(item, 0.0);
 			}			
 		}
 		
@@ -61,13 +61,13 @@ public class TimeFractionsMetrics {
 	
 	public void increment(Metric theMetric, Item theItem, Double theIncrement){
 		if (clock.isTimeToRecordData()){
-			double oldValue = MetricToItemToFraction.get(theMetric).get(theItem);
-			MetricToItemToFraction.get(theMetric).put(theItem, oldValue + theIncrement);
+			double oldValue = metricToItemToFraction.get(theMetric).get(theItem);
+			metricToItemToFraction.get(theMetric).put(theItem, oldValue + theIncrement);
 		}
 	}
 
 	public Map<Metric, Map<Item, Double>> getMetricToItemToFraction() {
-		return MetricToItemToFraction;
+		return metricToItemToFraction;
 	}
 		
 }

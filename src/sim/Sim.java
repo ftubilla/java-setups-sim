@@ -5,6 +5,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import lowerbounds.MakeToOrderLowerBound;
 import metrics.Metrics;
 import output.Recorders;
+import params.DerivedParams;
 import params.Params;
 import policies.IPolicy;
 import processes.demand.IDemandProcess;
@@ -24,6 +25,7 @@ public class Sim {
 	
 	private int id;
 	private final Params params;
+	@Getter private final DerivedParams derivedParams;
 	private final MasterScheduler masterScheduler;
 	private final ListenersCoordinator listenersCoordinator;
 	private ProgressBar bar;
@@ -48,6 +50,7 @@ public class Sim {
 		this.masterScheduler = new MasterScheduler(this);
 		this.listenersCoordinator = new ListenersCoordinator();
 		this.params = params;
+		this.derivedParams = new DerivedParams();
 	}
 
 	/**
@@ -233,6 +236,7 @@ public class Sim {
 			this.makeToOrderLowerBound = new MakeToOrderLowerBound("J_Sim:"+id, params);
 			try {
 				makeToOrderLowerBound.compute();
+				derivedParams.setMakeToOrderLowerBound(makeToOrderLowerBound);
 			} catch (Exception e) {
 				log.warn("Could not compute the make to order lower bound");
 			}	
