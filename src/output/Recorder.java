@@ -32,6 +32,7 @@ public class Recorder {
 		}
 		catch (IOException e){
 			System.out.println("Problems creating " + filename);
+			e.printStackTrace();
 			System.exit(-1);
 		}
 		decimalFormatter = NumberFormat.getNumberInstance();
