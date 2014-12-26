@@ -19,8 +19,15 @@ public class Recorders {
 		recorders.add(new TimeMetricsRecorder());
 		recorders.add(new ParamsRecorder());
 		recorders.add(new AverageSurplusMetricsRecorder());
+		recorders.add(new TimeFractionsRecorder());
 	}
 
+	public synchronized void updateBeforeEvent(Sim sim, Event event) {
+		for (Recorder recorder : recorders) {
+			recorder.updateBeforeEvent(sim, event);
+		}
+	}
+	
 	public synchronized void recordBeforeEvent(Sim sim, Event event){
 		if (sim.isTimeToRecordData()) {
 			for (Recorder recorder : recorders) {
@@ -31,6 +38,12 @@ public class Recorders {
 		}
 	}
 	
+	public synchronized void updateAfterEvent(Sim sim, Event event) {
+		for (Recorder recorder : recorders) {
+			recorder.updateAfterEvent(sim, event);
+		}
+	}
+			
 	public synchronized void recordAfterEvent(Sim sim, Event event){
 		if (sim.isTimeToRecordData()) {
 			for (Recorder recorder : recorders) {

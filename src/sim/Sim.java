@@ -51,6 +51,9 @@ public class Sim {
 		this.listenersCoordinator = new ListenersCoordinator();
 		this.params = params;
 		this.derivedParams = new DerivedParams();
+		
+		//Force computation of the lower bounds
+		getMakeToOrderLowerBound();
 	}
 
 	/**

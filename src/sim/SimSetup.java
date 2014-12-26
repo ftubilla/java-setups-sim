@@ -98,6 +98,7 @@ public class SimSetup {
 		sim.getListenersCoordinator().addBeforeEventListener(new EventListener(){
 			@Override
 			public void execute(Event event, Sim sim) {
+				sim.getRecorders().updateBeforeEvent(sim, event);
 				sim.getRecorders().recordBeforeEvent(sim, event);
 			}			
 		});
@@ -105,6 +106,7 @@ public class SimSetup {
 		sim.getListenersCoordinator().addAfterEventListener(new EventListener(){
 			@Override
 			public void execute(Event event, Sim sim) {
+				sim.getRecorders().updateAfterEvent(sim, event);
 				sim.getRecorders().recordAfterEvent(sim, event);
 			}		
 		});

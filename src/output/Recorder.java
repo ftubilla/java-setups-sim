@@ -18,6 +18,7 @@ import discreteEvent.Event;
  */
 public class Recorder {
 	
+	public static final int DEFAULT_DIGITS = 6;
 	private Logger logger = Logger.getLogger(Recorder.class);
 	
 	private BufferedWriter writer;
@@ -25,6 +26,10 @@ public class Recorder {
 	private NumberFormat decimalFormatter;
 	
 	public Recorder(String filename){
+		this(filename, DEFAULT_DIGITS);
+	}
+	
+	public Recorder(String filename, int digits){
 		try{
 			logger.info("Creating " + this.getClass().getSimpleName());
 			writer = new BufferedWriter(new FileWriter(filename));
@@ -36,7 +41,8 @@ public class Recorder {
 			System.exit(-1);
 		}
 		decimalFormatter = NumberFormat.getNumberInstance();
-		decimalFormatter.setMaximumFractionDigits(6);
+		decimalFormatter.setMaximumFractionDigits(digits);
+		decimalFormatter.setGroupingUsed(false);
 	}
 	
 	public void record(String line){
@@ -56,17 +62,26 @@ public class Recorder {
 		record(line.toString());
 	}
 	
-	public void recordBeforeEvent(Sim sim, Event event) {		
+	public void recordBeforeEvent(Sim sim, Event event) {
+		//Override
 	}
 	
-	public void recordAfterEvent(Sim sim, Event event) {		
+	public void recordAfterEvent(Sim sim, Event event) {
+		//Override
 	}
-	
-	
+		
 	public void recordEndOfSim(Sim sim){
 		//Override
 	}
 	
+	public void updateBeforeEvent(Sim sim, Event event){
+		
+	}
+	
+	public void updateAfterEvent(Sim sim, Event event){
+		
+	}
+			
 	public void close(){
 		try{
 			logger.info("Closing " + this.getClass().getSimpleName());
