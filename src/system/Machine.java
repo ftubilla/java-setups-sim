@@ -39,6 +39,7 @@ public class Machine implements Iterable<Item> {
 	private IProductionProcess productionProcess;
 	private Clock clock;
 	private double changingOverUntil;
+	private Map<Item, Double> lastSetupTime;
 	
 	
 	public Machine(Params params, Clock clock, MasterScheduler masterScheduler){
@@ -64,6 +65,7 @@ public class Machine implements Iterable<Item> {
 		
 		this.masterScheduler = masterScheduler;
 		this.clock = clock;
+		this.lastSetupTime = new HashMap<Item, Double>();
 	}
 	
 	public Item getSetup() {
@@ -109,6 +111,7 @@ public class Machine implements Iterable<Item> {
 		setup.unsetUnderProduction();
 		setup = newSetup;
 		operationalState = OperationalState.SETUP;
+		lastSetupTime.put(newSetup, clock.getTime());
 	}
 	
 	public boolean isSetupComplete() {
@@ -195,6 +198,17 @@ public class Machine implements Iterable<Item> {
 
 	public double getNextSetupCompleteTime() {
 		return changingOverUntil;
+	}
+	
+	/**
+	 * Returns the last time a setup onto the given item <em>started</em>. If 
+	 * the item hasn't been produced at all, it returns <code>null</code>.
+	 * 
+	 * @param item
+	 * @return Double
+	 */
+	public Double getLastSetupTime(Item item){
+		return lastSetupTime.get(item);
 	}
 	
 }
