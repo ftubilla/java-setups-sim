@@ -34,6 +34,12 @@ public class PolicyParams extends AbstractParams {
 	@JsonProperty
 	protected Optional<Boolean> userDefinedIsCruising = Optional.absent();
 	
+	/*
+	 * For the IdealDeviationAndFrequencyTrackingPolicy
+	 */
+	@JsonProperty
+	protected double freqTrackingThreshold = 1.0;
+	
 	@Deprecated
 	@JsonProperty
 	protected ImmutableList<Double> lowerHedgingPoints;

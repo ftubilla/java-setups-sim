@@ -12,15 +12,15 @@ import discreteEvent.SurplusControlEvent;
 
 @CommonsLog
 public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
-
-	private static final double DEVIATION_FREQ_THRESHOLD = 0.50; 
 	
-	private MakeToOrderLowerBound makeToOrderLowerBound;
+	private double freqTrackingThreshold;
+	private MakeToOrderLowerBound makeToOrderLowerBound;	
 	
 	@Override
 	public void setUpPolicy(Sim sim){
 		super.setUpPolicy(sim);
 		makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
+		freqTrackingThreshold = sim.getParams().getPolicyParams().getFreqTrackingThreshold();
 	}
 	
 	@Override
@@ -64,7 +64,7 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 			if (item.equals(machine.getSetup())) {
 				continue;
 			}			
-			if ( Math.abs( deviationRatios.get(item) - 1.0 ) > DEVIATION_FREQ_THRESHOLD ||
+			if ( Math.abs( deviationRatios.get(item) - 1.0 ) > freqTrackingThreshold ||
 					machine.getLastSetupTime(item) == null) {
 				//Only match frequency if all items are within the threshold and we have produced all items at least once
 				doFreqMatching = false;
