@@ -40,6 +40,9 @@ public class PolicyParams extends AbstractParams {
 	@JsonProperty
 	protected double freqTrackingThreshold = 1.0;
 	
+	@JsonProperty
+	protected double learningRate = 0.5;
+	
 	@Deprecated
 	@JsonProperty
 	protected ImmutableList<Double> lowerHedgingPoints;

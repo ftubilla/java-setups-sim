@@ -1,9 +1,7 @@
 package policies;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import lombok.extern.apachecommons.CommonsLog;
 import lowerbounds.MakeToOrderLowerBound;
@@ -14,7 +12,7 @@ import discreteEvent.SurplusControlEvent;
 
 /**
  * Selects the item that's farthest behind on its ideal frequency of setups,
- * discarding items that are too far below the ideal surplus deviation.
+ * using a learning average to compute the frequency.
  *  
  * @author ftubilla
  *
@@ -22,14 +20,16 @@ import discreteEvent.SurplusControlEvent;
 @CommonsLog
 public class IdealFrequencyTrackingPolicy extends AbstractPolicy {
 
-	private static final double DEVIATION_FREQ_THRESHOLD = 0.05; 
-	
-	private MakeToOrderLowerBound makeToOrderLowerBound;
+	private double learningRate;
+	private Map<Item, Double> aveTimeBetweenRuns;
+	private MakeToOrderLowerBound makeToOrderLowerBound;	
 	
 	@Override
 	public void setUpPolicy(Sim sim){
 		super.setUpPolicy(sim);
 		makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
+		this.learningRate = sim.getParams().getPolicyParams().getLearningRate();
+		this.aveTimeBetweenRuns = new HashMap<Item, Double>();
 	}
 	
 	@Override
@@ -68,22 +68,16 @@ public class IdealFrequencyTrackingPolicy extends AbstractPolicy {
 		}
 		
 		//Determine if we should do frequency matching or deviation matching
-		boolean doFreqMatching = false;
-		Set<Item> freqMatcheableItems = new HashSet<Item>();
+		boolean doFreqMatching = true;
 		for (Item item : machine) {
 			if (item.equals(machine.getSetup())) {
 				continue;
 			}			
-			if (machine.getLastSetupTime(item) == null){
-				//Don't do frequency matching until all items have been produced at least once
+			if (aveTimeBetweenRuns.get(item) == null){
+				//Don't do frequency matching until all items have a frequency estimate
 				doFreqMatching = false;
 				break;
 			}			
-			if ( deviationRatios.get(item) > DEVIATION_FREQ_THRESHOLD ) {
-				//If there's at least one item past the dev. threshold, we can do frequency matching
-				doFreqMatching = true;
-				freqMatcheableItems.add(item);
-			}
 		}
 		
 		//Find the next item
@@ -92,13 +86,14 @@ public class IdealFrequencyTrackingPolicy extends AbstractPolicy {
 			log.trace("Doing frequency matching");
 			double largestFrequencyRatio = 0.0;
 			for (Item item : machine){
-				if (item.equals(machine.getSetup()) || !freqMatcheableItems.contains(item)) {
-					//Skip the current setup or items that are too far below their deviation threshold
+				if (item.equals(machine.getSetup())) {					
 					continue;
 				}	
-				double timeBetweenRuns = clock.getTime() - machine.getLastSetupTime(item);
 				double idealTimeBetweenRuns = 1.0 / makeToOrderLowerBound.getIdealFrequency(item.getId());
-				double frequencyRatio = timeBetweenRuns / idealTimeBetweenRuns;
+				
+				double aveTimeBetweenRunsIfProduced = computeAveTimeBetweenRuns(item);
+				
+				double frequencyRatio = aveTimeBetweenRunsIfProduced / idealTimeBetweenRuns;
 				if (frequencyRatio > largestFrequencyRatio){
 					largestFrequencyRatio = frequencyRatio;
 					nextItem = item;
@@ -132,9 +127,26 @@ public class IdealFrequencyTrackingPolicy extends AbstractPolicy {
 				}
 			}			
 		}
+		
+		//Update the learned time between runs (TODO: this call makes the method no longer idempotent)
+		if (!aveTimeBetweenRuns.containsKey(nextItem)){
+			aveTimeBetweenRuns.put(nextItem, 0.0);
+		}
+		
+		if (machine.getLastSetupTime(nextItem) != null){
+			//Only start tracking the average after producing the item for the first time		
+			aveTimeBetweenRuns.put(nextItem, computeAveTimeBetweenRuns(nextItem));
+		}
+		
 		return nextItem;
 	}
 
+
+	private double computeAveTimeBetweenRuns(Item item){
+		double timeBetweenRunsIfProduced = clock.getTime() - machine.getLastSetupTime(item);
+		return (1-learningRate) * aveTimeBetweenRuns.get(item) + learningRate * timeBetweenRunsIfProduced;		
+	}
+	
 }
 
 

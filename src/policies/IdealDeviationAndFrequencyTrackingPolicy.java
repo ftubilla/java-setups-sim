@@ -10,17 +10,33 @@ import system.Item;
 import discreteEvent.ControlEvent;
 import discreteEvent.SurplusControlEvent;
 
+/**
+ * Minimizes error from both the ideal frequency and the ideal
+ * surplus deviation, by using an L1 norm on the two.
+ *  
+ * @author ftubilla
+ *
+ */
 @CommonsLog
 public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
-	
-	private double freqTrackingThreshold;
+
+	private double learningRate;
+	private Map<Item, Double> aveTimeBetweenRuns;
+	private Map<Item, Double> aveMaxDeviation;
 	private MakeToOrderLowerBound makeToOrderLowerBound;	
 	
 	@Override
 	public void setUpPolicy(Sim sim){
 		super.setUpPolicy(sim);
 		makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
-		freqTrackingThreshold = sim.getParams().getPolicyParams().getFreqTrackingThreshold();
+		this.learningRate = sim.getParams().getPolicyParams().getLearningRate();
+		this.aveTimeBetweenRuns = new HashMap<Item, Double>();
+		this.aveMaxDeviation = new HashMap<Item, Double>();
+		//Initialize the structures
+		for (Item item : sim.getMachine()) {
+			this.aveTimeBetweenRuns.put(item, 0.0);
+			this.aveMaxDeviation.put(item, 0.0);
+		}
 	}
 	
 	@Override
@@ -45,81 +61,72 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		if (!isTimeToChangeOver()){
 			return null;
 		}
-				
-		//Compute the deviation ratios
-		Map<Item, Double> deviationRatios = new HashMap<Item, Double>();
-		for (Item item : machine){			
-			if (item.equals(machine.getSetup())) {
-				continue;
-			}						
-			//Compute the deviation ratio (see Section 2.4.3 of Tubilla 2011)
-			double idealDeviation = makeToOrderLowerBound.getIdealSurplusDeviation(item.getId());
-			double deviationRatio = (item.getSurplusDeviation() + item.getSetupTime()*item.getDemandRate()) / idealDeviation;
-			deviationRatios.put(item, deviationRatio);
-		}
 		
-		//Determine if we should do frequency matching or deviation matching
-		boolean doFreqMatching = true;
-		for (Item item : machine) {
-			if (item.equals(machine.getSetup())) {
-				continue;
-			}			
-			if ( Math.abs( deviationRatios.get(item) - 1.0 ) > freqTrackingThreshold ||
-					machine.getLastSetupTime(item) == null) {
-				//Only match frequency if all items are within the threshold and we have produced all items at least once
-				doFreqMatching = false;
-				break;
-			}
-		}
-		
-		//Find the next item
 		Item nextItem = null;
-		if (doFreqMatching) {
-			log.trace("Doing frequency matching");
-			double largestFrequencyRatio = 0.0;
-			for (Item item : machine){
-				if (item.equals(machine.getSetup())) {
-					continue;
-				}	
-				double timeBetweenRuns = clock.getTime() - machine.getLastSetupTime(item);
-				double idealTimeBetweenRuns = 1.0 / makeToOrderLowerBound.getIdealFrequency(item.getId());
-				double frequencyRatio = timeBetweenRuns / idealTimeBetweenRuns;
-				if (frequencyRatio > largestFrequencyRatio){
-					largestFrequencyRatio = frequencyRatio;
-					nextItem = item;
-				}
-			}
-		} else {
-			log.trace("Doing deviation matching");
-			double largestDeviationRatio = 0.0;
-			for (Item item : machine){
-				if (item.equals(machine.getSetup())) {
-					continue;
-				}	
-				double deviationRatio = deviationRatios.get(item);
-				if (deviationRatio > largestDeviationRatio){
-					largestDeviationRatio = deviationRatio;
-					nextItem = item;
-				}
-			}
-		}
+		double largestErrorRatio = 0.0;		
 		
+		for (Item item : machine){
+			
+			if (item.equals(machine.getSetup())){
+				continue;
+			}
+			
+			//First compute the deviation ratio
+			double idealDeviation = makeToOrderLowerBound.getIdealSurplusDeviation(item.getId());
+			double deviationRatioIfProduced = computeAveMaxDeviation(item);
+			double deviationErrorRatio = deviationRatioIfProduced / idealDeviation;
+			
+			//Now the Frequency Ratio (assuming the item has been produced at least once)
+			double frequencyErrorRatio = 0.0;
+			if (machine.getLastSetupTime(item) != null) {
+				double idealTimeBetweenRuns = 1.0 / makeToOrderLowerBound.getIdealFrequency(item.getId());			
+				double aveTimeBetweenRunsIfProduced = computeAveTimeBetweenRuns(item);			
+				frequencyErrorRatio = aveTimeBetweenRunsIfProduced / idealTimeBetweenRuns;
+			}
+			
+			//Get the largest of the two and see if this items has the biggest error ratio
+			double itemErrorRatio = Math.max(deviationErrorRatio, frequencyErrorRatio);
+			if (itemErrorRatio > largestErrorRatio) {
+				nextItem = item;
+				largestErrorRatio = itemErrorRatio;
+			}
+			
+		}
+
 		if (nextItem != null){
 			//Most likely scenario
 			log.trace("Next item to produce is " + nextItem);
 		} else {
-			//If all items have the same deviation ratio, find the next item that's not the current setup		
+			//If all items have the same error ratio, find the next item that's not the current setup		
 			for (Item item : machine){
 				if (item != machine.getSetup()){
 					nextItem = item;
-					log.trace("All items had the same surplus deviation. Changing over to the next item " + nextItem);
+					log.trace("All items had the same error ratio. Changing over to the next item " + nextItem);
 					break;
 				}
 			}			
 		}
+		
+		//Update the learned values (TODO: this call makes the method no longer idempotent)
+		if (machine.getLastSetupTime(nextItem) != null){
+			aveTimeBetweenRuns.put(nextItem, computeAveTimeBetweenRuns(nextItem));
+		}
+		aveMaxDeviation.put(nextItem, computeAveMaxDeviation(nextItem));
+		
 		return nextItem;
 	}
 
+
+	private double computeAveTimeBetweenRuns(Item item){
+		double timeBetweenRunsIfProduced = clock.getTime() - machine.getLastSetupTime(item);
+		return (1-learningRate) * aveTimeBetweenRuns.get(item) + learningRate * timeBetweenRunsIfProduced;		
+	}
+	
+	private double computeAveMaxDeviation(Item item){
+		double maxDeviationIfProduced = item.getSurplusDeviation() + item.getSetupTime()*item.getDemandRate();
+		return (1-learningRate) * aveMaxDeviation.get(item) + learningRate * maxDeviationIfProduced;
+	}
+	
 }
 
 
