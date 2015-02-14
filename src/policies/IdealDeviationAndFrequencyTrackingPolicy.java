@@ -12,7 +12,7 @@ import discreteEvent.SurplusControlEvent;
 
 /**
  * Minimizes error from both the ideal frequency and the ideal
- * surplus deviation, by using an L1 norm on the two.
+ * surplus deviation, by using a weighted combination of the two.
  *  
  * @author ftubilla
  *
@@ -21,6 +21,7 @@ import discreteEvent.SurplusControlEvent;
 public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 
 	private double learningRate;
+	private double deviationTrackingBias;
 	private Map<Item, Double> aveTimeBetweenRuns;
 	private Map<Item, Double> aveMaxDeviation;
 	private MakeToOrderLowerBound makeToOrderLowerBound;	
@@ -30,6 +31,7 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		super.setUpPolicy(sim);
 		makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
 		this.learningRate = sim.getParams().getPolicyParams().getLearningRate();
+		this.deviationTrackingBias = sim.getParams().getPolicyParams().getDeviationTrackingBias();
 		this.aveTimeBetweenRuns = new HashMap<Item, Double>();
 		this.aveMaxDeviation = new HashMap<Item, Double>();
 		//Initialize the structures
@@ -77,15 +79,15 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 			double deviationErrorRatio = deviationRatioIfProduced / idealDeviation;
 			
 			//Now the Frequency Ratio (assuming the item has been produced at least once)
-			double frequencyErrorRatio = 0.0;
+			double invFreqErrorRatio = 0.0;
 			if (machine.getLastSetupTime(item) != null) {
 				double idealTimeBetweenRuns = 1.0 / makeToOrderLowerBound.getIdealFrequency(item.getId());			
 				double aveTimeBetweenRunsIfProduced = computeAveTimeBetweenRuns(item);			
-				frequencyErrorRatio = aveTimeBetweenRunsIfProduced / idealTimeBetweenRuns;
+				invFreqErrorRatio = aveTimeBetweenRunsIfProduced / idealTimeBetweenRuns;
 			}
 			
 			//Get the largest of the two and see if this items has the biggest error ratio
-			double itemErrorRatio = Math.max(deviationErrorRatio, frequencyErrorRatio);
+			double itemErrorRatio = deviationErrorRatio * deviationTrackingBias + invFreqErrorRatio * ( 1 - deviationTrackingBias );
 			if (itemErrorRatio > largestErrorRatio) {
 				nextItem = item;
 				largestErrorRatio = itemErrorRatio;

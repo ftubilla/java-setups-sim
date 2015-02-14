@@ -43,6 +43,9 @@ public class PolicyParams extends AbstractParams {
 	@JsonProperty
 	protected double learningRate = 0.5;
 	
+	@JsonProperty
+	protected double deviationTrackingBias = 0.5;
+	
 	@Deprecated
 	@JsonProperty
 	protected ImmutableList<Double> lowerHedgingPoints;
