@@ -23,8 +23,10 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 	private double learningRate;
 	private double deviationTrackingBias;
 	private Map<Item, Double> aveTimeBetweenRuns;
-	private Map<Item, Double> aveMaxDeviation;
+	private Map<Item, Double> cumTargetToTargetDevArea;
+	private Map<Item, Double> cumTargetToTargetTime;
 	private MakeToOrderLowerBound makeToOrderLowerBound;	
+	private enum Update {TRUE, FALSE};
 	
 	@Override
 	public void setUpPolicy(Sim sim){
@@ -33,11 +35,13 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		this.learningRate = sim.getParams().getPolicyParams().getLearningRate();
 		this.deviationTrackingBias = sim.getParams().getPolicyParams().getDeviationTrackingBias();
 		this.aveTimeBetweenRuns = new HashMap<Item, Double>();
-		this.aveMaxDeviation = new HashMap<Item, Double>();
+		this.cumTargetToTargetDevArea = new HashMap<Item, Double>();
+		this.cumTargetToTargetTime = new HashMap<Item, Double>();
 		//Initialize the structures
 		for (Item item : sim.getMachine()) {
 			this.aveTimeBetweenRuns.put(item, 0.0);
-			this.aveMaxDeviation.put(item, 0.0);
+			this.cumTargetToTargetDevArea.put(item, 0.0);
+			this.cumTargetToTargetTime.put(item, 0.0);
 		}
 	}
 	
@@ -75,14 +79,14 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 			
 			//First compute the deviation ratio
 			double idealDeviation = makeToOrderLowerBound.getIdealSurplusDeviation(item.getId());
-			double deviationRatioIfProduced = computeAveMaxDeviation(item);
+			double deviationRatioIfProduced = computeAveMaxDeviation(item, Update.FALSE);
 			double deviationErrorRatio = deviationRatioIfProduced / idealDeviation;
 			
 			//Now the Frequency Ratio (assuming the item has been produced at least once)
 			double invFreqErrorRatio = 0.0;
 			if (machine.getLastSetupTime(item) != null) {
 				double idealTimeBetweenRuns = 1.0 / makeToOrderLowerBound.getIdealFrequency(item.getId());			
-				double aveTimeBetweenRunsIfProduced = computeAveTimeBetweenRuns(item);			
+				double aveTimeBetweenRunsIfProduced = computeAveTimeBetweenRuns(item, Update.FALSE);			
 				invFreqErrorRatio = aveTimeBetweenRunsIfProduced / idealTimeBetweenRuns;
 			}
 			
@@ -111,22 +115,47 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		
 		//Update the learned values (TODO: this call makes the method no longer idempotent)
 		if (machine.getLastSetupTime(nextItem) != null){
-			aveTimeBetweenRuns.put(nextItem, computeAveTimeBetweenRuns(nextItem));
+			aveTimeBetweenRuns.put(nextItem, computeAveTimeBetweenRuns(nextItem, Update.TRUE));
 		}
-		aveMaxDeviation.put(nextItem, computeAveMaxDeviation(nextItem));
-		
+		computeAveMaxDeviation(nextItem, Update.TRUE);
+			
 		return nextItem;
 	}
 
 
-	private double computeAveTimeBetweenRuns(Item item){
+	private double computeAveTimeBetweenRuns(Item item, Update update){
 		double timeBetweenRunsIfProduced = clock.getTime() - machine.getLastSetupTime(item);
-		return (1-learningRate) * aveTimeBetweenRuns.get(item) + learningRate * timeBetweenRunsIfProduced;		
-	}
+		double aveTime = (1-learningRate) * aveTimeBetweenRuns.get(item) + learningRate * timeBetweenRunsIfProduced;
+		if (update == Update.TRUE) {
+			aveTimeBetweenRuns.put(item, aveTime);
+		}
+		return aveTime;
+ 	}
 	
-	private double computeAveMaxDeviation(Item item){
-		double maxDeviationIfProduced = item.getSurplusDeviation() + item.getSetupTime()*item.getDemandRate();
-		return (1-learningRate) * aveMaxDeviation.get(item) + learningRate * maxDeviationIfProduced;
+	private double targetToTargetTime(double deviation, double demandRate, double productionRate){	
+		//TODO Correct for machine efficiency!!!
+		double rho = demandRate / productionRate;
+		return deviation / demandRate / ( 1 - rho );
+	}
+		
+	private double computeAveMaxDeviation(Item item, Update update){
+		//Computes a squared weighted average. We essentially add the area of each triangle formed between successive runs of an item
+		//and divide by the time it took between successive runs (cycle time); this is the base of the triangle
+		double maxDeviationIfProduced = item.getSurplusDeviation() + item.getSetupTime() * item.getDemandRate();		
+		
+		double targetToTargetTime = targetToTargetTime(maxDeviationIfProduced, item.getDemandRate(), item.getProductionRate());
+		double devTriangleArea = 0.5 * maxDeviationIfProduced * targetToTargetTime;
+		
+		//The factor of 2 is because we want the highest point in the deviation triangle, not the average deviation
+		double aveMaxDev = 2 * ( cumTargetToTargetDevArea.get(item) + devTriangleArea ) / ( cumTargetToTargetTime.get(item) + targetToTargetTime );
+
+		if (update == Update.TRUE) {
+			cumTargetToTargetDevArea.put(item, cumTargetToTargetDevArea.get(item) + devTriangleArea);
+			cumTargetToTargetTime.put(item, cumTargetToTargetTime.get(item) + targetToTargetTime);
+		}
+		
+		//Multiply by 2 because we want the max deviation
+		return  (1 - learningRate) * aveMaxDev + learningRate * maxDeviationIfProduced;
 	}
 	
 }
