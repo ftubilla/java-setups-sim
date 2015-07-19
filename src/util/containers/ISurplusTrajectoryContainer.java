@@ -36,6 +36,12 @@ public interface ISurplusTrajectoryContainer {
 	public Double getEarliestTime();
 	
 	public Double getLatestTime();
+
+	/**
+	 * Returns a copy of the trajectory, useful for modifying and asking "what if" questions.
+	 * @return ISurplusTrajectoryContainer
+	 */
+	public ISurplusTrajectoryContainer copy();
 	
 }
 

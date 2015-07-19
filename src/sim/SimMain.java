@@ -15,8 +15,6 @@ import java.util.concurrent.Executors;
 
 import lombok.extern.apachecommons.CommonsLog;
 
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
 import org.apache.log4j.PropertyConfigurator;
 
 import output.Recorders;
@@ -33,8 +31,6 @@ import com.google.common.io.Files;
 @CommonsLog
 public class SimMain {
 
-	public static Sim sim;
-	
 	/**
 	 * Execute this method for running the simulation. The arguments are
 	 * a path to a directory with json's or a single json path, and an optional

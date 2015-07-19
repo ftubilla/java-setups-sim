@@ -7,7 +7,11 @@ import lombok.extern.apachecommons.CommonsLog;
 import lowerbounds.MakeToOrderLowerBound;
 import sim.Sim;
 import system.Item;
+import util.containers.FixedHorizonSurplusTrajectoryContainer;
+import util.containers.ISurplusTrajectoryContainer;
 import discreteEvent.ControlEvent;
+import discreteEvent.Event;
+import discreteEvent.EventListener;
 import discreteEvent.SurplusControlEvent;
 
 /**
@@ -23,10 +27,11 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 	private double learningRate;
 	private double deviationTrackingBias;
 	private Map<Item, Double> aveTimeBetweenRuns;
-	private Map<Item, Double> cumTargetToTargetDevArea;
-	private Map<Item, Double> cumTargetToTargetTime;
+	private ISurplusTrajectoryContainer pastSurplus;
 	private MakeToOrderLowerBound makeToOrderLowerBound;	
 	private enum Update {TRUE, FALSE};
+	
+	private int SURPLUS_LOOKBACK_TIME = 500;
 	
 	@Override
 	public void setUpPolicy(Sim sim){
@@ -35,14 +40,25 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		this.learningRate = sim.getParams().getPolicyParams().getLearningRate();
 		this.deviationTrackingBias = sim.getParams().getPolicyParams().getDeviationTrackingBias();
 		this.aveTimeBetweenRuns = new HashMap<Item, Double>();
-		this.cumTargetToTargetDevArea = new HashMap<Item, Double>();
-		this.cumTargetToTargetTime = new HashMap<Item, Double>();
+		this.pastSurplus = new FixedHorizonSurplusTrajectoryContainer(SURPLUS_LOOKBACK_TIME, sim.getParams().getSurplusTargets()); 
 		//Initialize the structures
 		for (Item item : sim.getMachine()) {
 			this.aveTimeBetweenRuns.put(item, 0.0);
-			this.cumTargetToTargetDevArea.put(item, 0.0);
-			this.cumTargetToTargetTime.put(item, 0.0);
 		}
+		
+		//Add an event listener to make sure the surplus trajectory container is in sync
+		sim.getListenersCoordinator().addBeforeEventListener(new EventListener() {			
+			@Override
+			public void execute(Event event, Sim sim) {
+				double time = event.getTime();
+				double surplus[] = new double[machine.getNumItems()];
+				for (int i=0; i < surplus.length; i++) {
+					surplus[i] = machine.getItemById(i).getSurplus();
+				}
+				pastSurplus.addPoint(time, surplus);
+			}
+		});
+		
 	}
 	
 	@Override
@@ -79,8 +95,8 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 			
 			//First compute the deviation ratio
 			double idealDeviation = makeToOrderLowerBound.getIdealSurplusDeviation(item.getId());
-			double deviationRatioIfProduced = computeAveMaxDeviation(item, Update.FALSE);
-			double deviationErrorRatio = deviationRatioIfProduced / idealDeviation;
+			double deviationIfProduced = computeAveMaxDeviation(item);
+			double deviationErrorRatio = deviationIfProduced / idealDeviation;
 			
 			//Now the Frequency Ratio (assuming the item has been produced at least once)
 			double invFreqErrorRatio = 0.0;
@@ -102,6 +118,16 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		if (nextItem != null){
 			//Most likely scenario
 			log.trace("Next item to produce is " + nextItem);
+			if (log.isTraceEnabled()){
+				for (Item item : machine) {
+					boolean isNext = nextItem.equals(item);
+					log.trace(String.format("time,item,is_next,deviation,deviation_if_produced,ideal_deviation," +
+							"%.6f,%s,%s,%.3f,%.3f,%.3f",
+							clock.getTime(), item.getId(), isNext, 
+							item.getSurplusDeviation(), computeAveMaxDeviation(item), makeToOrderLowerBound.getIdealSurplusDeviation(item.getId())));
+
+				}
+			}
 		} else {
 			//If all items have the same error ratio, find the next item that's not the current setup		
 			for (Item item : machine){
@@ -117,7 +143,6 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		if (machine.getLastSetupTime(nextItem) != null){
 			aveTimeBetweenRuns.put(nextItem, computeAveTimeBetweenRuns(nextItem, Update.TRUE));
 		}
-		computeAveMaxDeviation(nextItem, Update.TRUE);
 			
 		return nextItem;
 	}
@@ -131,31 +156,25 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		}
 		return aveTime;
  	}
-	
-	private double targetToTargetTime(double deviation, double demandRate, double productionRate){	
-		//TODO Correct for machine efficiency!!!
-		double rho = demandRate / productionRate;
-		return deviation / demandRate / ( 1 - rho );
-	}
-		
-	private double computeAveMaxDeviation(Item item, Update update){
-		//Computes a squared weighted average. We essentially add the area of each triangle formed between successive runs of an item
-		//and divide by the time it took between successive runs (cycle time); this is the base of the triangle
+			
+	private double computeAveMaxDeviation(Item item){
+
+		//First determine the dev at the start of the next run for this item, if we were to produce it next
 		double maxDeviationIfProduced = item.getSurplusDeviation() + item.getSetupTime() * item.getDemandRate();		
 		
-		double targetToTargetTime = targetToTargetTime(maxDeviationIfProduced, item.getDemandRate(), item.getProductionRate());
-		double devTriangleArea = 0.5 * maxDeviationIfProduced * targetToTargetTime;
-		
+		//Now compute the average max deviation using this point and the prev history
+		ISurplusTrajectoryContainer surplusTraj = pastSurplus.copy();
+		double[] newSurplusPoint = new double[machine.getNumItems()];
+		//We only care about the current item for this calculation, so we can ignore the surplus values for the others
+		newSurplusPoint[item.getId()] = item.getSurplusTarget() - maxDeviationIfProduced; 	
+		surplusTraj.addPoint(clock.getTime() + item.getSetupTime(), newSurplusPoint);
+				
 		//The factor of 2 is because we want the highest point in the deviation triangle, not the average deviation
-		double aveMaxDev = 2 * ( cumTargetToTargetDevArea.get(item) + devTriangleArea ) / ( cumTargetToTargetTime.get(item) + targetToTargetTime );
+		double pastSurplusArea = surplusTraj.getSurplusDeviationArea()[item.getId()];
+		double pastSurplusTimeRange = surplusTraj.getLatestTime() - surplusTraj.getEarliestTime();
+		double aveMaxDev = 2 * pastSurplusArea / pastSurplusTimeRange;
 
-		if (update == Update.TRUE) {
-			cumTargetToTargetDevArea.put(item, cumTargetToTargetDevArea.get(item) + devTriangleArea);
-			cumTargetToTargetTime.put(item, cumTargetToTargetTime.get(item) + targetToTargetTime);
-		}
-		
-		//Multiply by 2 because we want the max deviation
-		return  (1 - learningRate) * aveMaxDev + learningRate * maxDeviationIfProduced;
+		return aveMaxDev;
 	}
 	
 }
