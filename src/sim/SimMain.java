@@ -1,27 +1,30 @@
 /*
  * Written by Fernando Tubilla
  * ftubilla@mit.edu
- * © 2012 Fernando Tubilla. All rights reserved.
+ * ï¿½ 2012 Fernando Tubilla. All rights reserved.
  */
 
 package sim;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import lombok.extern.apachecommons.CommonsLog;
-
 import org.apache.log4j.PropertyConfigurator;
 
+import com.google.common.io.Files;
+
+import lombok.extern.apachecommons.CommonsLog;
 import output.Recorders;
 import params.Params;
 import params.ParamsFactory;
-
-import com.google.common.io.Files;
 
 /**
  * Main class for running a single or a series of simulation experiments in parallel.
@@ -39,8 +42,11 @@ public class SimMain {
 	 * 
 	 * @param args
 	 */
-	public static void main(String[] args){
+	public static void main(String[] args) throws Exception {
 				
+		//Get the application properties
+		Properties properties = getProperties();
+		
 		//Configure the logger
 		PropertyConfigurator.configure("config/log4j.properties");
 
@@ -48,7 +54,8 @@ public class SimMain {
 		//Options options = OptionBuilder.withArgName(name)("Number of threads").withArgName("threads")
 		
 		log.info("Starting the simulation experiment(s)");
-		String inputsPath = args[0];
+		String inputsPath = String.format("%s%s%s", properties.getProperty("inputs.path"),
+				File.separator, args[0]);
 		log.info(String.format("Reading inputs from %s", inputsPath));
 		int numThreads;
 		try {
@@ -59,7 +66,7 @@ public class SimMain {
 		log.info(String.format("Using %d threads", numThreads));
 		
 		//Get the params
-		ParamsFactory factory = new ParamsFactory(args[0]);
+		ParamsFactory factory = new ParamsFactory(inputsPath);
 		Collection<Params> expParams = factory.make();
 	
 		final Recorders recorders = new Recorders();		
@@ -98,7 +105,7 @@ public class SimMain {
 		recorders.closeAll();
 		
 		try {
-			archiveOutput(args[0]);
+			archiveOutput(properties.getProperty("archive.path"), args[0]);
 		} catch (Exception e) {
 			log.error("Could not archive output files!");
 			e.printStackTrace();
@@ -109,7 +116,8 @@ public class SimMain {
 	/**
 	 * Copy all output files to the archive folder
 	 */
-	private static void archiveOutput(String inputsFolderPath) throws Exception {
+	private static void archiveOutput(String archiveFolderPath, 
+			String inputsFolderPath) throws Exception {
 		
 		//Get the name of the inputs folder
 		String[] inputsPathComponents = inputsFolderPath.split(File.separator);
@@ -118,7 +126,8 @@ public class SimMain {
 		//Make a directory in archive to hold the test results
 		Date now = new Date();
 		String timestamp = new SimpleDateFormat("yyyyMMddHHmm").format(now);
-		File archiveDir = new File(String.format("archive%s%s_%s", File.separator, inputsFolderName, timestamp));
+		File archiveDir = new File(String.format("%s%s%s_%s", archiveFolderPath, 
+				File.separator, inputsFolderName, timestamp));
 		archiveDir.mkdir();
 		
 		//Copy all files
@@ -129,6 +138,18 @@ public class SimMain {
 			Files.copy(outputFile, destFile);
 		}		
 		
+	}
+	
+	private static Properties getProperties() throws Exception {
+		Properties properties = new Properties();
+		String propFileName = "config/config.properties";
+		try {
+			Reader reader = new FileReader(propFileName);
+			properties.load(reader);
+		} catch (FileNotFoundException e) {
+			throw new Exception("Could not find the properties file at config/config.properties!", e);	
+		}
+		return properties;
 	}
 	
 }
