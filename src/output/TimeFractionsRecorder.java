@@ -16,7 +16,7 @@ public class TimeFractionsRecorder extends Recorder {
 	@Override
 	public void recordEndOfSim(Sim sim){
 
-		TimeFractionsMetrics fractions = sim.getMetrics().getTimeFractions();
+		TimeFractionsMetrics fractions = sim.getMetrics().getTimeFractionsMetrics();
 
 		for (TimeFractionsMetrics.Metric metric : TimeFractionsMetrics.Metric.values()) {
 			for (Item item : sim.getMachine()) {

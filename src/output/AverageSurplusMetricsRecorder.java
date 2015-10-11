@@ -40,12 +40,8 @@ public class AverageSurplusMetricsRecorder extends Recorder {
 			row[3] = metrics.getAverageBacklog(item);
 			record(row);
 			
-			row[1] = "SURPLUS_DEVIATION";
-			row[3] = metrics.getAverageSurplusDeviation(item);
-			record(row);
-			
 			row[1] = "SERVICE_LEVEL";
- 			row[3] = metrics.getAverageServiceLevel(item);
+ 			row[3] = metrics.getServiceLevel(item);
  			record(row);
 		}
 		

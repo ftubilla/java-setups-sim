@@ -24,9 +24,9 @@ public class MakeToOrderLowerBoundTest extends SimBasicTest {
 	@Test
 	public void test() throws Exception {
 		boolean allPassed = true;
-		ParamsFactory factory = new ParamsFactory("inputs/exp_040_val");
+		ParamsFactory factory = new ParamsFactory("exp_040_val");
 		Collection<Params> paramsCollection = factory.make();
-		BufferedReader br = new BufferedReader(new FileReader("inputs/exp_040_val/optimal_costs.txt"));
+		BufferedReader br = new BufferedReader(new FileReader("exp_040_val/optimal_costs.txt"));
 		String line;
 		Map<Integer, Double> optimalCosts = Maps.newHashMap();
 		boolean header = true;

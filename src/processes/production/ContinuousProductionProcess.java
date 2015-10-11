@@ -2,13 +2,13 @@ package processes.production;
 
 import org.apache.log4j.Logger;
 
+import discreteEvent.Event;
+import discreteEvent.EventListener;
+import discreteEvent.ProductionDeparture;
 import sim.Clock;
 import sim.Sim;
 import system.Item;
 import system.Machine;
-import discreteEvent.EventListener;
-import discreteEvent.Event;
-import discreteEvent.ProductionDeparture;
 
 /**
  * Implements a continuous production processs in which the production
@@ -64,6 +64,8 @@ public class ContinuousProductionProcess implements IProductionProcess {
 								item.setCumulativeProduction(item.getCumulativeProduction() + item.getDemandRate()
 										* deltaTime);
 								break;
+							default:
+								//Do nothing
 							}
 						}
 					}

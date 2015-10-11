@@ -1,7 +1,7 @@
 /*
  * Written by Fernando Tubilla
  * ftubilla@mit.edu
- * © 2012 Fernando Tubilla. All rights reserved.
+ * ï¿½ 2012 Fernando Tubilla. All rights reserved.
  */
 
 package params;
@@ -69,6 +69,9 @@ public class Params extends AbstractParams {
 	
 	@JsonProperty
 	protected int initialSetup;
+	
+	@JsonProperty
+	protected double convergenceTolerance = 1e-6;
 	
 	@JsonProperty
 	protected ImmutableList<Double> initialDemand;

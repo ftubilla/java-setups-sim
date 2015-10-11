@@ -1,24 +1,20 @@
 package metrics;
 
-import sim.*;
+import lombok.Getter;
+import sim.Sim;
 
 
+@Getter
 public class Metrics {
 
-	private TimeFractionsMetrics timeFractions;
-	private AverageSurplusMetrics averageSurplus;
+	private TimeFractionsMetrics timeFractionsMetrics;
+	private AverageSurplusMetrics averageSurplusMetrics;
+	private AverageSurplusByServiceLevelMetrics averageSurplusByServiceLevelMetrics;
 	
 	public Metrics(Sim sim){
-		timeFractions = new TimeFractionsMetrics(sim);
-		averageSurplus = new AverageSurplusMetrics(sim);
+		timeFractionsMetrics = new TimeFractionsMetrics(sim);
+		averageSurplusMetrics = new AverageSurplusMetrics(sim);
+		averageSurplusByServiceLevelMetrics = new AverageSurplusByServiceLevelMetrics(sim);
 	}
 
-	public TimeFractionsMetrics getTimeFractions() {
-		return timeFractions;
-	}
-	
-	public AverageSurplusMetrics getAverageSurplusMetrics(){
-		return averageSurplus;
-	}
-		
 }
