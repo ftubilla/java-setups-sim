@@ -85,7 +85,7 @@ public class MasterScheduler {
 			}
 		}
 		if (trace) {
-			logger.trace("Next event occuring is of schedule type " + nextType
+			logger.trace("Next event occurring is of schedule type " + nextType
 				+ " and occurs at " + nextEventTime);
 		}
 		return (schedules.get(nextType).getNextEvent());

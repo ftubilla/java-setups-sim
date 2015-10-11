@@ -1,19 +1,19 @@
 package output;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import sim.Sim;
 import discreteEvent.Event;
+import sim.Sim;
 
 
 
 public class Recorders {
 
-	private Set<Recorder> recorders;
+	private Set<Recorder> recorders = new LinkedHashSet<Recorder>();
 	
 	public Recorders() {
-		recorders = new LinkedHashSet<Recorder>();
 		recorders.add(new InterEventLengthsRecorder());
 		recorders.add(new FailureEventsRecorder());
 		recorders.add(new TimeMetricsRecorder());
@@ -22,6 +22,10 @@ public class Recorders {
 		recorders.add(new TimeFractionsRecorder());
 	}
 
+	public Recorders(Collection<Recorder> recordersCollection) {
+		recorders.addAll(recordersCollection);
+	}
+	
 	public synchronized void updateBeforeEvent(Sim sim, Event event) {
 		for (Recorder recorder : recorders) {
 			recorder.updateBeforeEvent(sim, event);

@@ -20,9 +20,10 @@ public class AverageSurplusMetrics {
 	private boolean debug = logger.isDebugEnabled();
 	private boolean trace = logger.isTraceEnabled();
 	
-	private Map<Item,Double> averageDeviation;
-	private Map<Item,Double> averageInventory;
-	private Map<Item,Double> averageBacklog;
+	private Map<Item, Double> averageDeviation;
+	private Map<Item, Double> averageInventory;
+	private Map<Item, Double> averageBacklog;
+	private Map<Item, Double> averageServiceLevel;
 	private Machine machine;
 	private MachineSnapshot lastMachineSnapshot;
 	private Clock clock;
@@ -32,14 +33,16 @@ public class AverageSurplusMetrics {
 		this.clock = sim.getClock();
 		
 		//Initialize data structures
-		averageDeviation = new HashMap<Item,Double>();
-		averageInventory = new HashMap<Item,Double>();
-		averageBacklog = new HashMap<Item,Double>();
+		averageDeviation = new HashMap<Item, Double>();
+		averageInventory = new HashMap<Item, Double>();
+		averageBacklog = new HashMap<Item, Double>();
+		averageServiceLevel = new HashMap<Item, Double>();
 		machine = sim.getMachine();
 		for (Item item : machine){
 			averageDeviation.put(item, 0.0);
 			averageInventory.put(item, 0.0);
 			averageBacklog.put(item, 0.0);
+			averageServiceLevel.put(item, 0.0);
 		}		
 	
 		sim.getListenersCoordinator().addAfterEventListener(new EventListener(){
@@ -52,6 +55,7 @@ public class AverageSurplusMetrics {
 						double tb = sim.getTime();
 						double ta = lastMachineSnapshot.getSnapshotTime();						
 						double area;
+						double period;
 						
 						//Note that I cannot simply use the inventory and backlog values at the end points, because that
 						//would not tell me the crossover time from inventory to backlog or vice-versa as calculated in the method below
@@ -67,6 +71,10 @@ public class AverageSurplusMetrics {
 						//Deviation
 						area = findAreaAboveXAxis(ta, lastMachineSnapshot.getSurplusDeviation(item), tb, item.getSurplusDeviation());
 						averageDeviation.put(item, averageDeviation.get(item) + area);
+						
+						//Service Level
+						period = findPeriodAboveXAxis(ta, lastMachineSnapshot.getSurplus(item), tb, item.getSurplus());
+						averageServiceLevel.put(item, averageServiceLevel.get(item) + period);
 					}
 				}				
 				lastMachineSnapshot = machine.getSnapshot();
@@ -75,15 +83,19 @@ public class AverageSurplusMetrics {
 	}
 	
 	public double getAverageSurplusDeviation(Item item){		
-		return averageDeviation.get(item)/clock.getMetricsRecordingTime();		
+		return averageDeviation.get(item) / clock.getMetricsRecordingTime();		
 	}
 	
 	public double getAverageInventory(Item item){
-		return averageInventory.get(item)/clock.getMetricsRecordingTime();
+		return averageInventory.get(item) / clock.getMetricsRecordingTime();
 	}
 	
 	public double getAverageBacklog(Item item){
-		return averageBacklog.get(item)/clock.getMetricsRecordingTime();
+		return averageBacklog.get(item) / clock.getMetricsRecordingTime();
+	}
+	
+	public double getAverageServiceLevel(Item item) {
+		return averageServiceLevel.get(item) / clock.getMetricsRecordingTime();
 	}
 		
 	/**
@@ -91,13 +103,13 @@ public class AverageSurplusMetrics {
 	 * the x-axis.
 	 *
 	 */
-	private double findAreaAboveXAxis(double x1, double y1, double x2, double y2){
+	protected double findAreaAboveXAxis(double x1, double y1, double x2, double y2){
 		if (y1 <= 0 && y2 <=0){
 			//Both points are below the x-axis
 			return 0.0;
 		} else {
 			//Find the x-crossover point
-			double xC = -y1*(x2-x1)/(1.0*(y2-y1))+x1;
+			double xC = findYAxisIntersection(x1, y1, x2, y2);
 			if (y1 <= 0 && y2 > 0){
 				//Slope is positive, set point 1 to crossover
 				x1= xC;
@@ -111,13 +123,35 @@ public class AverageSurplusMetrics {
 			}									
 		}
 		assert y1>=0 && y2>=0 : "Check the area calculating function!";
-		return Math.min(y1, y2)*(x2-x1)+0.5*(x2-x1)*Math.abs(y2-y1);
+		return Math.min( y1, y2 ) * ( x2 - x1 ) + 0.5 * ( x2 - x1 ) * Math.abs( y2 - y1 );
 	}
 	
-	private double findAreaBelowXAxis(double x1, double y1, double x2, double y2){
+	protected double findAreaBelowXAxis(double x1, double y1, double x2, double y2){
 		return findAreaAboveXAxis(x1,-y1,x2,-y2);
 	}
 		
-}
+	protected double findPeriodAboveXAxis(double x1, double y1, double x2, double y2) {
+		if (y1 <= 0 && y2 <= 0) {
+			//Both points are below the x-axis
+			return 0.0;
+		} 
+		if (y1 > 0 && y2 > 0) {
+			//Both points are above the x-axis
+			return x2 - x1;
+		}
+		double xC = findYAxisIntersection(x1, y1, x2, y2);
+		if (y1 <= 0 && y2 > 0) {
+			//Slope is positive
+			return x2 - xC;
+		} else {
+			//Slope is negative
+			return xC - x1;
+		}
+	}
+	
+	protected double findYAxisIntersection(double x1, double y1, double x2, double y2) {
+		return -y1 * ( x2 - x1 ) / ( (double) ( y2 - y1 ) ) + x1;
+	}
 
+}
 
