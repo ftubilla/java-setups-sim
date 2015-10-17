@@ -31,18 +31,20 @@ public class StreamSurplusStatisticsCalculator extends AbstractSurplusStatistics
 			//First time the function is called
 			initialTime = time;
 		} else {
-			
-			double prevDeltaT = finalTime - initialTime;
-			double newDeltaT = time - initialTime;
-			
-			averageInventory = ( averageInventory * prevDeltaT + 
-					findAreaAboveXAxis(previousTime, previousSurplus, time, surplus) ) / newDeltaT;
-			
-			averageBacklog = ( averageBacklog * prevDeltaT + 
-					findAreaBelowXAxis(previousTime, previousSurplus, time, surplus) ) / newDeltaT;
-			
-			serviceLevel = ( serviceLevel * prevDeltaT +
-					findPeriodAboveXAxis(previousTime, previousSurplus, time, surplus) ) / newDeltaT;
+
+			if (time > initialTime) {
+				double prevDeltaT = finalTime - initialTime;
+				double newDeltaT = time - initialTime;
+				averageInventory = (averageInventory * prevDeltaT
+				        + findAreaAboveXAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
+				
+				averageBacklog = (averageBacklog * prevDeltaT
+				        + findAreaBelowXAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
+				
+				serviceLevel = (serviceLevel * prevDeltaT
+				        + findPeriodAboveXAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
+
+			}
 		}
 			
 		if ( surplus < minSurplus ) {

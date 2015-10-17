@@ -2,6 +2,8 @@ package lowerbounds;
 
 import java.util.Map;
 
+import com.google.common.collect.Maps;
+
 import lombok.extern.apachecommons.CommonsLog;
 import optimization.DoubleIndexOptimizationVar;
 import optimization.Monomial;
@@ -10,14 +12,12 @@ import optimization.Posynomial;
 import optimization.SingleIndexOptimizationVar;
 import params.Params;
 
-import com.google.common.collect.Maps;
-
 @CommonsLog
-public class MakeToOrderLowerBound extends AbstractLowerBound {
+public class SurplusCostLowerBound extends AbstractLowerBound {
 
 	private Map<Integer, Double> idealSurplusDeviation;
 	
-	public MakeToOrderLowerBound(String name, Params params) {
+	public SurplusCostLowerBound(String name, Params params) {
 		super(name, params);
 		idealSurplusDeviation = Maps.newHashMap();
 	}
@@ -28,7 +28,12 @@ public class MakeToOrderLowerBound extends AbstractLowerBound {
 			SingleIndexOptimizationVar<Integer> nonCruisingFrac) {		
 		final Posynomial objPosynomial = new Posynomial();
 		for (int i=0; i < params.getNumItems(); i++) {
-			double cI = params.getBacklogCosts().get(i);
+			
+			double bI = params.getBacklogCosts().get(i);
+			double hI = params.getInventoryHoldingCosts().get(i);
+			
+			//Calculate the factor hb/(h+b) as 1/(1/h + 1/b) so that's numerically stable
+			double cI = 1 / ( 1 / hI + 1 / bI );
 			double dI = params.getDemandRates().get(i);
 			double taoI = 1.0 / params.getProductionRates().get(i);
 			double rhoI = dI*taoI;

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lombok.extern.apachecommons.CommonsLog;
-import lowerbounds.MakeToOrderLowerBound;
+import lowerbounds.SurplusCostLowerBound;
 import sim.Sim;
 import system.Item;
 import util.containers.FixedHorizonSurplusTrajectoryContainer;
@@ -28,7 +28,7 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 	private double deviationTrackingBias;
 	private Map<Item, Double> aveTimeBetweenRuns;
 	private ISurplusTrajectoryContainer pastSurplus;
-	private MakeToOrderLowerBound makeToOrderLowerBound;	
+	private SurplusCostLowerBound makeToOrderLowerBound;	
 	private enum Update {TRUE, FALSE};
 	
 	private int SURPLUS_LOOKBACK_TIME = 500;
@@ -36,7 +36,7 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 	@Override
 	public void setUpPolicy(Sim sim){
 		super.setUpPolicy(sim);
-		makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
+		makeToOrderLowerBound = sim.getSurplusCostLowerBound();
 		this.learningRate = sim.getParams().getPolicyParams().getLearningRate();
 		this.deviationTrackingBias = sim.getParams().getPolicyParams().getDeviationTrackingBias();
 		this.aveTimeBetweenRuns = new HashMap<Item, Double>();

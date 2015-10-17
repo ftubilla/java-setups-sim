@@ -1,29 +1,43 @@
 package params;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.ImmutableList;
 
 import lombok.Getter;
 import lombok.ToString;
-import lowerbounds.MakeToOrderLowerBound;
+import lowerbounds.SurplusCostLowerBound;
 
 @ToString
 @Getter
 public class DerivedParams extends AbstractParams {
 
-	protected double makeToOrderLowerBound;
-	protected List<Double> makeToOrderLowerBoundIdealSurplusDeviations;
-	protected List<Double> makeToOrderLowerBoundIdealSetupFreq;
+	protected double surplusCostLowerBound;
+	protected ImmutableList<Double> serviceLevels;
+	protected ImmutableList<Double> surplusCostLowerBoundIdealSurplusDeviations;
+	protected ImmutableList<Double> surplusCostLowerBoundIdealSetupFreq;
 	
-	public void setMakeToOrderLowerBound(MakeToOrderLowerBound lb){
-		makeToOrderLowerBound = lb.getLowerBound();		
-		makeToOrderLowerBoundIdealSurplusDeviations = new ArrayList<Double>();
-		makeToOrderLowerBoundIdealSetupFreq = new ArrayList<Double>();
-		for (int i=0; i<lb.getNumItems(); i++){
-			makeToOrderLowerBoundIdealSurplusDeviations.add(lb.getIdealSurplusDeviation(i));
-			makeToOrderLowerBoundIdealSetupFreq.add(lb.getIdealFrequency(i));
-		}
+	public DerivedParams(final Params params) {
 		
+		//Add the service levels
+		ImmutableList.Builder<Double> serviceLevelsBuilder = ImmutableList.builder();
+		for ( int i = 0; i < params.getNumItems(); i++ ) {
+			//The service level is b / (h + b) = 1 / (h/b + 1)
+			double serviceLevel = 1 / ( ( params.getInventoryHoldingCosts().get(i) / params.getBacklogCosts().get(i) ) + 1 );
+			serviceLevelsBuilder.add(serviceLevel);
+		}
+		serviceLevels = serviceLevelsBuilder.build();
+		
+	}
+	
+	public void setSurplusCostLowerBound(final SurplusCostLowerBound lb){
+		surplusCostLowerBound = lb.getLowerBound();		
+		ImmutableList.Builder<Double> deviationsListBuilder = ImmutableList.builder();
+		ImmutableList.Builder<Double> freqListBuilder = ImmutableList.builder();
+		for (int i=0; i<lb.getNumItems(); i++){
+			deviationsListBuilder.add(lb.getIdealSurplusDeviation(i));
+			freqListBuilder.add(lb.getIdealFrequency(i));
+		}
+		surplusCostLowerBoundIdealSurplusDeviations = deviationsListBuilder.build();
+		surplusCostLowerBoundIdealSetupFreq = freqListBuilder.build();
 	}
 	
 }

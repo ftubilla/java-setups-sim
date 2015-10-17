@@ -1,6 +1,6 @@
 package policies;
 
-import lowerbounds.MakeToOrderLowerBound;
+import lowerbounds.SurplusCostLowerBound;
 
 import org.apache.log4j.Logger;
 
@@ -118,8 +118,8 @@ public abstract class AbstractPolicy implements IPolicy {
 		lastChangeoverTime = clock.getTime();
 	}
 	
-	protected MakeToOrderLowerBound getMakeToOrderLowerBound(){
-		return sim.getMakeToOrderLowerBound();
+	protected SurplusCostLowerBound getMakeToOrderLowerBound(){
+		return sim.getSurplusCostLowerBound();
 	}
 
 }

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lombok.extern.apachecommons.CommonsLog;
-import lowerbounds.MakeToOrderLowerBound;
+import lowerbounds.SurplusCostLowerBound;
 import sim.Sim;
 import system.Item;
 import discreteEvent.ControlEvent;
@@ -22,12 +22,12 @@ public class IdealFrequencyTrackingPolicy extends AbstractPolicy {
 
 	private double learningRate;
 	private Map<Item, Double> aveTimeBetweenRuns;
-	private MakeToOrderLowerBound makeToOrderLowerBound;	
+	private SurplusCostLowerBound makeToOrderLowerBound;	
 	
 	@Override
 	public void setUpPolicy(Sim sim){
 		super.setUpPolicy(sim);
-		makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
+		makeToOrderLowerBound = sim.getSurplusCostLowerBound();
 		this.learningRate = sim.getParams().getPolicyParams().getLearningRate();
 		this.aveTimeBetweenRuns = new HashMap<Item, Double>();
 	}

@@ -26,7 +26,7 @@ public class MakeToOrderBoundBasedLowerHedgingPointsComputationMethod implements
 			log.warn("Warning. Lower hedging points were given in the params, but they will be overriden.");
 		}
 		for (Item item : sim.getMachine()) {
-			double y = sim.getMakeToOrderLowerBound().getIdealSurplusDeviation(item.getId());
+			double y = sim.getSurplusCostLowerBound().getIdealSurplusDeviation(item.getId());
 			double S = item.getSetupTime();
 			double d = item.getDemandRate();
 			double dZ = y - S*d;

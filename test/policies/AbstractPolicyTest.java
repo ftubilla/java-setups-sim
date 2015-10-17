@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.extern.apachecommons.CommonsLog;
-import lowerbounds.MakeToOrderLowerBound;
+import lowerbounds.SurplusCostLowerBound;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -82,13 +82,13 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
 		when(sim.getMachine()).thenReturn(machine);
 		when(sim.hasDiscreteMaterial()).thenReturn(false);
 		when(sim.getParams()).thenReturn(params);		
-		MakeToOrderLowerBound lb = new MakeToOrderLowerBound("", params);
+		SurplusCostLowerBound lb = new SurplusCostLowerBound("", params);
 		try {
 			lb.compute();
 		} catch (Exception e) {
 			log.error("Could not compute the make-to-order lower bound; the test may fail");
 		}
-		when(sim.getMakeToOrderLowerBound()).thenReturn(lb);
+		when(sim.getSurplusCostLowerBound()).thenReturn(lb);
 		return sim;
 	}
 	

@@ -1,7 +1,7 @@
 package policies;
 
 import lombok.extern.apachecommons.CommonsLog;
-import lowerbounds.MakeToOrderLowerBound;
+import lowerbounds.SurplusCostLowerBound;
 import sim.Sim;
 import system.Item;
 import discreteEvent.ControlEvent;
@@ -10,12 +10,12 @@ import discreteEvent.SurplusControlEvent;
 @CommonsLog
 public class LanAndOlsenPolicy extends AbstractPolicy {
 
-	private MakeToOrderLowerBound makeToOrderLowerBound;
+	private SurplusCostLowerBound surplusCostLowerBound;
 	
 	@Override
 	public void setUpPolicy(Sim sim){
 		super.setUpPolicy(sim);
-		makeToOrderLowerBound = sim.getMakeToOrderLowerBound();
+		surplusCostLowerBound = sim.getSurplusCostLowerBound();
 	}
 	
 	@Override
@@ -51,7 +51,7 @@ public class LanAndOlsenPolicy extends AbstractPolicy {
 			}
 			
 			//Compute the deviation ratio (see Section 2.4.3 of Tubilla 2011)
-			double idealDeviation = makeToOrderLowerBound.getIdealSurplusDeviation(item.getId());
+			double idealDeviation = surplusCostLowerBound.getIdealSurplusDeviation(item.getId());
 			double deviationRatio = (item.getSurplusDeviation() + item.getSetupTime()*item.getDemandRate()) / idealDeviation;
 			
 			if (deviationRatio > largestDeviationRatio){

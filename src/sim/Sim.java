@@ -2,7 +2,7 @@ package sim;
 
 import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
-import lowerbounds.MakeToOrderLowerBound;
+import lowerbounds.SurplusCostLowerBound;
 import metrics.Metrics;
 import output.Recorders;
 import params.DerivedParams;
@@ -21,6 +21,9 @@ import discreteEvent.MasterScheduler;
 @CommonsLog
 public class Sim {
 
+	//Some constants
+	public static final double SURPLUS_TOLERANCE = 1e-6;
+	
 	private static int sims=0;
 	
 	private int id;
@@ -39,10 +42,9 @@ public class Sim {
 	private Metrics metrics;
 	private Recorders recorders;
 	private Clock clock;
-	private MakeToOrderLowerBound makeToOrderLowerBound;
+	private SurplusCostLowerBound surplusCostLowerBound;
 	
-	public static final double SURPLUS_TOLERANCE = 1e-6;
-
+	
 	public Sim(Params params) {
 		id = sims++;		
 		log.info("Creating "+this);
@@ -50,10 +52,10 @@ public class Sim {
 		this.masterScheduler = new MasterScheduler(this);
 		this.listenersCoordinator = new ListenersCoordinator();
 		this.params = params;
-		this.derivedParams = new DerivedParams();
+		this.derivedParams = new DerivedParams(params);
 		
 		//Force computation of the lower bounds
-		getMakeToOrderLowerBound();
+		getSurplusCostLowerBound();
 	}
 
 	/**
@@ -231,20 +233,22 @@ public class Sim {
 	}
 	
 	/**
-	 * Lazily computes and returns the make-to-order lower bound
-	 * @return MakeToOrderLowerBound
+	 * Lazily computes and returns the surplus cost lower bound.
+	 * 
+	 * @return SurplusCostLowerBound
 	 */
-	public MakeToOrderLowerBound getMakeToOrderLowerBound() {
-		if (makeToOrderLowerBound == null){
-			this.makeToOrderLowerBound = new MakeToOrderLowerBound("J_Sim:"+id, params);
+	public SurplusCostLowerBound getSurplusCostLowerBound() {
+		if (surplusCostLowerBound == null){
+			this.surplusCostLowerBound = new SurplusCostLowerBound("LB_SIM:"+id, params);
 			try {
-				makeToOrderLowerBound.compute();
-				derivedParams.setMakeToOrderLowerBound(makeToOrderLowerBound);
+				this.surplusCostLowerBound.compute();
+				derivedParams.setSurplusCostLowerBound(surplusCostLowerBound);
 			} catch (Exception e) {
-				log.warn("Could not compute the make to order lower bound");
+				log.error("Could not compute the make to order lower bound", e);
+				e.printStackTrace();
 			}	
 		}
-		return makeToOrderLowerBound;
+		return surplusCostLowerBound;
 	}
 
 }
