@@ -1,0 +1,28 @@
+{
+    "numItems": 3,
+    "demandRates": [0.3, 0.3, 0.3],
+    "productionRates": [1, 1, 1],
+    "surplusTargets": [0, 0, 0],
+    "inventoryHoldingCosts": [1, 1, 1],
+    "backlogCosts": ["Infinity", 1, 1],
+    "meanTimeToFail": 1e+100,
+    "meanTimeToRepair": 0,
+    "setupTimes": [10, 10, 10],
+    "initialSetup": 0,
+    "initialDemand": [0, 0, 0],
+    "metricsStartTime": 0,
+    "finalTime": 100,
+    "seed": 1,
+    "productionProcessParams": {
+        "name": "ContinuousProductionProcess"
+    },
+    "demandProcessParams": {
+        "name": "ContinuousDemandProcess"
+    },
+    "policyParams": {
+        "name": "ClearTheLargestDeviationPolicy",
+        "lowerHedgingPoints": [-100, -100, -100],
+        "isCruising": false
+    },
+    "recordHighFreq": false
+}

@@ -4,6 +4,7 @@ import java.io.File;
 
 import lombok.extern.apachecommons.CommonsLog;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -35,6 +36,7 @@ public class JsonReader {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.registerModule((Module) new GuavaModule());	//This is needed for deserializing Guava data types
+			mapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
 			object = mapper.readValue(file, clazz);
 		} catch (Exception e) {
 			log.fatal("Problem reading json file " + file);

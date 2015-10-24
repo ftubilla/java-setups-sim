@@ -19,6 +19,7 @@ public class Recorders {
 		recorders.add(new TimeMetricsRecorder());
 		recorders.add(new ParamsRecorder());
 		recorders.add(new AverageSurplusMetricsRecorder());
+		recorders.add(new AverageSurplusByServiceLevelMetricsRecorder());
 		recorders.add(new TimeFractionsRecorder());
 	}
 
