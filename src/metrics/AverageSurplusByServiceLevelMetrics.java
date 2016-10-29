@@ -103,7 +103,8 @@ public class AverageSurplusByServiceLevelMetrics {
 			serviceLevels[index] = newServiceLevel;
 			error = Math.abs( newServiceLevel - desiredServiceLevel ) / desiredServiceLevel;
 			numIt++;
-			log.trace(String.format("Iteration %d error %.5f service level %.5f", numIt, error, newServiceLevel));
+			log.trace(String.format("Iteration %d error %.5f service level %.5f surplus target %.5f",
+			        numIt, error, newServiceLevel, target));
 			if ( numIt > MAX_IT ) {
 				throw new RuntimeException(String.format("Could not converge to service level. Current value %.6f",
 						newServiceLevel));

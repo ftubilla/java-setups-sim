@@ -68,9 +68,11 @@ public abstract class AbstractLowerBound {
 		//Time fractions
 		// sum_i (n_i*S_i - pnc_i*(1-rho_i)) = 1 - N
 		OptimizationConstraint timeFractionsCtr = new OptimizationConstraint("time_fractions");
+		double eff = params.getMachineEfficiency();
 		for (Integer i : items) {
 			double dI = params.getDemandRates().get(i);
-			double taoI = 1.0 / params.getProductionRates().get(i);
+			// Get the production rate and compensate by the machine efficiency
+			double taoI = ( 1.0 / params.getProductionRates().get(i) ) / eff; 
 			timeFractionsCtr.addTerm(setupFreq.get(i), params.getSetupTimes().get(i));
 			timeFractionsCtr.addTerm(nonCruisingFrac.get(i), -(1-dI*taoI));
 		}
