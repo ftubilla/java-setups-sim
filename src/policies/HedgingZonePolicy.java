@@ -91,7 +91,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
             return null;
         }
 
-        // Compute the set R(f) of items whose deviation exceeds their fraction hedging zone
+        // Compute the set R(f) of items whose deviation exceeds their fractional hedging zone
         Set<Item> fractionalReadyItems = this.sortedItems.stream()
                 .filter( item -> !this.isInTheFractionalHedgingZone(this.cruisingParameter, item ) )
                 .collect(Collectors.toSet());
