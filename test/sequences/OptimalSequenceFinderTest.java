@@ -72,7 +72,7 @@ public class OptimalSequenceFinderTest extends SimBasicTest {
         Item item2 = new Item(2, params);
         double tol = 1e-4;
         OptimalSequenceFinder finder = new OptimalSequenceFinder( Lists.newArrayList(item0, item1, item2), 0.91);
-        OptimalFCyclicSchedule schedule = finder.find(12);
+        OptimalFCyclicSchedule schedule = finder.find(12, 8);
         assertEquals( 6.23855105, schedule.getScheduleCost(), tol);
 
     }

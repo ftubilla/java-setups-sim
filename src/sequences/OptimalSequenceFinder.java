@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.google.common.collect.Sets;
 
@@ -14,8 +16,12 @@ import system.Item;
 @CommonsLog
 public class OptimalSequenceFinder {
 
+    public static final double COST_TOLERANCE = 1e-4;
+    
     private final Set<Item> items;
     private final double machineEff;
+
+    private OptimalFCyclicSchedule optimalSchedule = null;
 
     public OptimalSequenceFinder(final Collection<Item> items, final double machineEff) {
         this.items = Sets.newHashSet(items);
@@ -23,37 +29,57 @@ public class OptimalSequenceFinder {
     }
 
     public OptimalFCyclicSchedule find(final int maxLength) throws Exception {
+        return this.find(maxLength, 1);
+    }
+    
+    /**
+     * Finds the optimal f-Cyclic schedule among all schedules of length up to the given
+     * max length and using the given number of threads.
+     * 
+     * @param maxLength
+     * @param numThreads
+     * @return Optimal f-Cyclic schedule
+     * @throws Exception
+     */
+    public OptimalFCyclicSchedule find(final int maxLength, final int numThreads) throws Exception {
 
         if ( maxLength < items.size() ) {
             throw new IllegalArgumentException("Max. Length needs to be at least equal to " + items.size());
         }
 
-        // Initialize the data structures
+        // Initialize the data structures to traverse the tree
         Queue<SearchNode> nodes = new LinkedList<>();
         Set<ProductionSequence> searchedSequences = new HashSet<>();
-        Double lowestCost = Double.MAX_VALUE;
-        OptimalFCyclicSchedule bestSchedule = null;
         nodes.add(new SearchNode(new Item[0]));
 
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        
         while ( !nodes.isEmpty() ) {
             // Take the next search node
             SearchNode nextNode = nodes.poll();
             log.trace(String.format("Retrieving next search node of size %d", nextNode.getSize()));
             if ( nextNode.containsAllItems(this.items) && nextNode.endPointsDiffer() ) {
-                // The sequence is valid. Try computing its cost
+                // The sequence is valid, so a cost can be computed if not already present
                 ProductionSequence nodeSequence = nextNode.getProductionSequence();
                 if ( !searchedSequences.contains(nodeSequence) ) {
-                    OptimalFCyclicSchedule optimalSchedule = new OptimalFCyclicSchedule(nodeSequence, machineEff);
-                    optimalSchedule.compute();
-                    double cost = optimalSchedule.getScheduleCost();
-                    log.trace(String.format("Search node sequence %s has cost %.5f", nodeSequence, cost));
-                    if ( cost < lowestCost ) {
-                        log.debug(String.format("Found better sequence %s with cost %.5f", nodeSequence, cost));
-                        lowestCost = cost;
-                        bestSchedule = optimalSchedule;
-                    }
                     searchedSequences.add( nodeSequence );
                     searchedSequences.addAll( nodeSequence.getInversions() );
+                    // Start a new task to run the optimization problem for the schedule
+                    final OptimalSequenceFinder thisFinder = this;
+                    Runnable task = new Runnable() {
+                        @Override
+                        public void run() {
+                            OptimalFCyclicSchedule optimalScheduleForSequence = 
+                                    new OptimalFCyclicSchedule(nodeSequence, machineEff);
+                            try {
+                                optimalScheduleForSequence.compute();
+                            } catch (Exception e) {
+                                throw new RuntimeException("Could not optimize schedule " + optimalScheduleForSequence);
+                            }
+                            thisFinder.submitSchedule(optimalScheduleForSequence);
+                        }
+                    };
+                    executor.execute(task);
                 }
             }
             // Branch if possible
@@ -67,7 +93,33 @@ public class OptimalSequenceFinder {
                 }
             }
         }
-        return bestSchedule;
+        executor.shutdown();
+
+        return optimalSchedule;
+    }
+
+    private synchronized void submitSchedule(final OptimalFCyclicSchedule schedule) {
+        double cost = schedule.getScheduleCost();
+        double size = schedule.getSequence().getSize();
+        log.trace(String.format("Looking at sequence %s with cost %.5f", schedule.getSequence(), cost));
+        boolean isBetterSchedule = false;
+        if ( this.optimalSchedule == null ) {
+            isBetterSchedule = true;
+        } else {
+            // Accept the sequence if it has a lower cost or equal cost but shorter length
+            double currentBestCost = this.optimalSchedule.getScheduleCost();
+            int currentBestSeqSize = this.optimalSchedule.getSequence().getSize();
+            boolean isLowerCostSchedule = currentBestCost > cost * (1 + COST_TOLERANCE);
+            boolean isEqualCostSchedule = Math.abs(currentBestCost - cost) < COST_TOLERANCE * currentBestCost;
+            boolean isShorterSequence = size < currentBestSeqSize;
+            if ( isLowerCostSchedule || ( isEqualCostSchedule && isShorterSequence ) ) {
+                isBetterSchedule = true;
+            }
+        }
+        if ( isBetterSchedule ) {
+            log.debug(String.format("Found better sequence %s with cost %.5f", schedule.getSequence(), cost));
+            this.optimalSchedule = schedule;
+        }
     }
 
     /**
