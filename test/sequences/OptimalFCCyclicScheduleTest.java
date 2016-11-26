@@ -88,7 +88,39 @@ public class OptimalFCCyclicScheduleTest extends SimBasicTest {
         OptimalFCyclicSchedule schedule3 = new OptimalFCyclicSchedule(sequence3, 1.0);
         schedule3.compute();
         assertEquals( 3.76394047, schedule3.getScheduleCost(), tol);
+        
+        ProductionSequence sequence4 = new ProductionSequence(item0, item1, item2, item1, item2);
+        OptimalFCyclicSchedule schedule4 = new OptimalFCyclicSchedule(sequence4, 0.91);
+        schedule4.compute();
+        assertEquals( 6.62526979, schedule4.getScheduleCost(), tol);
 
     }
 
+    /**
+     * This instance was causing the solver to fail.
+     * @throws Exception
+     */
+    @Test
+    public void testProblematicInstance() throws Exception {
+        
+        ParamsBuilder paramsBuilder = Params.builderWithDefaults();
+        paramsBuilder
+            .numItems(3)
+            .surplusTargets(c(0.0, 0.0, 0.0))
+            .initialDemand(c(0.0, 20.0, 30.0))
+            .backlogCosts(c( 19.,  19.,  19. ))
+            .inventoryHoldingCosts(c( 1.0, 1.0, 1.0 ))
+            .productionRates(c( 0.36630037,  0.36630037,  0.36630037 ))
+            .demandRates(c( 0.03333333,  0.13333333,  0.13333333 ))
+            .setupTimes(c( 7.77777778,  1.11111111,  1.11111111 ));
+
+        Params params = paramsBuilder.build();
+        Item item0 = new Item(0, params);
+        Item item1 = new Item(1, params);
+        Item item2 = new Item(2, params);
+        
+        ProductionSequence sequence = new ProductionSequence(item0, item1, item2, item1, item2, item1, item2);
+        OptimalFCyclicSchedule schedule = new OptimalFCyclicSchedule(sequence, 0.91);
+        schedule.compute();
+    }
 }

@@ -22,6 +22,9 @@ import system.Item;
 @CommonsLog
 public class OptimalFCyclicSchedule {
 
+    public static final double TOLERANCE = 1e-5;
+    public static final double TOLERANCE_FEAS = 1e-6;
+    
     private final double machEfficiency;
     private final OptimizationProblem problem;
     private final SingleIndexOptimizationVar<Integer> sprintingWithInventoryTime;
@@ -153,9 +156,9 @@ public class OptimalFCyclicSchedule {
         // Solve and store the solution
         log.debug(String.format("Optimal f-cycle schedule, Sequence:%s%nObjective:%s%nConstraints:%s%n",
                 this.sequence, objPosynomial, this.problem));
-        // TODO Move this to a config (also on the lower bound)
-        this.problem.setTolerance(1e-5);
-        this.problem.setToleranceFeas(1e-5);
+
+        this.problem.setTolerance(TOLERANCE);
+        this.problem.setToleranceFeas(TOLERANCE_FEAS);
         this.problem.solve();
         for ( int n : this.sequencePositions ) {
             log.debug(String.format("Sprinting time (B) = %.5f (I) = %.5f, Cruising time = %.5f",

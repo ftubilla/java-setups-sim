@@ -3,9 +3,11 @@ package sequences;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -17,14 +19,15 @@ import system.Item;
  * An f-cyclic production sequence
  *
  */
-@EqualsAndHashCode
+@EqualsAndHashCode( exclude = {"inversions", "cachedToString"} )
 public class ProductionSequence implements Iterable<Item> {
-
-    private String cachedToString;
 
     private final List<Item> sequence;
     private final Map<Item, List<Integer>> itemPositions;
     private final Map<Integer, List<Integer>> inBetweenPositions;
+
+    private String cachedToString;
+    private Set<ProductionSequence> inversions = null;
 
     /**
      * Creates a new production sequence based on the given array of items.
@@ -95,6 +98,24 @@ public class ProductionSequence implements Iterable<Item> {
 
     public Item getLast() {
         return this.sequence.get( this.sequence.size() - 1 );
+    }
+
+    /**
+     * Generates all inversions of the given sequence
+     * @return iterable of equivalent production sequences
+     */
+    public Set<ProductionSequence> getInversions() {
+        if ( this.inversions == null ) {
+            this.inversions = new HashSet<>();
+            for ( int n = 1; n < this.sequence.size(); n++ ) {
+                Item[] itemArray = new Item[this.sequence.size()];
+                for ( int m = 0; m < this.sequence.size(); m++ ) {
+                    itemArray[m] = this.sequence.get( (n + m) % this.sequence.size() );
+                }
+                this.inversions.add( new ProductionSequence(itemArray) );
+            }
+        }
+        return Collections.unmodifiableSet(this.inversions);
     }
 
     /**

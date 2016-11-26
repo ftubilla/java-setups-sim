@@ -2,11 +2,6 @@ package optimization;
 
 import java.util.Map;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.apachecommons.CommonsLog;
-import optimization.OptimizationConstraint.Sense;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.joptimizer.functions.ConvexMultivariateRealFunction;
@@ -15,6 +10,11 @@ import com.joptimizer.optimizers.JOptimizer;
 import com.joptimizer.optimizers.LPOptimizationRequest;
 import com.joptimizer.optimizers.LPPrimalDualMethod;
 import com.joptimizer.optimizers.OptimizationRequest;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.apachecommons.CommonsLog;
+import optimization.OptimizationConstraint.Sense;
 
 /**
  * Encapsulates a JOptimizer problem and constructs the model. This class
@@ -109,6 +109,7 @@ public class OptimizationProblem {
 			// Build the inequalities G x <= h
 			double[][] matrixG = new double[numInequalities][numVariables];
 			double[] vectorH = new double[numInequalities];
+			double[] vectorHMinusEps = new double[numInequalities];
 			ConvexMultivariateRealFunction[] inequalitiesFunc = new ConvexMultivariateRealFunction[numInequalities];
 			for (OptimizationConstraint ctr : inequalities.keySet()) {
 				int i = inequalities.get(ctr);
@@ -120,11 +121,13 @@ public class OptimizationProblem {
 					matrixG[i][j] = sign * ctr.getCoeff(var);
 				}
 				vectorH[i] = sign * ctr.getRightHandSide();
+				// We create a RHS that forces the LP solver to find a strictly feasible solution
+				vectorHMinusEps[i] = sign * ctr.getRightHandSide() - 10 * this.toleranceFeas;
 				inequalitiesFunc[i] = new LinearMultivariateRealFunction(matrixG[i], -vectorH[i]);
 			}
 			optimizationRequest.setFi(inequalitiesFunc);
 			initialPointOptimizationRequest.setG(matrixG);
-			initialPointOptimizationRequest.setH(vectorH);
+			initialPointOptimizationRequest.setH(vectorHMinusEps);
 		}
 
 		if (numEqualities > 0) {
@@ -152,11 +155,12 @@ public class OptimizationProblem {
 		//Set the initial point
 		double[] x0;
 		if (!userDefinedInitialValues) {
+		    // Find a strictly feasible initial point
 			initialPointOptimizationRequest.setC(new double[numVariables]);
 			initialPointOptimizationRequest.setToleranceFeas(toleranceFeas*0.1); //Get better tol for the initial point
 			LPPrimalDualMethod lp = new LPPrimalDualMethod();
 			lp.setLPOptimizationRequest(initialPointOptimizationRequest);
-			lp.optimize();		
+			lp.optimize();
 			x0 = lp.getOptimizationResponse().getSolution();
 		} else {
 			x0 = new double[numVariables];
@@ -170,13 +174,14 @@ public class OptimizationProblem {
 			}
 			log.debug(String.format("Initial value %s = %.6f", var, x0[i]));
 		}
+		// Although the initial point should be feasible, we still let the IP method decide
 		optimizationRequest.setNotFeasibleInitialPoint(x0);
-		
+
 		optimizationRequest.setCheckKKTSolutionAccuracy(true);
 		optimizationRequest.setToleranceFeas(toleranceFeas);
 		optimizationRequest.setTolerance(tolerance);
-		optimizationRequest.setInteriorPointMethod(JOptimizer.PRIMAL_DUAL_METHOD);
-				
+	    optimizationRequest.setInteriorPointMethod(JOptimizer.PRIMAL_DUAL_METHOD);
+	    
 		//optimization
 		JOptimizer opt = new JOptimizer();
 		opt.setOptimizationRequest(optimizationRequest);

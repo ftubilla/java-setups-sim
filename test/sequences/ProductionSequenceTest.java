@@ -1,6 +1,7 @@
 package sequences;
 
 import java.util.Iterator;
+import java.util.Set;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -51,6 +52,13 @@ public class ProductionSequenceTest extends SimBasicTest {
         assertTrue( sequence.contains(item3) );
         assertFalse( sequence.contains(item4) );
 
+        Set<ProductionSequence> inversions = sequence.getInversions();
+        assertEquals( 4, inversions.size() );
+        assertTrue( inversions.contains( new ProductionSequence(item2, item3, item1, item2, item1) ) );
+        assertTrue( inversions.contains( new ProductionSequence(item3, item1, item2, item1, item2) ) );
+        assertTrue( inversions.contains( new ProductionSequence(item1, item2, item1, item2, item3) ) );
+        assertTrue( inversions.contains( new ProductionSequence(item2, item1, item2, item3, item1) ) );
+        
         ProductionSequence s1 = new ProductionSequence(item3, item1, item2, item1, item2);
         assertTrue( sequence.isEquivalent(s1) );
         
