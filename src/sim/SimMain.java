@@ -140,7 +140,7 @@ public class SimMain {
 		
 	}
 	
-	private static Properties getProperties() throws Exception {
+	public static Properties getProperties() throws Exception {
 		Properties properties = new Properties();
 		String propFileName = "config/config.properties";
 		try {
