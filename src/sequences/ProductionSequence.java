@@ -29,6 +29,10 @@ public class ProductionSequence implements Iterable<Item> {
     private String cachedToString;
     private Set<ProductionSequence> inversions = null;
 
+    public ProductionSequence(final List<Item> sequence) {
+        this( sequence.toArray(new Item[sequence.size()]) );
+    }
+    
     /**
      * Creates a new production sequence based on the given array of items.
      * @param sequence
@@ -81,6 +85,13 @@ public class ProductionSequence implements Iterable<Item> {
         return ImmutableList.copyOf(this.inBetweenPositions.getOrDefault(position, Lists.newArrayList()));
     }
 
+    /**
+     * Return the next position in the sequence (in a circular fashion) where the item in the given position
+     * occurs again.
+     * 
+     * @param position
+     * @return next position
+     */
     public int getNextPosition(final int position) {
         // Get the positions in between the item at the given position and the next occurrence of the item
         List<Integer> inBetweenPositions = this.inBetweenPositions.get(position);
@@ -179,4 +190,5 @@ public class ProductionSequence implements Iterable<Item> {
     public Iterator<Item> iterator() {
         return Collections.unmodifiableList( this.sequence ).iterator();
     }
+
 }

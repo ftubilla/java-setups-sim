@@ -1,7 +1,9 @@
 package sequences;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.apachecommons.CommonsLog;
 import optimization.Monomial;
@@ -30,9 +32,12 @@ public class OptimalFCyclicSchedule {
     private final SingleIndexOptimizationVar<Integer> sprintingWithInventoryTime;
     private final SingleIndexOptimizationVar<Integer> sprintingWithBacklogTime;
     private final SingleIndexOptimizationVar<Integer> cruisingTime;
+    private final SingleIndexOptimizationVar<Integer> startingBacklog;
     private final OptimizationVar cycleTime;
     private final ProductionSequence sequence;
     private final List<Integer> sequencePositions;
+    // The surplus levels prior to the first changeover
+    private Map<Item, Double> initialSurplusLevels;
 
     public OptimalFCyclicSchedule(final ProductionSequence sequence, final double machineEfficiency) {
         this.machEfficiency = machineEfficiency;
@@ -46,9 +51,11 @@ public class OptimalFCyclicSchedule {
         this.sprintingWithInventoryTime = new SingleIndexOptimizationVar<>("DTnsi", this.sequencePositions);
         this.sprintingWithBacklogTime = new SingleIndexOptimizationVar<>("DTnsb", this.sequencePositions);
         this.cruisingTime = new SingleIndexOptimizationVar<>("DTnc", this.sequencePositions);
+        this.startingBacklog = new SingleIndexOptimizationVar<>("Bo", this.sequencePositions);
         this.cycleTime = new OptimizationVar("Tf");
         this.problem.addVar(this.sprintingWithInventoryTime);
         this.problem.addVar(this.sprintingWithBacklogTime);
+        this.problem.addVar(this.startingBacklog);
         this.problem.addVar(this.cruisingTime);
         this.problem.addVar(this.cycleTime);
         
@@ -58,6 +65,7 @@ public class OptimalFCyclicSchedule {
                 throw new IllegalArgumentException("Inventory/backlog costs are not finite!");
             }
         }
+
     }
 
     public void compute() throws Exception {
@@ -112,6 +120,14 @@ public class OptimalFCyclicSchedule {
             ctr.addTerm(this.sprintingWithBacklogTime.get(nextN),  (mu - d) );
             ctr.eql(demandDuringSetups);
             this.problem.addConstraint(ctr);
+            
+            // Add the constraint relating initial backlog and production time
+            // Bo / (mu-d) - DTnsb = 0
+            OptimizationConstraint backlogCtr = new OptimizationConstraint("initial_backlog_" + n);
+            backlogCtr.addTerm(this.startingBacklog.get(n), 1 / ( mu - d ) );
+            backlogCtr.addTerm(this.sprintingWithBacklogTime.get(n), -1);
+            backlogCtr.eql(0.0);
+            this.problem.addConstraint(backlogCtr);
         }
 
         // Non-Negativity
@@ -151,8 +167,7 @@ public class OptimalFCyclicSchedule {
         sumCtr.addTerm(this.cycleTime, -1.0);
         sumCtr.eql(-totalSetupTime);
         this.problem.addConstraint(sumCtr);
-        
-        
+
         // Solve and store the solution
         log.debug(String.format("Optimal f-cycle schedule, Sequence:%s%nObjective:%s%nConstraints:%s%n",
                 this.sequence, objPosynomial, this.problem));
@@ -168,6 +183,30 @@ public class OptimalFCyclicSchedule {
             log.debug(String.format("Cost %.5f, Cycle Time %.5f",
                     this.problem.getOptimalCost(),
                     this.cycleTime.getSol()));
+        }
+        
+        // Compute the surplus levels prior to the first changeover
+        this.initialSurplusLevels = new HashMap<Item, Double>();
+        for ( int position : this.sequencePositions ) {
+            Item item = this.sequence.getItemAtPosition(position);
+            if ( this.initialSurplusLevels.containsKey(item) ) {
+                // This is not the first occurrence of the item, so skip
+                continue;
+            }
+            // We start by adding the initial backlog prior to production (with a minus sign)
+            double initialSurplus = - this.startingBacklog.get(position).getSol();
+            // Since we want the surplus prior to the setup, add the inventory depleted during the setup
+            initialSurplus += item.getSetupTime() * item.getDemandRate();
+            // Now add back the inventory that was depleted during prior runs (including their setup)
+            for ( int prevPosition = 0; prevPosition <= position - 1; prevPosition++ ) {
+                Item prevItem = this.sequence.getItemAtPosition(prevPosition);
+                initialSurplus += item.getDemandRate() *
+                        ( this.sprintingWithBacklogTime.get(prevPosition).getSol() +
+                            this.cruisingTime.get(prevPosition).getSol() +
+                                this.sprintingWithInventoryTime.get(prevPosition).getSol() + 
+                                    prevItem.getSetupTime() );
+            }
+            this.initialSurplusLevels.put(item, initialSurplus);
         }
     }
 
@@ -193,6 +232,14 @@ public class OptimalFCyclicSchedule {
     
     public Double getOptimalCruisingTime(final int position) {
         return this.cruisingTime.get(position).getSol();
+    }
+
+    public Double getBacklogPriorToProduction(final int position) {
+        return this.startingBacklog.get(position).getSol();
+    }
+
+    public Double getSurplusPriorToFirstSetup(final Item item) {
+        return this.initialSurplusLevels.get(item);
     }
 
     @Override

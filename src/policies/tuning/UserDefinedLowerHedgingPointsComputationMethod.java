@@ -1,14 +1,14 @@
 package policies.tuning;
 
 import java.util.Map;
+import java.util.Optional;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 
 import lombok.extern.apachecommons.CommonsLog;
 import sim.Sim;
 import system.Item;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 
 @CommonsLog
 public class UserDefinedLowerHedgingPointsComputationMethod implements ILowerHedgingPointsComputationMethod {

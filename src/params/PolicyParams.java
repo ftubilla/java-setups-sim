@@ -1,7 +1,8 @@
 package params;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 import lombok.AccessLevel;
@@ -36,7 +37,7 @@ public class PolicyParams extends AbstractParams {
     protected String name = ClearTheLargestDeviationPolicy.class.getSimpleName();
 
     @JsonProperty
-    protected Optional<ImmutableList<Double>> userDefinedLowerHedgingPoints = Optional.absent();
+    protected Optional<ImmutableList<Double>> userDefinedLowerHedgingPoints = Optional.empty();
 
     @JsonProperty
     protected String lowerHedgingPointsComputationMethod = DEFAULT_LOWER_HEDGING_POINTS_COMPUTATION_METHOD;
@@ -45,7 +46,10 @@ public class PolicyParams extends AbstractParams {
     protected String priorityComparator = DEFAULT_PRIORITY_COMPARATOR;
 
     @JsonProperty
-    protected Optional<Boolean> userDefinedIsCruising = Optional.absent();
+    protected Optional<Boolean> userDefinedIsCruising = Optional.empty();
+    
+    @JsonProperty
+    protected Optional<ImmutableList<Integer>> userDefinedProductionSequence = Optional.empty();
 
     /*
      * For the IdealDeviationAndFrequencyTrackingPolicy

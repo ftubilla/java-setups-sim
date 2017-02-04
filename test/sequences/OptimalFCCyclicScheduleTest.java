@@ -51,12 +51,40 @@ public class OptimalFCCyclicScheduleTest extends SimBasicTest {
         OptimalFCyclicSchedule schedule2 = new OptimalFCyclicSchedule(sequence2, 1.0);
         schedule2.compute();
         assertEquals( schedule.getScheduleCost(), schedule2.getScheduleCost(), tol);
+        
+        // Check that all positions start (in this symmetric sequence) with the same backlog
+        assertEquals( schedule.getBacklogPriorToProduction(0), schedule.getBacklogPriorToProduction(1), tol);
+        assertEquals( schedule.getBacklogPriorToProduction(1), schedule.getBacklogPriorToProduction(2), tol);
+
+        // For item 0, the starting (-)backlog should equal the starting surplus minus the depletion during 1 setup
+        assertEquals( - schedule.getBacklogPriorToProduction(0),
+                schedule.getSurplusPriorToFirstSetup(item0) -
+                    item0.getDemandRate() * item0.getSetupTime(), tol);
+
+        // For item 1, the starting backlog at position 1 should be equal to the initial surplus minus one run and 2 setups
+        assertEquals( - schedule.getBacklogPriorToProduction(1), 
+                    schedule.getSurplusPriorToFirstSetup(item1) - 
+                        item1.getDemandRate() * ( item0.getSetupTime() + item1.getSetupTime() +
+                                schedule.getOptimalSprintingTimeWithBacklog(0) +
+                                    schedule.getOptimalCruisingTime(0) +
+                                        schedule.getOptimalSprintingTimeWithInventory(0) ), tol);
+
+        // For item 2, the starting backlog at position 2 should equal initial surplus minus 2 runs and 3 setups
+        assertEquals( - schedule.getBacklogPriorToProduction(2),
+                schedule.getSurplusPriorToFirstSetup(item2) -
+                    item2.getDemandRate() * ( item0.getSetupTime() + item1.getSetupTime() + item2.getSetupTime() +
+                            schedule.getOptimalSprintingTimeWithBacklog(0) +
+                            schedule.getOptimalSprintingTimeWithBacklog(1) +
+                            schedule.getOptimalCruisingTime(0) +
+                            schedule.getOptimalCruisingTime(1) +
+                            schedule.getOptimalSprintingTimeWithInventory(0) +
+                            schedule.getOptimalSprintingTimeWithInventory(1) ), tol );
 
     }
     
     @Test
     public void testNonSymmetricSystem() throws Exception {
-        
+
         ParamsBuilder paramsBuilder = Params.builderWithDefaults();
         paramsBuilder
             .numItems(3)
@@ -78,21 +106,25 @@ public class OptimalFCCyclicScheduleTest extends SimBasicTest {
         double tol = 1e-5;
         schedule.compute();
         assertEquals( 5.24599356, schedule.getScheduleCost(), tol);
+        assertConsistencyInitialSurplus(schedule, 1, tol);
 
         ProductionSequence sequence2 = new ProductionSequence(item0, item1, item2, item1, item2);
         OptimalFCyclicSchedule schedule2 = new OptimalFCyclicSchedule(sequence2, 1.0);
         schedule2.compute();
         assertEquals( 3.9071442, schedule2.getScheduleCost(), tol);
+        assertConsistencyInitialSurplus(schedule2, 1, tol);
 
         ProductionSequence sequence3 = new ProductionSequence(item0, item1, item2, item1, item2, item1, item2, item1);
         OptimalFCyclicSchedule schedule3 = new OptimalFCyclicSchedule(sequence3, 1.0);
         schedule3.compute();
         assertEquals( 3.76394047, schedule3.getScheduleCost(), tol);
-        
+        assertConsistencyInitialSurplus(schedule3, 1, tol);
+
         ProductionSequence sequence4 = new ProductionSequence(item0, item1, item2, item1, item2);
         OptimalFCyclicSchedule schedule4 = new OptimalFCyclicSchedule(sequence4, 0.91);
         schedule4.compute();
         assertEquals( 6.62526979, schedule4.getScheduleCost(), tol);
+        assertConsistencyInitialSurplus(schedule4, 0.91, tol);
 
     }
 
@@ -122,5 +154,29 @@ public class OptimalFCCyclicScheduleTest extends SimBasicTest {
         ProductionSequence sequence = new ProductionSequence(item0, item1, item2, item1, item2, item1, item2);
         OptimalFCyclicSchedule schedule = new OptimalFCyclicSchedule(sequence, 0.91);
         schedule.compute();
+    }
+
+    /**
+     * Checks that the inventory at the end of the sequence for the last item equals the starting surplus at the
+     * beginning of the sequence, and the first item's starting backlog  is the initial inventory minus the loss
+     * during the setup. Checks that the starting backlog is consistent with the sprinting times for all positions.
+     */
+    public static void assertConsistencyInitialSurplus(OptimalFCyclicSchedule schedule, double machEff, double tol) {
+        Item lastItem = schedule.getSequence().getLast();
+        int lastPosition = schedule.getSequence().getSize() - 1;
+        assertEquals( schedule.getSurplusPriorToFirstSetup(lastItem),
+                schedule.getOptimalSprintingTimeWithInventory(lastPosition) *
+                    ( machEff * lastItem.getProductionRate() - lastItem.getDemandRate() ), tol);
+
+        Item firstItem = schedule.getSequence().getFirst();
+        assertEquals( - schedule.getBacklogPriorToProduction(0),
+                schedule.getSurplusPriorToFirstSetup(firstItem) - firstItem.getSetupTime() * firstItem.getDemandRate(), tol);
+
+        for ( int n = 0; n < schedule.getSequence().getSize(); n++ ) {
+            Item item = schedule.getSequence().getItemAtPosition(n);
+            assertEquals( schedule.getBacklogPriorToProduction(n),
+                    schedule.getOptimalSprintingTimeWithBacklog(n) * ( item.getProductionRate() * machEff - item.getDemandRate()), tol);
+        }
+
     }
 }

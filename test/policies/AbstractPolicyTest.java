@@ -6,11 +6,11 @@ import static util.UtilMethods.c;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 import output.Recorders;
@@ -131,11 +131,11 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
             when(policyParams.getPriorityComparator()).thenReturn(PolicyParams.DEFAULT_PRIORITY_COMPARATOR);
         }
         if (policyParams.getUserDefinedLowerHedgingPoints() == null) {
-            Optional<ImmutableList<Double>> x = Optional.absent();
+            Optional<ImmutableList<Double>> x = Optional.empty();
             when(policyParams.getUserDefinedLowerHedgingPoints()).thenReturn(x);
         }
         if (policyParams.getUserDefinedIsCruising() == null) {
-            Optional<Boolean> x = Optional.absent();
+            Optional<Boolean> x = Optional.empty();
             when(policyParams.getUserDefinedIsCruising()).thenReturn(x);
         }
 
