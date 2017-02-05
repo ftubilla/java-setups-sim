@@ -73,11 +73,17 @@ public class ProductionSequence implements Iterable<Item> {
         return ImmutableList.copyOf(this.itemPositions.getOrDefault(item, Lists.newArrayList()));
     }
 
+    /**
+     * Returns the item at the given position, which is interpreted in a circular fashion (i.e., f_{n} = f_{0}).
+     * @param position
+     * @return
+     */
     public Item getItemAtPosition(final int position) {
-        if ( position >= 0 && position < this.sequence.size() ) {
-            return this.sequence.get(position);
+        int n = this.sequence.size();
+        if ( position >= 0 ) {
+            return this.sequence.get( position % n );
         } else {
-            return null;
+            return this.sequence.get( ( n - ( - position % n ) ) % n );
         }
     }
 

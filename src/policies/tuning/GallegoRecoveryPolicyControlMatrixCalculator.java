@@ -40,6 +40,10 @@ public class GallegoRecoveryPolicyControlMatrixCalculator {
     public double[][] compute(final ProductionSequence sequence, final boolean compensateForEfficiency,
             final double tolerance) throws Exception {
 
+        if ( compensateForEfficiency ) {
+            throw new RuntimeException("This feature is unsupported right now!!!");
+        }
+        
         String dir = System.getProperty("user.dir");
         String pythonPath = SimMain.getProperties().getProperty("python.path");
         String scriptPath = dir + File.separator + "python" + File.separator + "grp.py";

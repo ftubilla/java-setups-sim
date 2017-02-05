@@ -13,17 +13,19 @@ import util.SimBasicTest;
 public class GallegoRecoveryPolicyControlMatrixCalculatorTest extends SimBasicTest {
 
     @Test
-    public void test() throws Exception {
+    public void testDemandRateScaling() throws Exception {
 
+        double[] d = {0.1, 0.3, 0.4};
+        
         ParamsBuilder paramsBuilder = Params.builderWithDefaults();
         paramsBuilder
             .numItems(3)
             .surplusTargets(c(0.0, 0.0, 0.0))
-            .initialDemand(c(0.0, 20.0, 30.0))
+            .initialDemand(c(0.0, 0.0, 0.0))
             .backlogCosts(c(1.0, 1.0, 1.0))
             .inventoryHoldingCosts(c(20.0, 20.0, 20.0))
             .productionRates(c(1.0, 1.0, 1.0))
-            .demandRates(c(0.3, 0.3, 0.3))
+            .demandRates(c(d[0], d[1], d[2]))
             .setupTimes(c(1,1,1));
 
         Params params = paramsBuilder.build();
@@ -33,7 +35,7 @@ public class GallegoRecoveryPolicyControlMatrixCalculatorTest extends SimBasicTe
         
         GallegoRecoveryPolicyControlMatrixCalculator calculator = new GallegoRecoveryPolicyControlMatrixCalculator(params);
         ProductionSequence sequence = new ProductionSequence(item0, item1, item2, item1, item2);
-        calculator.compute(sequence, false, 1e-5);
+        double[][] gUnscaled = calculator.compute(sequence, false, 1e-5);
         
         // Now compute with a very low tolerance and check that an error is thrown
         boolean errorThrown = false;
@@ -43,7 +45,34 @@ public class GallegoRecoveryPolicyControlMatrixCalculatorTest extends SimBasicTe
             errorThrown = true;
         }
         assertTrue( errorThrown );
+        
+        // Now scale the demand rates to 1 and compute a new G matrix
+        paramsBuilder
+            .numItems(3)
+            .surplusTargets(c(0.0, 0.0, 0.0))
+            .initialDemand(c(0.0, 0.0, 0.0))
+            .backlogCosts(c(1.0 * d[0], 1.0 * d[1], 1.0 * d[2]))
+            .inventoryHoldingCosts(c(20.0 * d[0], 20.0 * d[1], 20.0 * d[2]))
+            .productionRates(c(1.0 / d[0], 1.0 / d[1], 1.0 / d[2]))
+            .demandRates(c(1, 1, 1))
+            .setupTimes(c(1,1,1));
 
+        Params params2 = paramsBuilder.build();
+        GallegoRecoveryPolicyControlMatrixCalculator calculator2 = new GallegoRecoveryPolicyControlMatrixCalculator(params2);
+        double[][] gScaled = calculator2.compute(sequence, false, 1e-5);
+
+        // Check that the product of an inventory vector times G agrees in the scaled an unscaled versions
+        double[] z = {1.5, 2.3, 4.0};
+        for ( int i = 0; i < 3; i++ ) {
+            double sumUnscaled = 0.0;
+            double sumScaled = 0.0;
+            for ( int j = 0; j < 3; j++ ) {
+                sumUnscaled += gUnscaled[i][j] * z[j];
+                sumScaled += gScaled[i][j] * z[j] / d[j];
+            }
+            assertEquals( sumUnscaled, sumScaled, 1e-4);
+        }
+        
     }
 
     @Test

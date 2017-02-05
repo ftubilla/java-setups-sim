@@ -30,6 +30,20 @@ public class ProductionSequenceTest extends SimBasicTest {
         // Start with a valid sequence
         ProductionSequence sequence = new ProductionSequence(item1, item2, item3, item1, item2);
         assertEquals( 5, sequence.getSize() );
+        assertEquals( item1, sequence.getItemAtPosition(0) );
+        assertEquals( item2, sequence.getItemAtPosition(1) );
+        assertEquals( item3, sequence.getItemAtPosition(2) );
+        assertEquals( item1, sequence.getItemAtPosition(3) );
+        assertEquals( item2, sequence.getItemAtPosition(4) );
+        assertEquals( item1, sequence.getItemAtPosition(5) );
+        assertEquals( item2, sequence.getItemAtPosition(6) );
+        assertEquals( item2, sequence.getItemAtPosition(11) );
+        assertEquals( item1, sequence.getItemAtPosition(10) );
+        assertEquals( item2, sequence.getItemAtPosition(-1) );
+        assertEquals( item3, sequence.getItemAtPosition(-3) );
+        assertEquals( item3, sequence.getItemAtPosition(-8) );
+        assertEquals( item1, sequence.getItemAtPosition(-5) );
+        assertEquals( item1, sequence.getItemAtPosition(-10) );
         assertEquals( ImmutableList.of(0, 3), sequence.getItemPositions(item1) );
         assertEquals( ImmutableList.of(1, 4), sequence.getItemPositions(item2) );
         assertEquals( ImmutableList.of(2), sequence.getItemPositions(item3) );
