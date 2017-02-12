@@ -98,7 +98,7 @@ public class ProductionSequence implements Iterable<Item> {
      * @param position
      * @return next position
      */
-    public int getNextPosition(final int position) {
+    public int getNextOccurenceOfItemInPosition(final int position) {
         // Get the positions in between the item at the given position and the next occurrence of the item
         List<Integer> inBetweenPositions = this.inBetweenPositions.get(position);
         // Find the next position (modulo size of sequence)

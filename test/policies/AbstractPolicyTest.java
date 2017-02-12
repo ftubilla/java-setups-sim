@@ -13,6 +13,8 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
+import discreteEvent.ControlEvent;
+import lombok.extern.apachecommons.CommonsLog;
 import output.Recorders;
 import params.Params;
 import params.Params.ParamsBuilder;
@@ -22,6 +24,7 @@ import sim.Sim;
 import sim.SimSetup;
 import util.SimBasicTest;
 
+@CommonsLog
 public abstract class AbstractPolicyTest extends SimBasicTest {
 
     protected AbstractPolicy policy;
@@ -81,6 +84,31 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
         Sim sim = new Sim(params);
         SimSetup.setup(sim, new Recorders());
         return sim;
+    }
+
+    protected void advanceUntilTime(double time, Sim sim, int maxEvents) {
+        log.debug(String.format("Advancing sim to time %.2f. Current time %.2f", time, sim.getClock().getTime()));
+        // Add a control event at current time if there are no events in the sim (typically at startup)
+        if ( sim.getMasterScheduler().nextEventTime() >= Double.MAX_VALUE ) {
+            log.warn("No more events in sim. Adding a control event at the current time to jump start the sim");
+            sim.getMasterScheduler().addEvent( new ControlEvent(sim.getTime()) );
+        }
+        int events = 0;
+        while ( events < maxEvents ) {
+            double nextEventTime = sim.getMasterScheduler().nextEventTime();
+            if ( nextEventTime <= time ) {
+                log.trace(String.format("Next event occurs at time %.2f. Executing it", nextEventTime));
+                sim.getMasterScheduler().getNextEvent().handle(sim);
+                events++;
+            } else {
+                log.trace(String.format("Next event occurs at time %.2f, after the desired time. Stopping.", nextEventTime));
+                break;
+            }
+        }
+        if ( events == maxEvents ) {
+            throw new RuntimeException(String.format("Reached the maximum number of allowed events (%d). Current sim time %.2f",
+                    events, sim.getClock().getTime()));
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * Written by Fernando Tubilla
  * ftubilla@mit.edu
- * © 2012 Fernando Tubilla. All rights reserved.
+ * ï¿½ 2012 Fernando Tubilla. All rights reserved.
  */
 
 package discreteEvent;
@@ -154,7 +154,7 @@ public class Schedule {
 	
 	@Override
 	public String toString(){
-		return "Schedule:" + type; 
+		return String.format("Schedule:%s (Events in queue: %d)", this.type, this.eventQueue.size());
 	}
 	
 }

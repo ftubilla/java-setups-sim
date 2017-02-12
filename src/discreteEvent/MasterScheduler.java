@@ -88,7 +88,7 @@ public class MasterScheduler {
 			logger.trace("Next event occurring is of schedule type " + nextType
 				+ " and occurs at " + nextEventTime);
 		}
-		return (schedules.get(nextType).getNextEvent());
+		return nextType == null ? null : (schedules.get(nextType).getNextEvent());
 	}
 
 	/**
@@ -113,7 +113,7 @@ public class MasterScheduler {
 			logger.trace("Next event occuring is of type " + nextType
 				+ " and occurs at " + nextEventTime);
 		}
-		return (schedules.get(nextType).nextEventTime());
+		return nextEventTime;
 	}
 
 	/**

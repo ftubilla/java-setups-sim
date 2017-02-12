@@ -32,7 +32,7 @@ public class Changeover extends Event {
 		sim.getMachine().startChangeover(changeTo);
 		if (trace){logger.debug("Delaying all failure events by " + changeoverTime);}
 		sim.getMasterScheduler().delayEvents(changeoverTime);
-		if (trace) {logger.trace("Scheduling a new control event for time " + sim.getTime() + changeoverTime);}
+		logger.trace(String.format("Scheduling a new control event for time %.2f", sim.getTime() + changeoverTime));
 		sim.getMasterScheduler().addEvent(
 				new ControlEvent(sim.getTime() + changeoverTime));
 

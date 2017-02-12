@@ -81,7 +81,7 @@ public class OptimalFCyclicSchedule {
             double mu = item.getProductionRate() * this.machEfficiency;
             double d = item.getDemandRate();
             double rho = d / mu;
-            int nextN = this.sequence.getNextPosition(n); // Next position where the item occurs
+            int nextN = this.sequence.getNextOccurenceOfItemInPosition(n); // Next position where the item occurs
 
             // h (mu-d)/ 2rho (DTnsi)^2
             Monomial m1 = new Monomial();

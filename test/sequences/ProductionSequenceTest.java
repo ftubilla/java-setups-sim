@@ -47,11 +47,11 @@ public class ProductionSequenceTest extends SimBasicTest {
         assertEquals( ImmutableList.of(0, 3), sequence.getItemPositions(item1) );
         assertEquals( ImmutableList.of(1, 4), sequence.getItemPositions(item2) );
         assertEquals( ImmutableList.of(2), sequence.getItemPositions(item3) );
-        assertEquals( 3, sequence.getNextPosition(0) );
-        assertEquals( 4, sequence.getNextPosition(1) );
-        assertEquals( 2, sequence.getNextPosition(2) );
-        assertEquals( 0, sequence.getNextPosition(3) );
-        assertEquals( 1, sequence.getNextPosition(4) );
+        assertEquals( 3, sequence.getNextOccurenceOfItemInPosition(0) );
+        assertEquals( 4, sequence.getNextOccurenceOfItemInPosition(1) );
+        assertEquals( 2, sequence.getNextOccurenceOfItemInPosition(2) );
+        assertEquals( 0, sequence.getNextOccurenceOfItemInPosition(3) );
+        assertEquals( 1, sequence.getNextOccurenceOfItemInPosition(4) );
         assertEquals( ImmutableList.of(1,2), sequence.getPositionsInBetween(0) );
         assertEquals( ImmutableList.of(2,3), sequence.getPositionsInBetween(1) );
         assertEquals( ImmutableList.of(3,4,0,1), sequence.getPositionsInBetween(2) );
