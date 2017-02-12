@@ -125,4 +125,36 @@ public class GallegoRecoveryPolicyControlMatrixCalculatorTest extends SimBasicTe
         
     }
     
+    @Test
+    public void testTroublesomeInstance() throws Exception {
+        
+        ParamsBuilder paramsBuilder = Params.builderWithDefaults();
+        paramsBuilder
+            .numItems(3)
+            .surplusTargets(c(0.0, 0.0, 0.0))
+            .initialDemand(c(0.0, 0.0, 0.0))
+            .backlogCosts(c(1.0, 2.0, 3.0))
+            .inventoryHoldingCosts(c(1.0, 2.0, 3.0))
+            .productionRates(c(2.0, 4.0, 10.0))
+            .demandRates(c(1, 1, 1))
+            .setupTimes(c(1, 1, 1));
+        
+        Params params = paramsBuilder.build();
+        Item item0 = new Item(0, params);
+        Item item1 = new Item(1, params);
+        Item item2 = new Item(2, params);
+        
+        GallegoRecoveryPolicyControlMatrixCalculator calculator = new GallegoRecoveryPolicyControlMatrixCalculator(params);
+        ProductionSequence sequence = new ProductionSequence(item1, item0, item2);
+        // Should solve fine
+        calculator.compute(sequence, false, 1.0e-7);
+        // Should raise an exception
+        boolean exceptionDueToTolerance = false;
+        try {
+            calculator.compute(sequence, false, -1.0);
+        } catch( Exception e ) {
+            exceptionDueToTolerance = true;
+        }
+        assertTrue(exceptionDueToTolerance);
+    }
 }

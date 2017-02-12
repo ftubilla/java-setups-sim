@@ -33,7 +33,7 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
         paramsBuilder
             .numItems(3)
             .surplusTargets(c(0.0, 0.0, 0.0))
-            .initialDemand(c(0.0, 20.0, 30.0))
+            .initialDemand(c(0.0, 0.0, 0.0))
             .backlogCosts(c(10.0, 20.0, 30.0))
             .inventoryHoldingCosts(c(1.0, 2.0, 3.0))
             .productionRates(c(2.0, 4.0, 10.0))
@@ -49,7 +49,7 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
         Params params = paramsBuilder.build();
         this.sim = getSim(params);
         this.grpPolicy = (GallegoRecoveryPolicy) this.sim.getPolicy();
-
+        this.policy = this.grpPolicy;
     }
     
     @Test
@@ -143,7 +143,34 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
     
     @Override
     public void testIsTimeToChangeOver() {
-        
+    }
+
+    @Test
+    public void testSkippingPositionsWithNegativeCorrection() {
+
+        ParamsBuilder paramsBuilder = Params.builderWithDefaults();
+        paramsBuilder
+            .numItems(3)
+            .surplusTargets(c(0.0, 0.0, 0.0))
+            .initialDemand(c(0.0, 30.0, 0.0))
+            .backlogCosts(c(10.0, 20.0, 30.0))
+            .inventoryHoldingCosts(c(1.0, 2.0, 3.0))
+            .productionRates(c(2.0, 4.0, 10.0))
+            .demandRates(c(1, 1, 1))
+            .setupTimes(c( setup0, setup1, setup2 ));
+
+        PolicyParamsBuilder policyParamsBuilder = PolicyParams.builderWithDefaults();
+        policyParamsBuilder.name("GallegoRecoveryPolicy")
+                       .userDefinedProductionSequence(Optional.of(cint(1, 0, 1, 0, 2)));
+        paramsBuilder.policyParams(policyParamsBuilder.build());
+        Params params = paramsBuilder.build();
+
+        Sim testSim = getSim(params);
+        this.advanceUntilTime(31.29, testSim, 300);
+        assertEquals( testSim.getMachine().getItemById(1), testSim.getMachine().getSetup() );
+        this.advanceUntilTime(34.5, testSim, 300);
+        assertEquals("We should skip position 3 because of negative control",
+                testSim.getMachine().getItemById(2), testSim.getMachine().getSetup() );
     }
 
 }

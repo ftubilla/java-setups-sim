@@ -65,7 +65,10 @@ public class GallegoRecoveryPolicyControlMatrixCalculator {
         err.lines().forEach(l -> errOutputBuilder.append(String.format("%s%n", l)));
         String errOutput = errOutputBuilder.toString();
         if ( !errOutput.isEmpty() ) {
-            throw new Exception(errOutput);
+            log.warn(String.format("Python script messages:%n%s", errOutput));
+            if ( errOutput.contains("TOLERANCE NOT MET") ) {
+                throw new Exception("Tolerance not met while solving the ARME");
+            }
         }
 
         // Collect the output into the matrix
