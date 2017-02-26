@@ -47,7 +47,7 @@ public class PolicyParams extends AbstractParams {
 
     @JsonProperty
     protected Optional<Boolean> userDefinedIsCruising = Optional.empty();
-    
+
     @JsonProperty
     protected Optional<ImmutableList<Integer>> userDefinedProductionSequence = Optional.empty();
 
