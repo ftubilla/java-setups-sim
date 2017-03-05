@@ -30,6 +30,8 @@ public class AverageSurplusByServiceLevelMetricsRecorder extends Recorder {
     public void recordEndOfSim(Sim sim) {
 
         AverageSurplusByServiceLevelMetrics metrics = sim.getMetrics().getAverageSurplusByServiceLevelMetrics();
+        
+        double cost = 0.0;
         Object[] row = new Object[4];
         for (Item item : sim.getMachine()) {
 
@@ -51,16 +53,23 @@ public class AverageSurplusByServiceLevelMetricsRecorder extends Recorder {
             row[1] = "INVENTORY";
             row[3] = stats.getAverageInventory();
             record(row);
+            cost += stats.getAverageInventory() * item.getInventoryCostRate();
 
             row[1] = "BACKLOG";
             row[3] = stats.getAverageBacklog();
             record(row);
-
+            cost += stats.getAverageBacklog() * item.getBacklogCostRate();
+            
             row[1] = "SERVICE_LEVEL";
             row[3] = stats.getServiceLevel();
             record(row);
 
         }
+
+        row[1] = "AVERAGE_COST";
+        row[2] = "NA";
+        row[3] = cost;
+        record(row);
 
     }
 

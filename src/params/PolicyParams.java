@@ -16,7 +16,7 @@ import policies.ClearTheLargestDeviationPolicy;
 import policies.tuning.CMuComparator;
 import policies.tuning.MakeToOrderBoundBasedLowerHedgingPointsComputationMethod;
 
-@AllArgsConstructor
+@AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
 @ToString
 @Getter
@@ -50,6 +50,9 @@ public class PolicyParams extends AbstractParams {
 
     @JsonProperty
     protected Optional<ImmutableList<Integer>> userDefinedProductionSequence = Optional.empty();
+
+    @JsonProperty
+    protected Optional<Integer> maxProductionSequenceLength = Optional.empty();
 
     /*
      * For the IdealDeviationAndFrequencyTrackingPolicy

@@ -1,5 +1,6 @@
 package policies;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import policies.tuning.GallegoRecoveryPolicyControlMatrixCalculator;
 import sequences.OptimalFCyclicSchedule;
+import sequences.OptimalSequenceFinder;
 import sequences.ProductionSequence;
 import sim.Sim;
 import system.Item;
@@ -41,14 +43,30 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
 
         super.setUpPolicy(sim);
 
-        // Get the desired sequence and compute the optimal f-cyclic schedule
+        // Get the desired sequence
+        ProductionSequence sequence = null;
         Optional<ImmutableList<Integer>> sequenceOpt = this.policyParams.getUserDefinedProductionSequence();
-        if ( !sequenceOpt.isPresent() ) {
-            throw new RuntimeException("Currently, GRP needs a user defined sequence");
-        }
-        List<Item> itemSequence = StreamSupport.stream( sequenceOpt.get().spliterator(), false)
+        if ( sequenceOpt.isPresent() ) {
+            log.debug("Reading user-defined production sequence");
+            List<Item> itemSequence = StreamSupport.stream( sequenceOpt.get().spliterator(), false)
                 .map( i -> this.machine.getItemById(i) ).collect(Collectors.toList());
-        ProductionSequence sequence = new ProductionSequence(itemSequence);
+            sequence = new ProductionSequence(itemSequence);
+        } else {
+            Optional<Integer> maxLength = this.policyParams.getMaxProductionSequenceLength();
+            if ( !maxLength.isPresent() ) {
+                throw new RuntimeException("No max-sequence length or user-defined sequence given!");
+            }
+            Collection<Item> items = StreamSupport.stream(machine.spliterator(), false).collect(Collectors.toList());
+            OptimalSequenceFinder sequenceFinder = new OptimalSequenceFinder(items, sim.getParams().getMachineEfficiency());
+            try {
+                OptimalFCyclicSchedule optimalSchedule = sequenceFinder.find(maxLength.get());
+                sequence = optimalSchedule.getSequence();
+            } catch (Exception e) {
+                throw new RuntimeException("Could not compute the optimal f-cyclic schedule", e);
+            }
+        }
+
+        // Compute the f-cyclic optimal schedule
         log.debug(String.format("Setting up GRP with sequence %s", sequence));
         this.sequenceLength = sequence.getSize();
         this.schedule = new OptimalFCyclicSchedule(sequence, sim.getParams().getMachineEfficiency());
@@ -57,8 +75,9 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
         } catch (Exception e) {
             throw new RuntimeException("Could not solve for the optimal f-cyclic schedule", e);
         }
+        sim.getDerivedParams().setGallegoRecoveryPolicySequence(this.schedule);
         log.debug(String.format("Computed optimal f-cyclic schedule with cost %.2f", this.schedule.getScheduleCost()));
-        
+
         // Ensure that the schedule is non-cruising
         for ( int n = 0; n < this.sequenceLength; n++ ) {
             if ( this.schedule.getOptimalCruisingTime(n) > NON_CRUISING_CHECK_TOL ) {
@@ -156,7 +175,7 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
         this.sprintingTimeTargetCurrentRun = this.sprintingTimeTarget[this.currentSequencePosition] + 
                 this.sprintingTimeCorrection[this.currentSequencePosition];
         log.trace(String.format("The production target time for the current position is set to %.2f", this.sprintingTimeTargetCurrentRun));
-        if ( this.sprintingTimeTargetCurrentRun <= 0 ) {
+        if ( this.sprintingTimeTargetCurrentRun < 0 ) {
             throw new RuntimeException(String.format("The target sprinting time is non-positive (%.2f)", this.sprintingTimeTargetCurrentRun));
         }
         // Reset the start time of the current run

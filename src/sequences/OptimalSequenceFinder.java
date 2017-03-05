@@ -7,6 +7,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Sets;
 
@@ -17,6 +18,7 @@ import system.Item;
 public class OptimalSequenceFinder {
 
     public static final double COST_TOLERANCE = 1e-4;
+    public static final int TIMEOUT_MIN = 45;
     
     private final Set<Item> items;
     private final double machineEff;
@@ -94,6 +96,7 @@ public class OptimalSequenceFinder {
             }
         }
         executor.shutdown();
+        executor.awaitTermination(TIMEOUT_MIN, TimeUnit.MINUTES);
 
         return optimalSchedule;
     }

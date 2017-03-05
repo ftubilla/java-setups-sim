@@ -19,7 +19,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
-@AllArgsConstructor
+@AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
 @ToString
 @Getter
@@ -27,8 +27,6 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 public class Params extends AbstractParams {
 
-    public static final double DEFAULT_CONVERGENCE_TOLERANCE = 1e-6;
-    
     public static ParamsBuilder builderWithDefaults() {
         Params params = new Params();
         return params.toBuilder();
@@ -83,11 +81,7 @@ public class Params extends AbstractParams {
     protected int initialSetup;
 
     @JsonProperty
-    protected Double convergenceTolerance;
-
-    public double getConvergenceTolerance() {
-        return this.convergenceTolerance == null ? DEFAULT_CONVERGENCE_TOLERANCE : this.convergenceTolerance;
-    }
+    protected Double convergenceTolerance = 1e-6;
 
     @JsonProperty
     protected ImmutableList<Double> initialDemand;
