@@ -142,42 +142,50 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
     @Override
     protected Item nextItem() {
 
-        if ( this.currentSequencePosition == null ) {
-            log.trace("There is no current sequence position, setting it to the first position (i.e., 0)");
-            this.currentSequencePosition = 0;
-            this.updateControlCycle();
-        } else {
-            // Find the next position within the sequence with a positive sprinting time. If we have to circle back, update
-            // the control 
-            Integer newPosition = null;
-            for ( int i = 1; i <= this.sequenceLength; i++ ) {
-                int candidateNewPosition = ( this.currentSequencePosition + i ) % this.sequenceLength;
-                if ( candidateNewPosition == 0 ) {
-                    log.trace("Position 0 could be next. Updating the cycle's control.");
-                    this.updateControlCycle();
-                }
-                double correctedSprintingTime = this.sprintingTimeTarget[candidateNewPosition] + this.sprintingTimeCorrection[candidateNewPosition];
-                if ( correctedSprintingTime > 0 ) {
-                    newPosition = candidateNewPosition;
-                    break;
-                } else {
-                    log.debug(String.format("Skipping position %d because it has a nonpositive sprinting time %.2f",
-                            candidateNewPosition, correctedSprintingTime));
-                }
+        // Find the next position within the sequence with a positive sprinting
+        // time. If we have to try position 0, update the control
+        StringBuilder exceptionMessageBuilder = new StringBuilder();
+        Integer newPosition = null;
+        for (int i = 1; i <= this.sequenceLength; i++) {
+            // If the current position is null, start at 0 (i-1 = 0). Otherwise, try the next position (circularly)
+            int candidateNewPosition = this.currentSequencePosition == null ? (i - 1)
+                    : (this.currentSequencePosition + i) % this.sequenceLength;
+            if (candidateNewPosition == 0) {
+                log.trace("Position 0 could be next. Updating the cycle's control.");
+                this.updateControlCycle();
             }
-            if ( newPosition == null ) {
-                throw new RuntimeException("All sequence positions had a negative production time!");
+            double correctedSprintingTime = this.sprintingTimeTarget[candidateNewPosition]
+                    + this.sprintingTimeCorrection[candidateNewPosition];
+            if (correctedSprintingTime > 0) {
+                newPosition = candidateNewPosition;
+                break;
+            } else {
+                String message = String.format("Skipping position %d because it has a nonpositive sprinting time %.2f",
+                        candidateNewPosition, correctedSprintingTime);
+                log.trace(message);
+                exceptionMessageBuilder.append(message).append("\n");
             }
-            log.trace(String.format("Changing current sequence position from %d to %d", this.currentSequencePosition, newPosition));
-            this.currentSequencePosition = newPosition;
         }
+        if (newPosition == null) {
+            exceptionMessageBuilder.append("All sequence positions had a negative production time!");
+            String exceptionMessage = exceptionMessageBuilder.toString();
+            log.error(exceptionMessage);
+            throw new RuntimeException(exceptionMessage);
+        }
+        log.trace(String.format("Changing current sequence position from %d to %d", this.currentSequencePosition,
+                newPosition));
+        this.currentSequencePosition = newPosition;
 
+        // Compute the corrected sprinting time
         this.sprintingTimeTargetCurrentRun = this.sprintingTimeTarget[this.currentSequencePosition] + 
                 this.sprintingTimeCorrection[this.currentSequencePosition];
         log.trace(String.format("The production target time for the current position is set to %.2f", this.sprintingTimeTargetCurrentRun));
         if ( this.sprintingTimeTargetCurrentRun < 0 ) {
-            throw new RuntimeException(String.format("The target sprinting time is non-positive (%.2f)", this.sprintingTimeTargetCurrentRun));
+            String message = String.format("The target sprinting time is non-positive (%.2f)", this.sprintingTimeTargetCurrentRun);
+            log.error(message);
+            throw new RuntimeException(message);
         }
+
         // Reset the start time of the current run
         this.startTimeProductionCurrentRun = null;
         return this.schedule.getSequence().getItemAtPosition(this.currentSequencePosition);

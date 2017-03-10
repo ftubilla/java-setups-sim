@@ -81,7 +81,7 @@ public class Params extends AbstractParams {
     protected int initialSetup;
 
     @JsonProperty
-    protected Double convergenceTolerance = 1e-6;
+    protected Double convergenceTolerance = 1e-4;
 
     @JsonProperty
     protected ImmutableList<Double> initialDemand;
