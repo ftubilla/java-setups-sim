@@ -27,6 +27,10 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 public class Params extends AbstractParams {
 
+    // Note: another pattern to maintain the default values when deserializing with missing inputs,
+    // is to use JsonDeserializer(builder = ParamsBuilder.class) and then to annotate the builder with
+    // @JsonPOJOBuilder(builderMethodName = "build", withPrefix = "")
+    
     public static ParamsBuilder builderWithDefaults() {
         Params params = new Params();
         return params.toBuilder();
