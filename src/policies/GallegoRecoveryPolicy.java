@@ -12,9 +12,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 
 import discreteEvent.ControlEvent;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
+import policies.GRPControlCycle.GRPRunInfo;
 import policies.tuning.GallegoRecoveryPolicyControlMatrixCalculator;
 import sequences.OptimalFCyclicSchedule;
 import sequences.OptimalSequenceFinder;
@@ -27,16 +27,18 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
 
     public static final double ARME_TOLERANCE = 1e-6;
     public static final double NON_CRUISING_CHECK_TOL = 1e-4;
-    
-    @Getter private OptimalFCyclicSchedule schedule;
-    private Integer currentSequencePosition;
-    private Double startTimeProductionCurrentRun;
-    @VisibleForTesting @Getter(AccessLevel.PROTECTED) private double sprintingTimeTargetCurrentRun;
+
+    // Problem-specific parameters
     private int sequenceLength;
     private double[] sprintingTimeTarget;                // Corresponds to the vector t in the paper
     private Map<Item, Double> initialSurplusTarget;      // Corresponds to the vector w in the paper
-    private double[] sprintingTimeCorrection;            // Corresponds to the vector v in the paper
     private double[][] gainMatrix;                       // Matrix G
+    @Getter private OptimalFCyclicSchedule schedule;
+
+    // Variables regarding the current control cycle
+    private GRPControlCycle controlCycle;
+    private GRPRunInfo currentRun;
+    private Double currentRunStartTime;
 
     @Override
     public void setUpPolicy(final Sim sim) {
@@ -99,9 +101,6 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
             log.debug(String.format("%s has a start-of-cycle surplus target of %.2f", item, this.initialSurplusTarget.get(item)));
         }
 
-        // Initialize the correction vector
-        this.sprintingTimeCorrection = new double[this.sequenceLength];
-        
         // Calculate the G matrix
         GallegoRecoveryPolicyControlMatrixCalculator gainCalculator = 
                 new GallegoRecoveryPolicyControlMatrixCalculator(sim.getParams());
@@ -120,10 +119,9 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
 
     @Override
     protected ControlEvent onReady() {
-        if ( this.startTimeProductionCurrentRun == null ) {
-            log.trace(String.format("First call to onReady at current sequence position %d. Setting start time of run to %.2f",
-                    this.currentSequencePosition, this.clock.getTime()));
-            this.startTimeProductionCurrentRun = this.clock.getTime();
+        if ( this.currentRunStartTime == null ) {
+            this.currentRunStartTime = this.clock.getTime();
+            log.trace(String.format("Starting run %s at time %.2f", this.currentRun, this.currentRunStartTime));
         }
         double remainingTime = this.getTimeRemainingCurrentRun();
         log.trace(String.format("Machine should continue sprinting for %.2f more time units", remainingTime));
@@ -134,91 +132,45 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
     protected boolean isTimeToChangeOver() {
         double timeTolerance = Sim.SURPLUS_TOLERANCE / this.machine.getSetup().getDemandRate();
         double remainingTime = this.getTimeRemainingCurrentRun();
-        log.trace(String.format("Checking if it's time for a changeover, from current position %d and remaining run time %6.3e and tolerance %1.2e)",
-                this.currentSequencePosition, remainingTime, timeTolerance));
-        return this.currentSequencePosition == null || remainingTime <= timeTolerance;
+        log.trace(String.format("Checking if it's time for a changeover: remaining run time %6.3e and tolerance %1.2e)",
+               remainingTime, timeTolerance));
+        return remainingTime <= timeTolerance;
     }
 
     @Override
     protected Item nextItem() {
-
-        // Find the next position within the sequence with a positive sprinting
-        // time. If we have to try position 0, update the control
-        StringBuilder exceptionMessageBuilder = new StringBuilder();
-        Integer newPosition = null;
-        for (int i = 1; i <= this.sequenceLength; i++) {
-            // If the current position is null, start at 0 (i-1 = 0). Otherwise, try the next position (circularly)
-            int candidateNewPosition = this.currentSequencePosition == null ? (i - 1)
-                    : (this.currentSequencePosition + i) % this.sequenceLength;
-            if (candidateNewPosition == 0) {
-                log.trace("Position 0 could be next. Updating the cycle's control.");
-                this.updateControlCycle();
-            }
-            double correctedSprintingTime = this.sprintingTimeTarget[candidateNewPosition]
-                    + this.sprintingTimeCorrection[candidateNewPosition];
-            if (correctedSprintingTime > 0) {
-                newPosition = candidateNewPosition;
-                break;
-            } else {
-                String message = String.format("Skipping position %d because it has a nonpositive sprinting time %.2f",
-                        candidateNewPosition, correctedSprintingTime);
-                log.trace(message);
-                exceptionMessageBuilder.append(message).append("\n");
-            }
+        if ( this.controlCycle == null || !this.controlCycle.hasNext() ) {
+            this.controlCycle = new GRPControlCycle(this.machine, this.getSchedule().getSequence(), this.initialSurplusTarget, this.sprintingTimeTarget, this.gainMatrix);
+            log.trace(String.format("Computing a new control cycle:%n%s", this.controlCycle));
         }
-        if (newPosition == null) {
-            exceptionMessageBuilder.append("All sequence positions had a negative production time!");
-            String exceptionMessage = exceptionMessageBuilder.toString();
-            log.error(exceptionMessage);
-            throw new RuntimeException(exceptionMessage);
+        this.currentRun = this.controlCycle.next();
+        this.currentRunStartTime = null;
+        Item nextItem = this.currentRun.getItem();
+        if ( this.currentRun.getRunDuration() < 0 ) {
+            log.trace(String.format("The duration for %s is negative, so it will be capped at 0", nextItem));
         }
-        log.trace(String.format("Changing current sequence position from %d to %d", this.currentSequencePosition,
-                newPosition));
-        this.currentSequencePosition = newPosition;
-
-        // Compute the corrected sprinting time
-        this.sprintingTimeTargetCurrentRun = this.sprintingTimeTarget[this.currentSequencePosition] + 
-                this.sprintingTimeCorrection[this.currentSequencePosition];
-        log.trace(String.format("The production target time for the current position is set to %.2f", this.sprintingTimeTargetCurrentRun));
-        if ( this.sprintingTimeTargetCurrentRun < 0 ) {
-            String message = String.format("The target sprinting time is non-positive (%.2f)", this.sprintingTimeTargetCurrentRun);
-            log.error(message);
-            throw new RuntimeException(message);
-        }
-
-        // Reset the start time of the current run
-        this.startTimeProductionCurrentRun = null;
-        return this.schedule.getSequence().getItemAtPosition(this.currentSequencePosition);
+        return nextItem;
     }
 
     @VisibleForTesting
     protected double getTimeRemainingCurrentRun() {
-        if ( this.currentSequencePosition == null ) {
+        if ( this.currentRun == null ) {
             return 0.0;
         }
-        double elapsedTime = this.startTimeProductionCurrentRun == null ? 0.0 : this.clock.getTime() - this.startTimeProductionCurrentRun;
-        return Math.max(0, this.sprintingTimeTargetCurrentRun - elapsedTime );
+        // If the current run start time is null, the run has not started so elapsed time is 0
+        double elapsedTime = this.currentRunStartTime == null ? 0 : this.clock.getTime() - this.currentRunStartTime;
+        return Math.max(0, this.currentRun.getRunDuration() - elapsedTime );
     }
 
-    @VisibleForTesting
-    protected void updateControlCycle() {
-        log.trace("New control cycle. Updating correction vector.");
-        int n = this.machine.getNumItems();
-        double[] error = new double[n];
-        for ( int j = 0; j < n; j++ ) {
-            Item item = this.machine.getItemById(j);
-            error[j] = this.initialSurplusTarget.get(item) - item.getSurplus();
-            log.trace(String.format("%s has a surplus error of %.2f (initial surplus target %.2f - current surplus %.2f)",
-                    item, error[j], this.initialSurplusTarget.get(item), item.getSurplus()));
-        }
-        for ( int i = 0; i < this.sequenceLength; i++ ) {
-            double correction = 0.0;
-            for ( int j = 0; j < n; j++ ) {
-                correction += this.gainMatrix[i][j] * error[j];
-            }
-            log.trace(String.format("The production time correction at position %d is %.2f. Updated sprinting time = %.2f",
-                    i, correction, this.sprintingTimeTarget[i] + correction));
-            this.sprintingTimeCorrection[i] = correction;
+    /**
+     * Returns the <i>target</i> sprinting time of the current run in the sequence.
+     * @return
+     */
+    public Double getSprintingTimeTargetCurrentRun() {
+        if ( this.currentRun == null ) {
+            return null;
+        } else {
+            return this.currentRun.getRunDuration();
         }
     }
 

@@ -146,7 +146,7 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
     }
 
     @Test
-    public void testSkippingPositionsWithNegativeCorrection() {
+    public void testPositionsWithNegativeCorrectionGetCappedAtZero() {
 
         ParamsBuilder paramsBuilder = Params.builderWithDefaults();
         paramsBuilder
@@ -166,11 +166,16 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
         Params params = paramsBuilder.build();
 
         Sim testSim = getSim(params);
-        this.advanceUntilTime(31.29, testSim, 300);
-        assertEquals( testSim.getMachine().getItemById(1), testSim.getMachine().getSetup() );
-        this.advanceUntilTime(34.5, testSim, 300);
-        assertEquals("We should skip position 3 because of negative control",
-                testSim.getMachine().getItemById(2), testSim.getMachine().getSetup() );
+        int maxEvents = 300;
+        // First test position 1
+        this.advanceUntilTime(16.5, testSim, maxEvents);
+        assertEquals( testSim.getMachine().getItemById(0), testSim.getMachine().getSetup() );
+        assertEquals("We should not allocate any production time to position 1",
+                ( (GallegoRecoveryPolicy) testSim.getPolicy() ).getTimeRemainingCurrentRun(), 0, 1e-2);
+        this.advanceUntilTime(20, testSim, maxEvents);
+        assertEquals( testSim.getMachine().getItemById(0), testSim.getMachine().getSetup() );
+        assertEquals("We should not allocate any production time to position 3",
+                ( (GallegoRecoveryPolicy) testSim.getPolicy() ).getTimeRemainingCurrentRun(), 0, 1e-2);
     }
 
 }
