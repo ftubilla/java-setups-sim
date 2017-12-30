@@ -1,10 +1,9 @@
 package policies;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 import lombok.Data;
 import lombok.ToString;
@@ -63,29 +62,30 @@ public class GRPControlCycle implements Iterator<GRPRunInfo> {
                 item, error[j], surplusTarget.get(item), item.getSurplus()));
         }
 
-        // For stability properties, if an item has a negative production time in at least one position, all positions will get truncated to 0
-        Set<Item> tabuItems = new HashSet<>();
+        Map<Item, Double> netTotalRunTime = new HashMap<>();
         // Compute the control
         for ( int i = 0; i < this.sequence.getSize(); i++ ) {
             double correction = 0.0;
             for ( int j = 0; j < n; j++ ) {
                 correction += gainMatrix[i][j] * error[j];
             }
-            this.runDuration[i] = sprintingTimeTarget[i] + correction;
+            double runDuration = sprintingTimeTarget[i] + correction;
             Item item = this.sequence.getItemAtPosition(i);
+            netTotalRunTime.merge(item, runDuration, Double::sum);
+            if ( runDuration < 0 ) {
+                log.trace(String.format("Item %s has negative production time! All of its positions will be set to 0 run time", item));
+            }
+            this.runDuration[i] = Math.max( 0, runDuration );
             log.trace(String.format("The production time correction at position %d (%s) is %.2f. Updated sprinting time = %.2f",
                 i, item, correction, this.runDuration[i]));
-            if ( this.runDuration[i] < 0 ) {
-                log.trace(String.format("Item %s has negative production time! All of its positions will be set to 0 run time", item));
-                tabuItems.add(item);
-            }
         }
 
-        // Cap at 0 all tabu items
+        // If the net run duration for an item is < 0, set all its positions to 0 (otw the system can become unstable)
         for ( int i = 0; i < this.sequence.getSize(); i++ ) {
             Item item = this.sequence.getItemAtPosition(i);
-            if ( tabuItems.contains(item) ) {
-                log.trace(String.format("Setting to 0 the run time for %s at position %d", item, i));
+            if ( netTotalRunTime.get(item) < 0 ) {
+                log.trace(String.format("Setting to 0 the run time for %s at position %d because the item has a net negative total run duration",
+                        item, i));
                 this.runDuration[i] = 0;
             }
         }
