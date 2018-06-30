@@ -1,65 +1,59 @@
 package policies;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import lowerbounds.SurplusCostLowerBound;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static util.UtilMethods.c;
 
 import org.junit.Before;
 
 import params.Params;
 import sim.Sim;
 
-import com.google.common.collect.ImmutableList;
-
 public class LanAndOlsenPolicyTest extends AbstractPolicyTest {
 
-	@Before
-	public void setUp() throws Exception {
-		super.setUp();
-		policy = new LanAndOlsenPolicy();
-	}
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        policy = new LanAndOlsenPolicy();
+    }
 
+    @Override
+    public void testNextItem() {
 
-	@Override
-	public void testNextItem() {		
-		Params params = mock(Params.class);		
-		when(params.getNumItems()).thenReturn(3);
-		
-		//Item 2 has the largest deviation ratio and the current setup (item 0) is at its target
-		//Note that all items have the same value of Deviation + S*d
-		when(params.getSurplusTargets()).thenReturn(ImmutableList.of(0.0, 0.0, 0.0));
-		when(params.getInitialDemand()).thenReturn(ImmutableList.of(0.0, 20.0, 20.0));
-		when(params.getSetupTimes()).thenReturn(ImmutableList.of(215.0, 15.0, 15.0));
-		when(params.getDemandRates()).thenReturn(ImmutableList.of(0.1, 0.1, 0.1));
-		SurplusCostLowerBound lowerBound = mock(SurplusCostLowerBound.class);
-		when(lowerBound.getIdealSurplusDeviation(0)).thenReturn(1.0);
-		when(lowerBound.getIdealSurplusDeviation(1)).thenReturn(2.0);
-		when(lowerBound.getIdealSurplusDeviation(2)).thenReturn(0.5);
-				
-		fillRemainingMockedParams(params);
-		Sim sim = getSim(params);
-		when(sim.getSurplusCostLowerBound()).thenReturn(lowerBound);
-		policy.setUpPolicy(sim);
-		policy.currentSetup = sim.getMachine().getItemById(0);
-		assertEquals("Item 2 has the largest deviation ratio and should be the next setup", 2, policy.nextItem().getId());
-		
-		//All items have the same deviation ratio, change to something different than the current setup and break ties by id
-		when(params.getInitialDemand()).thenReturn(ImmutableList.of(0.0, 0.0, 0.0));
-		when(lowerBound.getIdealSurplusDeviation(0)).thenReturn(1.0);
-		when(lowerBound.getIdealSurplusDeviation(1)).thenReturn(1.0);
-		when(lowerBound.getIdealSurplusDeviation(2)).thenReturn(1.0);
-		sim = getSim(params);
-		when(sim.getSurplusCostLowerBound()).thenReturn(lowerBound);
-		policy.setUpPolicy(sim);
-		assertEquals("The next item should not be the current setup and ties should be broken by ID!", 1, policy.nextItem().getId());
-			
-	}
+        // Item 2 has the largest deviation ratio and the current setup (item 0)
+        // is at its target
+        // Note that all items have the same value of Deviation + S*d
+        Params params = Params.builder()
+                .numItems(3)
+                .surplusTargets(c(0.0, 0.0, 0.0))
+                .initialDemand(c(0.0, 20.0, 20.0))
+                .setupTimes(c(215.0, 15.0, 15.0))
+                .demandRates(c(0.1, 0.1, 0.1))
+                .build();
 
-	@Override
-	public void testIsTargetBased() {
-		assertTrue(policy.isTargetBased());
-	}
+        // Case I: All items have the same deviation ratio, so ties broken by ID
+        Sim sim = getSim(params);
+        policy.setUpPolicy(sim);
+        policy.currentSetup = sim.getMachine().getItemById(0);
+        System.out.println(sim.getSurplusCostLowerBound().getIdealSurplusDeviation(0) + "," +
+                sim.getSurplusCostLowerBound().getIdealSurplusDeviation(1) + "," +
+                sim.getSurplusCostLowerBound().getIdealSurplusDeviation(2));
+        assertEquals("Items 1 and 2 have the same deviation ratio, we should prefer the lowest ID", 1,
+                policy.nextItem().getId());
+
+        // Case II: Item 2 has a larger holding cost, thus a lower ideal deviation y* and a larger deviation ratio
+        params = params.toBuilder()
+                    .inventoryHoldingCosts(c(1, 1, 4))
+                    .build();
+        sim = getSim(params);
+        policy.setUpPolicy(sim);
+        assertEquals("Since item 2 has a larger dev. ratio, we should produce it next", 2, policy.nextItem().getId());
+
+    }
+
+    @Override
+    public void testIsTargetBased() {
+        assertTrue(policy.isTargetBased());
+    }
 
 }
-
-

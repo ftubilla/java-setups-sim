@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+import com.joptimizer.functions.ConvexMultivariateRealFunction;
+
 import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import optimization.DoubleIndexOptimizationVar;
@@ -13,9 +16,6 @@ import optimization.OptimizationVar;
 import optimization.Posynomial;
 import optimization.SingleIndexOptimizationVar;
 import params.Params;
-
-import com.google.common.collect.Sets;
-import com.joptimizer.functions.ConvexMultivariateRealFunction;
 
 /**
  * Computes the lower bound surplus cost of a system (see Tubilla (2011)).
@@ -146,12 +146,18 @@ public abstract class AbstractLowerBound {
 		opt.solve();
 		lowerBound = opt.getOptimalCost();
 		log.debug(String.format("The lower bound cost is %.5f", lowerBound));
+		
+		// Assume that the bound does not prescribe cruising and then check
+		this.isCruising = false;
 		for (int i : items){
 			log.debug(String.format("The ideal setup frequency of item %d is %.5f", i, setupFreq.get(i).getSol()));
 			log.debug(String.format("The ideal cruising fraction of item %d is %.5f", 1, 
 					1-nonCruisingFrac.get(i).getSol()));
+			if ( nonCruisingFrac.get(i).getSol() < 1.0 - 1e-5 ) {
+			    log.debug(String.format("The policy should cruise because of item %d", i));
+			    this.isCruising = true;
+			}
 		}
-				
 	}	
 	
 	public Double getIdealFrequency(int itemId) {

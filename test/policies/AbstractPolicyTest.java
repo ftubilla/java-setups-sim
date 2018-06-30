@@ -1,5 +1,6 @@
 package policies;
 
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static util.UtilMethods.c;
@@ -44,7 +45,7 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
         // Create a two-item system with the first item below its target
         PolicyParamsBuilder policyParamsBuilder = PolicyParams.builderWithDefaults();
         policyParamsBuilder.name(policy.getClass().getSimpleName());
-        
+
         ParamsBuilder paramsBuilder = Params.builderWithDefaults();
         paramsBuilder
             .numItems(2)

@@ -28,42 +28,55 @@ public class PolicyParams extends AbstractParams {
     public static final String DEFAULT_LOWER_HEDGING_POINTS_COMPUTATION_METHOD = 
             MakeToOrderBoundBasedLowerHedgingPointsComputationMethod.class.getSimpleName();
 
+    /**
+     * Use {@link PolicyParams#builder()} for the same functionality.
+     * @return
+     */
     public static PolicyParamsBuilder builderWithDefaults() {
-        PolicyParams params = new PolicyParams();
-        return params.toBuilder();
+        return PolicyParams.builder();
     }
 
     @JsonProperty
+    @Builder.Default
     protected String name = ClearTheLargestDeviationPolicy.class.getSimpleName();
 
     @JsonProperty
+    @Builder.Default
     protected Optional<ImmutableList<Double>> userDefinedLowerHedgingPoints = Optional.empty();
 
     @JsonProperty
+    @Builder.Default
     protected String lowerHedgingPointsComputationMethod = DEFAULT_LOWER_HEDGING_POINTS_COMPUTATION_METHOD;
 
     @JsonProperty
+    @Builder.Default
     protected String priorityComparator = DEFAULT_PRIORITY_COMPARATOR;
 
     @JsonProperty
+    @Builder.Default
     protected Optional<Boolean> userDefinedIsCruising = Optional.empty();
 
     @JsonProperty
+    @Builder.Default
     protected Optional<ImmutableList<Integer>> userDefinedProductionSequence = Optional.empty();
 
     @JsonProperty
+    @Builder.Default
     protected Optional<Integer> maxProductionSequenceLength = Optional.empty();
 
     /*
      * For the IdealDeviationAndFrequencyTrackingPolicy
      */
     @JsonProperty
+    @Builder.Default
     protected double freqTrackingThreshold = 1.0;
 
     @JsonProperty
+    @Builder.Default
     protected double learningRate = 0.5;
 
     @JsonProperty
+    @Builder.Default
     protected double deviationTrackingBias = 0.5;
 
     @Deprecated

@@ -1,15 +1,17 @@
 package util;
+
+import static org.junit.Assert.*;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.mockito.MockitoAnnotations;
 
-import junit.framework.TestCase;
-
-public class SimBasicTest extends TestCase {
+@Ignore
+public class SimBasicTest {
 
     @Before
     public void setUp() throws Exception {
-        super.setUp();
         MockitoAnnotations.initMocks(this);
         PropertyConfigurator.configure("config/log4j.test.properties");
     }
@@ -20,5 +22,3 @@ public class SimBasicTest extends TestCase {
     }
 
 }
-
-

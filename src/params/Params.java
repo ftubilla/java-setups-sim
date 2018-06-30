@@ -30,75 +30,96 @@ public class Params extends AbstractParams {
     // Note: another pattern to maintain the default values when deserializing with missing inputs,
     // is to use JsonDeserializer(builder = ParamsBuilder.class) and then to annotate the builder with
     // @JsonPOJOBuilder(builderMethodName = "build", withPrefix = "")
-    
+
+    /**
+     * Use {@link Params#builder} instead for the same functionality. 
+     * @return
+     */
     public static ParamsBuilder builderWithDefaults() {
-        Params params = new Params();
-        return params.toBuilder();
+        return Params.builder();
     }
-    
+
     @JsonProperty
-    protected int numItems;
+    @Builder.Default
+    protected int numItems = 3;
 
     @JsonProperty
     @NonNull
-    protected ImmutableList<Double> demandRates;
+    @Builder.Default
+    protected ImmutableList<Double> demandRates = ImmutableList.of(1.0, 1.0, 1.0);
 
     @JsonProperty
     @NonNull
-    protected ImmutableList<Double> productionRates;
+    @Builder.Default
+    protected ImmutableList<Double> productionRates = ImmutableList.of(5.0, 5.0, 5.0);
 
     @JsonProperty
     @NonNull
-    protected ImmutableList<Double> setupTimes;
+    @Builder.Default
+    protected ImmutableList<Double> setupTimes = ImmutableList.of(10.0, 10.0, 10.0); 
 
     @JsonProperty
     @NonNull
-    protected ImmutableList<Double> surplusTargets;
+    @Builder.Default
+    protected ImmutableList<Double> surplusTargets = ImmutableList.of(0.0, 0.0, 0.0);
 
     @JsonProperty
     @NonNull
-    protected ImmutableList<Double> inventoryHoldingCosts;
+    @Builder.Default
+    protected ImmutableList<Double> inventoryHoldingCosts = ImmutableList.of(1.0, 1.0, 1.0);
 
     @JsonProperty
     @NonNull
-    protected ImmutableList<Double> backlogCosts;
+    @Builder.Default
+    protected ImmutableList<Double> backlogCosts = ImmutableList.of(1.0, 1.0, 1.0);
 
     @JsonProperty
+    @Builder.Default
     protected double meanTimeToFail = 1.0;
 
     @JsonProperty
+    @Builder.Default
     protected double meanTimeToRepair = 0.0;
 
     @JsonProperty
-    protected double finalTime;
+    @Builder.Default
+    protected double finalTime = 100;
 
     @JsonProperty
-    protected double metricsStartTime;
+    @Builder.Default
+    protected double metricsStartTime = 0;
 
     @JsonProperty
+    @Builder.Default
     protected boolean recordHighFreq = false;
 
     @JsonProperty
     protected long seed;
 
     @JsonProperty
-    protected int initialSetup;
+    @Builder.Default
+    protected int initialSetup = 0;
 
     @JsonProperty
+    @Builder.Default
     protected Double convergenceTolerance = 1e-4;
 
     @JsonProperty
-    protected ImmutableList<Double> initialDemand;
+    @Builder.Default
+    protected ImmutableList<Double> initialDemand = ImmutableList.of(100.0, 100.0, 100.0);
 
     @JsonProperty
+    @Builder.Default
    protected DemandProcessParams demandProcessParams = DemandProcessParams.DEFAULT;
 
     @JsonProperty
+    @Builder.Default
     protected ProductionProcessParams productionProcessParams = ProductionProcessParams.DEFAULT;
 
     @JsonProperty
     @NonNull
-    protected PolicyParams policyParams = new PolicyParams();
+    @Builder.Default
+    protected PolicyParams policyParams = PolicyParams.builder().build();
 
     protected String file;
 

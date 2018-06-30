@@ -25,11 +25,11 @@ import util.AlgorithmLoader;
 public class HedgingZonePolicy extends AbstractPolicy {
 
     public static final double EXIT_HEDGING_ZONE_TOL = 1e-9;
-    
-    private IPriorityComparator                  priorityComparator;
-    private List<Item>                           sortedItems;
-    private ILowerHedgingPointsComputationMethod lowerHedgingPoints;
-    private double                               cruisingParameter;
+
+    protected IPriorityComparator                  priorityComparator;
+    protected List<Item>                           sortedItems;
+    protected ILowerHedgingPointsComputationMethod lowerHedgingPoints;
+    protected double                               cruisingParameter;
 
     @Override
     public void setUpPolicy(final Sim sim) {
@@ -88,6 +88,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
     protected Item nextItem() {
 
         if (!isTimeToChangeOver()) {
+            log.trace("It is not time to change over yet, so returning null as the next item!");
             return null;
         }
 
@@ -103,6 +104,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
         // Compute the set R(1) of items whose deviation exceeds the hedging zone
         Set<Item> hedgingZoneReadyItems = this.sortedItems.stream()
                 .filter( item -> !this.isInTheFractionalHedgingZone(1.0, item) )
+                .peek(item -> log.trace(String.format("%s is in the set R(1)", item)))
                 .collect(Collectors.toSet());
 
         // Determine the ready set by taking the highest priority items in R(1) or, if it's empty, all the items in R(f)
@@ -116,30 +118,27 @@ public class HedgingZonePolicy extends AbstractPolicy {
                         // This is the first highest-priority item in the zone ready set. Add it to the ready set
                         highestPriorityZoneReadyItem = item;
                         readyItems.add(item);
+                        log.trace(String.format("Adding %s as a high-priority ready item", item));
                     } else {
                         // Only add this item to the set if it has the same priority as the highest-priority zone ready item
                         if ( this.priorityComparator.compare(highestPriorityZoneReadyItem, item) == 0 ) {
                             readyItems.add(item);
+                            log.trace(String.format("Adding %s to the high-priority ready items", item));
                         }
                     }
                 }
             }
         } else {
             // Case 2: set R(1) is empty. Set the ready set to R(f)
+            log.debug("The ready set R(1) is empty. Adding all items from R(f) to the ready set");
             readyItems.addAll( fractionalReadyItems );
         }
 
         // Final step: select the ready item with the highest ratio of deviation to threshold difference
-        Optional<Pair<Item, Double>> maximizingPairOpt = 
-                readyItems.stream()
-                .map( item -> Pair.of(item,
-                   item.getSurplusDeviation() / ( item.getSurplusTarget() - this.lowerHedgingPoints.getLowerHedgingPoint(item) ) ) )
-                .max( Comparator.comparingDouble( ( Pair<Item, Double> pair ) -> pair.getRight() ) );
+        Optional<Item> readyItem = selectItemFromReadySet( readyItems );
 
-        if ( maximizingPairOpt.isPresent() ) {
-            Pair<Item, Double> maximizingPair = maximizingPairOpt.get();
-            log.trace(String.format("Item %s had the largest ratio of %.5f", maximizingPair.getLeft(), maximizingPair.getRight()));
-            return maximizingPair.getLeft();
+        if ( readyItem.isPresent() ) {
+            return readyItem.get();
         } else {
             throw new RuntimeException("I should have been able to find an item");
         }
@@ -192,6 +191,21 @@ public class HedgingZonePolicy extends AbstractPolicy {
             }
         }
         return minExitTime;
+    }
+
+    protected Optional<Item> selectItemFromReadySet(final Set<Item> readyItems) {
+        Optional<Pair<Item, Double>> maximizingPairOpt = 
+                readyItems.stream()
+                .map( item -> Pair.of(item,
+                   item.getSurplusDeviation() / ( item.getSurplusTarget() - this.lowerHedgingPoints.getLowerHedgingPoint(item) ) ) )
+                .max( Comparator.comparingDouble( ( Pair<Item, Double> pair ) -> pair.getRight() ) );
+        Item returnItem = null;
+        if ( maximizingPairOpt.isPresent() ) {
+            Pair<Item, Double> maximizingPair = maximizingPairOpt.get();
+            log.trace(String.format("Item %s had the largest ratio of %.5f", maximizingPair.getLeft(), maximizingPair.getRight()));
+            returnItem = maximizingPair.getLeft();
+        }
+        return Optional.ofNullable(returnItem);
     }
 
     @Override

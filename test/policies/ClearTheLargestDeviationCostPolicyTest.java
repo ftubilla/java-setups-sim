@@ -1,54 +1,58 @@
 package policies;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static util.UtilMethods.c;
 
 import org.junit.Before;
 
 import params.Params;
+import params.Params.ParamsBuilder;
 import sim.Sim;
-
-import com.google.common.collect.ImmutableList;
 
 public class ClearTheLargestDeviationCostPolicyTest extends AbstractPolicyTest {
 
-	@Before
-	public void setUp() throws Exception {
-		super.setUp();
-		policy = new ClearTheLargestDeviationCostPolicy();
-	}
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        policy = new ClearTheLargestDeviationCostPolicy();
+    }
 
+    @Override
+    public void testNextItem() {
 
-	@Override
-	public void testNextItem() {		
-		Params params = mock(Params.class);		
-		when(params.getNumItems()).thenReturn(3);
-		
-		//Item 2 has the largest backlog cost and item 0 (the current setup) is at its target
-		when(params.getSurplusTargets()).thenReturn(ImmutableList.of(0.0, 0.0, 0.0));
-		when(params.getInitialDemand()).thenReturn(ImmutableList.of(0.0, 20.0, 10.0));
-		when(params.getBacklogCosts()).thenReturn(ImmutableList.of(1.0, 3.0, 7.0));
-		//This policy should ignore inventory costs
-		when(params.getInventoryHoldingCosts()).thenReturn(ImmutableList.of(1.0, 100.0, 1.0));
-		fillRemainingMockedParams(params);
-		Sim sim = getSim(params);
-		policy.setUpPolicy(sim);
-		policy.currentSetup = sim.getMachine().getItemById(0);
-		assertEquals("Item 1 has the largest backlog cost and should be the next setup", 2, policy.nextItem().getId());
-		
-		//All items have the same backlog costs, change to something different than the current setup and break ties by id
-		when(params.getBacklogCosts()).thenReturn(ImmutableList.of(0.0, 2.0, 1.0));
-		when(params.getInitialDemand()).thenReturn(ImmutableList.of(0.0, 5.0, 10.0));
-		policy.setUpPolicy(getSim(params));
-		assertEquals("The next item should not be the current setup and ties should be broken by ID!", 1, policy.nextItem().getId());
-			
-	}
+        // Item 2 has the largest backlog cost and item 0 (the current setup) is
+        // at its target
+        ParamsBuilder paramsBuilder = Params.builderWithDefaults();
+        paramsBuilder
+            .numItems(3)
+            .surplusTargets(c(0.0, 0.0, 0.0))
+            .initialDemand(c(0, 20, 10))
+            .backlogCosts(c(1, 3, 7))
+            .inventoryHoldingCosts(c(1, 100, 1))
+            .productionRates(c(2, 4, 10))
+            .demandRates(c(1, 1, 1))
+            .setupTimes(c(1, 1, 1));
 
-	@Override
-	public void testIsTargetBased() {
-		assertTrue(policy.isTargetBased());
-	}
+        Params params = paramsBuilder.build();
+        Sim sim = getSim(params);
+        policy.setUpPolicy(sim);
+        policy.currentSetup = sim.getMachine().getItemById(0);
+        assertEquals("Item 2 has the largest backlog cost and should be the next setup", 2, policy.nextItem().getId());
+
+        // All items have the same backlog costs, change to something different
+        // than the current setup and break ties by id
+        paramsBuilder.backlogCosts(c(0, 2, 1));
+        paramsBuilder.initialDemand(c(0, 5, 10));
+        params = paramsBuilder.build();
+        policy.setUpPolicy(getSim(params));
+        assertEquals("The next item should not be the current setup and ties should be broken by ID!", 1,
+                policy.nextItem().getId());
+
+    }
+
+    @Override
+    public void testIsTargetBased() {
+        assertTrue(policy.isTargetBased());
+    }
 
 }
-
-

@@ -1,5 +1,8 @@
 package policies;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static util.UtilMethods.c;
 import static util.UtilMethods.cint;
 
@@ -170,12 +173,13 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
         // First test position 1
         this.advanceUntilTime(16.5, testSim, maxEvents);
         assertEquals( testSim.getMachine().getItemById(0), testSim.getMachine().getSetup() );
-        assertEquals("We should not allocate any production time to position 1",
-                ( (GallegoRecoveryPolicy) testSim.getPolicy() ).getTimeRemainingCurrentRun(), 0, 1e-2);
-        this.advanceUntilTime(20, testSim, maxEvents);
+        assertEquals("We should allocate production time to position 1",
+                13.289, ( (GallegoRecoveryPolicy) testSim.getPolicy() ).getTimeRemainingCurrentRun(), 1e-2);
+        // Now test position 3
+        this.advanceUntilTime(33.289, testSim, maxEvents);
         assertEquals( testSim.getMachine().getItemById(0), testSim.getMachine().getSetup() );
-        assertEquals("We should not allocate any production time to position 3",
-                ( (GallegoRecoveryPolicy) testSim.getPolicy() ).getTimeRemainingCurrentRun(), 0, 1e-2);
+        assertEquals("We should NOT allocate any production time to position 3",
+                0, ( (GallegoRecoveryPolicy) testSim.getPolicy() ).getTimeRemainingCurrentRun(), 1e-2);
     }
 
 }

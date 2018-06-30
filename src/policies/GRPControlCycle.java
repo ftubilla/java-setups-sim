@@ -73,7 +73,7 @@ public class GRPControlCycle implements Iterator<GRPRunInfo> {
             Item item = this.sequence.getItemAtPosition(i);
             netTotalRunTime.merge(item, runDuration, Double::sum);
             if ( runDuration < 0 ) {
-                log.trace(String.format("Item %s has negative production time! All of its positions will be set to 0 run time", item));
+                log.trace(String.format("Item %s has negative production time (%.2f)! Setting to 0 its run time", item, runDuration));
             }
             this.runDuration[i] = Math.max( 0, runDuration );
             log.trace(String.format("The production time correction at position %d (%s) is %.2f. Updated sprinting time = %.2f",

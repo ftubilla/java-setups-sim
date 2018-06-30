@@ -1,16 +1,14 @@
 package policies;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static util.UtilMethods.c;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import params.Params;
-import params.PolicyParams;
 import sim.Sim;
-
-import com.google.common.collect.ImmutableList;
 
 public class RoundRobinPolicyTest extends AbstractPolicyTest {
 
@@ -29,24 +27,26 @@ public class RoundRobinPolicyTest extends AbstractPolicyTest {
     @Override
     @Test
     public void testNextItem() {
-        Params params = mock(Params.class);
-        when(params.getNumItems()).thenReturn(3);
-        when(params.getInitialSetup()).thenReturn(0);
-        when(params.getDemandRates()).thenReturn(ImmutableList.of(0.1, 0.1, 0.1));
-        when(params.getProductionRates()).thenReturn(ImmutableList.of(1.0, 1.0, 1.0));
-        when(params.getSetupTimes()).thenReturn(ImmutableList.of(1.0, 1.0, 1.0));
-        when(params.getSurplusTargets()).thenReturn(ImmutableList.of(10.0, 10.0, 10.0));
-        when(params.getInitialDemand()).thenReturn(ImmutableList.of(0.0, 0.0, 0.0));
-        when(params.getInventoryHoldingCosts()).thenReturn(ImmutableList.of(1.0, 1.0, 1.0));
-        when(params.getBacklogCosts()).thenReturn(ImmutableList.of(1.0, 1.0, 1.0));
-        when(params.getPolicyParams()).thenReturn(mock(PolicyParams.class));
+
+        Params params = Params.builder()
+                .numItems(3)
+                .initialSetup(0)
+                .demandRates(c(0.1, 0.1, 0.1))
+                .productionRates(c(1, 1, 1))
+                .setupTimes(c(1, 1, 1))
+                .surplusTargets(c(10, 10, 10))
+                .initialDemand(c(0, 0, 0))
+                .inventoryHoldingCosts(c(1, 1, 1))
+                .backlogCosts(c(1, 1, 1))
+                .build();
+
         Sim sim = getSim(params);
         policy.setUpPolicy(sim);
         policy.currentSetup = sim.getMachine().getItemById(0);
         assertTrue("The system is not ready for a new changeover, return null", policy.nextItem() == null);
 
         // Make the system ready for changeover
-        when(params.getSurplusTargets()).thenReturn(ImmutableList.of(-10.0, -10.0, -10.0));
+        params = params.toBuilder().surplusTargets(c(-10, -10, -10)).build();
         sim = getSim(params);
         policy.setUpPolicy(sim);
         assertEquals("The system is ready for a changeover, return the next item", policy.nextItem().getId(), 1);
