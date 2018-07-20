@@ -22,6 +22,7 @@ import policies.tuning.MakeToOrderBoundBasedLowerHedgingPointsComputationMethod;
 @Getter
 @Setter(AccessLevel.PACKAGE)
 @Builder(toBuilder = true)
+//@JsonDeserialize( builder = PolicyParams.PolicyParamsBuilder.class )
 public class PolicyParams extends AbstractParams {
 
     public static final String DEFAULT_PRIORITY_COMPARATOR = CMuComparator.class.getSimpleName();

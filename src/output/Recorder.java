@@ -52,7 +52,12 @@ public class Recorder {
         StringBuilder line = new StringBuilder();
         for (int i = 0; i < row.length; i++) {
             if (row[i] instanceof Double) {
-                line.append(decimalFormatter.format(row[i]));
+                Double number = (Double) row[i];
+                if ( number.isInfinite() || number.isNaN() ) {
+                    line.append(String.format("%s", number));
+                } else {
+                    line.append(decimalFormatter.format(number));
+                }
             } else {
                 line.append(row[i]);
             }

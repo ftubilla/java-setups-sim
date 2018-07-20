@@ -2,8 +2,6 @@ package policies.tuning;
 
 import org.apache.log4j.Logger;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import sim.Sim;
 import system.Item;
 
@@ -42,11 +40,8 @@ public class CMuComparator implements IPriorityComparator {
     @Override
     public int compare(Item item1, Item item2) {
 
-        double c1 = computeCCost(item1.getBacklogCostRate(), item1.getInventoryCostRate());
-        double c2 = computeCCost(item2.getBacklogCostRate(), item2.getInventoryCostRate());
-
-        double cmu1 = c1 * item1.getProductionRate();
-        double cmu2 = c2 * item2.getProductionRate();
+        double cmu1 = item1.getCCostRate() * item1.getProductionRate();
+        double cmu2 = item2.getCCostRate() * item2.getProductionRate();
 
         // If the coefficients are within some tolerance, then treat as equal
         if ( Math.abs( ( cmu1 - cmu2 ) / cmu1 ) < this.equalsTolerance ) {
@@ -56,23 +51,6 @@ public class CMuComparator implements IPriorityComparator {
             return Double.compare(cmu2, cmu1);
         }
 
-    }
-
-    @VisibleForTesting
-    protected double computeCCost(final double b, final double h) {
-        if ( Double.isFinite(b) && Double.isFinite(h) ) {
-            return b * h / ( b + h );
-        } else {
-            if ( Double.isFinite(b) ) {
-                return b;
-            } else {
-                if ( Double.isFinite(h) ) {
-                    return h;
-                } else {
-                    return Double.POSITIVE_INFINITY;
-                }
-            }
-        }
     }
 
 }

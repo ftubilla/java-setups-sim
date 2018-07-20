@@ -1,6 +1,5 @@
 package policies.tuning;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static util.UtilMethods.c;
 
@@ -87,15 +86,6 @@ public class CmuComparatorTest extends SimBasicTest {
         assertTrue( comparator.compare(item0, item2) > 0 );
         assertTrue( comparator.compare(item1, item2) > 0 );
 
-    }
-
-    @Test
-    public void testCCostCalculator() {
-        CMuComparator comparator = new CMuComparator(tol);
-        assertEquals( 5.0, comparator.computeCCost(5.0, Double.POSITIVE_INFINITY), tol);
-        assertEquals( 4.0, comparator.computeCCost(Double.POSITIVE_INFINITY, 4.0), tol);
-        assertEquals( Double.POSITIVE_INFINITY, comparator.computeCCost(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY), tol);
-        assertEquals( 20 / 9.0, comparator.computeCCost(5.0, 4.0), tol);
     }
 
 }
