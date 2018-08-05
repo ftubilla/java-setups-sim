@@ -24,7 +24,7 @@ public class ClearTheLargestDeviationWorkPolicyTest extends AbstractPolicyTest {
                 .numItems(3)
                 .surplusTargets(c(0, 0, 0))
                 .initialDemand(c(0, 24, 19))
-                .productionRates(c(0.1, 2.0, 1.0))
+                .productionRates(c(10.0, 20.0, 10.0))
                 .backlogCosts(c(1, 1, 1))
                 .inventoryHoldingCosts(c(1, 1, 1))
                 .build();

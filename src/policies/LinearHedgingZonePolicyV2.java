@@ -9,42 +9,37 @@ import lombok.extern.apachecommons.CommonsLog;
 import sim.Sim;
 import system.Item;
 import system.Machine;
+import system.MachineSnapshot;
 
 /**
- * A generalized version of the HZP where the targets are a linear function of the surplus levels of the other items.
- * For example
- * <pre>
- *      target_i = nominal_target_i  + sum_{j != i} C_{i,j} ( nominal_target_j - surplus_j ) 
- * </pre>
- * The constant <tt>C_{i,j}</tt> is defined as
- * <pre>
- *      C_{i,j} = 1/(N-1) * d_i /d_j * [ ( mu_i - d_i ) / ( sqrt( alpha d_i / c_i ) - d_i )  - 1 ] 
- * </pre>
- * where
- * <pre>
- *      alpha = 1 / N sum( c_i \mu_i / \rho_i )
- * </pre>
- * Note that c_i is defined as 
- * <pre>
- *  c_i = b_i * h_i / ( b_i + h_i ).
- * </pre>
+ * A generalized version of the HZP where the target of item <tt>i</tt> depends on the surplus level at the
+ * <i>start</i> of the run of this item and it is computed in a way that it attempts to minimize the difference
+ * in the terms <tt>c_mu_i / rho_i</tt>.
+ * 
  * @author ftubilla
  *
  */
 @CommonsLog
-public class LinearHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
+public class LinearHedgingZonePolicyV2 extends GeneralizedHedgingZonePolicy {
 
-    /**
-     * Corresponds to (mu_i - d_i) / ( \sqrt( alpha d_i / c_i ) - d_i ) - 1
-     */
     private Map<Item, Double> upperHedgingZoneFactors;
+    private MachineSnapshot startOfRunSnapshot;
 
     @Override
     public void setUpPolicy(final Sim sim ) {
         super.setUpPolicy(sim);
         this.upperHedgingZoneFactors = computeHedgingPointFactors( sim.getMachine() );
+        this.startOfRunSnapshot = this.machine.getSnapshot();
     }
 
+    @Override
+    public Item nextItem() {
+        Item nextItem = super.nextItem();
+        log.debug(String.format("Resetting start-of-run snapshot in preparation for producing %s", nextItem));
+        this.startOfRunSnapshot = null;
+        return nextItem;
+    }
+    
     @Override
     protected boolean currentSetupOnOrAboveTarget(Machine machine) {
         return machine.getSetup().getSurplus() >= getTarget(machine.getSetup()) - Sim.SURPLUS_TOLERANCE;
@@ -118,19 +113,20 @@ public class LinearHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
     @VisibleForTesting
     protected double computeHedgingPointIncrementAtTimeDelta(final double deltaTime, final Item item) {
         if ( deltaTime < 0 ) throw new IllegalArgumentException(String.format("DeltaTime of %.3f is negative!", deltaTime));
-        double increment = 0;
+
         double factor = this.upperHedgingZoneFactors.get(item);
-        for ( Item otherItem : this.machine ) {
-            if ( otherItem.equals(item) ) {
-                continue;
-            }
-            // Project the current deviation (from the nominal target) deltaTime units forward, assuming that the deviation increases at
-            // the demand rate.
-            double projectedDeviation = otherItem.getSurplusDeviation() + deltaTime * otherItem.getDemandRate();
-            // If this item is i and other item is j, then the equation is:
-            // d_i / (N-1) * (Z^U_j_nominal - x_j + d_j * delta_time) / d_j * factor_j
-            increment += ( item.getDemandRate() / otherItem.getDemandRate() ) * ( 1 / ( (double) machine.getNumItems() - 1 ) ) * projectedDeviation * factor;
+        if ( this.startOfRunSnapshot == null ) {
+            log.debug("Getting a new machine snapshot tp compute the hedging points");
+            this.startOfRunSnapshot = this.machine.getSnapshot();
         }
+        double projectedDeviation;
+        if ( this.currentSetup.equals(item) ) {
+            projectedDeviation = this.startOfRunSnapshot.getSurplusDeviation(item);
+        } else {
+            projectedDeviation = item.getSurplusDeviation();
+        }
+
+        double increment = projectedDeviation * factor;
         log.trace(String.format("The upper hedging point for %s has an increment of %.4f at %.4f time units from now", item, increment, deltaTime));
         return increment;
     }

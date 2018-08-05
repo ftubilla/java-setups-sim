@@ -3,13 +3,14 @@ package params;
 import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.common.collect.ImmutableList;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import policies.ClearTheLargestDeviationPolicy;
@@ -17,12 +18,11 @@ import policies.tuning.CMuComparator;
 import policies.tuning.MakeToOrderBoundBasedLowerHedgingPointsComputationMethod;
 
 @AllArgsConstructor(staticName = "of")
-@NoArgsConstructor
 @ToString
 @Getter
 @Setter(AccessLevel.PACKAGE)
 @Builder(toBuilder = true)
-//@JsonDeserialize( builder = PolicyParams.PolicyParamsBuilder.class )
+@JsonDeserialize( builder = PolicyParams.PolicyParamsBuilder.class )
 public class PolicyParams extends AbstractParams {
 
     public static final String DEFAULT_PRIORITY_COMPARATOR = CMuComparator.class.getSimpleName();
@@ -87,5 +87,9 @@ public class PolicyParams extends AbstractParams {
     @Deprecated
     @JsonProperty
     protected boolean isCruising;
+
+    @JsonPOJOBuilder(buildMethodName = "build", withPrefix = "")
+    public static class PolicyParamsBuilder {
+    }
 
 }

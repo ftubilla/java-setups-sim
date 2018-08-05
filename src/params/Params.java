@@ -8,6 +8,8 @@ package params;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.common.collect.ImmutableList;
 
 import lombok.AccessLevel;
@@ -25,11 +27,8 @@ import lombok.ToString;
 @Getter
 @Setter(AccessLevel.PACKAGE)
 @Builder(toBuilder = true)
+@JsonDeserialize( builder = Params.ParamsBuilder.class )
 public class Params extends AbstractParams {
-
-    // Note: another pattern to maintain the default values when deserializing with missing inputs,
-    // is to use JsonDeserializer(builder = ParamsBuilder.class) and then to annotate the builder with
-    // @JsonPOJOBuilder(builderMethodName = "build", withPrefix = "")
 
     /**
      * Use {@link Params#builder} instead for the same functionality. 
@@ -131,4 +130,9 @@ public class Params extends AbstractParams {
             return 1 / (1 + this.meanTimeToRepair / this.meanTimeToFail);
         }
     }
+
+    @JsonPOJOBuilder(buildMethodName = "build", withPrefix = "")
+    public static class ParamsBuilder {
+    }
+
 }

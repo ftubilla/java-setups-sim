@@ -3,7 +3,6 @@ package policies;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static util.UtilMethods.c;
 
 import java.util.Map;
@@ -108,13 +107,13 @@ public class LinearHedgingZonePolicyTest extends AbstractPolicyTest {
     }
 
     @Override
-    public void testNextItem() {
-        fail("not implemented");
+    public void testIsTargetBased() {
+        assertFalse( this.policy.isTargetBased() );
     }
 
     @Override
-    public void testIsTargetBased() {
-        assertFalse( this.policy.isTargetBased() );
+    public void testNextItem() {
+        // TODO Implement this test
     }
 
 }
