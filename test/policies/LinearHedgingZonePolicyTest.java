@@ -9,6 +9,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.google.common.collect.Maps;
+
 import params.Params;
 import sim.Sim;
 import system.Item;
@@ -44,8 +46,33 @@ public class LinearHedgingZonePolicyTest extends AbstractPolicyTest {
         Item item0 = machine.getItemById(0);
         Item item1 = machine.getItemById(1);
         double alpha = 0.5 * ( item0.getCCostRate() * 4.0 / 0.5 + item1.getCCostRate() * 9.0 / ( 1 / 3.0 ) );
-        assertEquals( (4.0 - 2.0 ) / ( Math.sqrt( alpha * 2.0 / item0.getCCostRate() ) - 2.0 ) - 1, 
+        assertEquals( item0.getDemandRate() / ( 2 - 1 ) * ( (4.0 - 2.0 ) / ( Math.sqrt( alpha * 2.0 / item0.getCCostRate() ) - 2.0 ) - 1 ),
                 factors.get(item0), tol );
+    }
+
+    @Test
+    public void testExpansionFactors() {
+        Params params = Params.builder()
+                .numItems(2)
+                .demandRates(c(2.0, 3.0))
+                .productionRates(c(4.0, 9.0))
+                .inventoryHoldingCosts(c(3.0, 1.0))
+                .backlogCosts(c(5.0, 2.0))
+                .setupTimes(c(10, 20))
+                .build();
+        Sim sim = getSim(params);
+        Machine machine = sim.getMachine();
+        double tol = 1e-4;
+        Item item0 = machine.getItemById(0);
+        Item item1 = machine.getItemById(1);
+        // Calculate some fictitious upper hedging point factors
+        Map<Item, Double> factors = Maps.newHashMap();
+        factors.put( item0, 5.0 );
+        factors.put( item1, 6.0 );
+        Map<Item, Double> expansionFactors = LinearHedgingZonePolicy.computeHedgingZoneExpansionFactors(factors);
+        // Note that the formula is sqrt(1 + factor[i]^2 / d[j]^2)
+        assertEquals( Math.sqrt( 1 + 25 / 9.0 ), expansionFactors.get(item0), tol );
+        assertEquals( Math.sqrt( 1 + 36 / 4.0 ), expansionFactors.get(item1), tol );
     }
 
     @Test

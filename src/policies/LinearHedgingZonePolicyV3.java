@@ -22,17 +22,20 @@ import system.Machine;
  * </pre>
  * where
  * <pre>
- *      alpha = 1 / N sum( c_i \mu_i / \rho_i )
+ *      alpha = min( c_i \mu_i / \rho_i )
  * </pre>
  * Note that c_i is defined as 
  * <pre>
  *  c_i = b_i * h_i / ( b_i + h_i ).
  * </pre>
+ * 
+ * By defining <tt>alpha</tt> as the minimum value of the ratio, we guarantee that <tt>mu_i >= sqrt( alpha d_i / c_i)</tt>
+ * and so the correction term <tt>C_{i,j}</tt> is non-negative. This helps prevent shrinkage of the hedging zone.
  * @author ftubilla
  *
  */
 @CommonsLog
-public class LinearHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
+public class LinearHedgingZonePolicyV3 extends GeneralizedHedgingZonePolicy {
 
     /**
      * Corresponds to d_i / ( N - 1 ) * (mu_i - d_i) / ( \sqrt( alpha d_i / c_i ) - d_i ) - 1
@@ -53,10 +56,10 @@ public class LinearHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
     @Override
     protected boolean currentSetupOnOrAboveTarget(Machine machine) {
         boolean aboveTarget = machine.getSetup().getSurplus() >= getTarget(machine.getSetup()) - Sim.SURPLUS_TOLERANCE;
-        if ( log.isTraceEnabled() && aboveTarget ) {
-            log.trace(String.format("Current setup %s above target %.3f", machine.getSetup(), getTarget(machine.getSetup())));
+        if ( aboveTarget ) {
+            log.debug(String.format("Current setup %s above target %.3f", machine.getSetup(), getTarget(machine.getSetup())));
             for ( Item item : machine ) {
-                log.trace(String.format("Item %s Surplus %.3f", item, item.getSurplus()));
+                log.debug(String.format("Item %s Surplus %.3f", item, item.getSurplus()));
             }
         }
         return aboveTarget;
@@ -136,12 +139,18 @@ public class LinearHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
             if ( otherItem.equals(item) ) {
                 continue;
             }
+            double addedFactor = 1.0;
+            if ( otherItem.getId() == 2 ) {
+                continue;
+            } else {
+                addedFactor = 2;
+            }
             // Project the current deviation (from the nominal target) deltaTime units forward, assuming that the deviation increases at
             // the demand rate.
             double projectedDeviation = otherItem.getSurplusDeviation() + deltaTime * otherItem.getDemandRate();
             // If this item is i and other item is j, then the equation is:
             // (Z^U_j_nominal - x_j + d_j * delta_time) / d_j * factor_i
-            increment +=  projectedDeviation * factor / otherItem.getDemandRate();
+            increment +=  addedFactor * projectedDeviation * factor / otherItem.getDemandRate();
         }
         log.trace(String.format("The upper hedging point for %s has an increment of %.4f at %.4f time units from now", item, increment, deltaTime));
         return increment;
@@ -151,11 +160,12 @@ public class LinearHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
     protected static Map<Item, Double> computeHedgingPointFactors(final Machine machine) {
         Map<Item, Double> upperHedgingZoneFactors = Maps.newHashMap();
         // First compute alpha
-        double alpha = 0;
-        int numItems = machine.getNumItems();
+        double alpha = Double.MAX_VALUE;
         for ( Item item : machine ) {
             double alphaItem = item.getCCostRate() * item.getProductionRate() / ( item.getUtilization() );
-            alpha += alphaItem / (double) numItems;
+            if ( alphaItem < alpha ) {
+                alpha = alphaItem;
+            }
         }
         log.debug(String.format("Computing alpha coefficient %.3f", alpha));
         // Now determine the multiplicative factors for each item
