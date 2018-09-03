@@ -23,7 +23,7 @@ import discreteEvent.Event;
 public class TimeMetricsRecorder extends Recorder {
 
 	private static Logger logger = Logger.getLogger(TimeMetricsRecorder.class);
-	public static int MIN_NUM_POINTS_PER_ITEM = 150;
+	public static int MIN_NUM_POINTS_PER_ITEM = 750;
 	
 	private boolean trace = logger.isTraceEnabled();
 	private Map<Sim, Map<Item, Queue<Object[]>>> lastNRows;

@@ -17,7 +17,8 @@ public class StreamSurplusStatisticsCalculator extends AbstractSurplusStatistics
     private double averageInventory;
     private double averageBacklog;
     private double serviceLevel;
-    private double minSurplus = Double.MAX_VALUE;
+    private double minSurplus = Double.POSITIVE_INFINITY;
+    private double maxSurplus = Double.NEGATIVE_INFINITY;
     private double initialTime;
     private double finalTime;
 
@@ -56,6 +57,9 @@ public class StreamSurplusStatisticsCalculator extends AbstractSurplusStatistics
 
         if (surplus < minSurplus) {
             minSurplus = surplus;
+        }
+        if ( surplus > maxSurplus ) {
+            maxSurplus = surplus;
         }
         previousTime = time;
         previousSurplus = surplus;

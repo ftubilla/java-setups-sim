@@ -66,16 +66,18 @@ public class AverageSurplusByServiceLevelMetrics {
         // Find the current minimum surplus
         SurplusStatistics initialStats = BatchSurplusStatisticsCalculator.calculate(dataPoints);
         double minSurplus = initialStats.getMinSurplus();
+        double maxSurplus = initialStats.getMaxSurplus();
 
         // Create the bounds for the binary search
-        double[] targetBounds = { 0.0, originalTarget - minSurplus };
+        double[] offsetBounds = { -Math.max(0, maxSurplus), -Math.min(0, minSurplus)};
         double[] serviceLevels = { 0.0, 1.0 };
         SurplusStatistics currentStats = BatchSurplusStatisticsCalculator.calculate(dataPoints);
-        log.trace(String.format("Starting service level item %s = %.5f with target %.5f", item.getId(), currentStats.getServiceLevel(), item.getSurplusTarget()));
-        SurplusStatistics lowerBoundStats = BatchSurplusStatisticsCalculator.translateAndCalculate(-originalTarget,
-                dataPoints);
-        SurplusStatistics upperBoundStats = BatchSurplusStatisticsCalculator.translateAndCalculate(-minSurplus,
-                dataPoints);
+        log.trace(String.format("Starting service level item %s = %.5f with target %.5f",
+                item.getId(), currentStats.getServiceLevel(), item.getSurplusTarget()));
+        SurplusStatistics lowerBoundStats = BatchSurplusStatisticsCalculator.translateAndCalculate(
+                offsetBounds[0], dataPoints);
+        SurplusStatistics upperBoundStats = BatchSurplusStatisticsCalculator.translateAndCalculate(
+                offsetBounds[1], dataPoints);
         SurplusStatistics[] stats = { lowerBoundStats, upperBoundStats };
 
         if (desiredServiceLevel == 0.0) {
@@ -88,10 +90,10 @@ public class AverageSurplusByServiceLevelMetrics {
         double error = Double.MAX_VALUE;
         SurplusStatistics newStats = null;
         int numIt = 0;
-        Double target = null;
+        Double optimalOffset = null;
         while (error > tolerance) {
-            target = 0.5 * (targetBounds[0] + targetBounds[1]);
-            newStats = BatchSurplusStatisticsCalculator.translateAndCalculate(target - originalTarget, dataPoints);
+            optimalOffset = 0.5 * (offsetBounds[0] + offsetBounds[1]);
+            newStats = BatchSurplusStatisticsCalculator.translateAndCalculate(optimalOffset, dataPoints);
             double newServiceLevel = newStats.getServiceLevel();
             int index;
             if (newServiceLevel == desiredServiceLevel) {
@@ -104,21 +106,21 @@ public class AverageSurplusByServiceLevelMetrics {
                 // New upper bound
                 index = 1;
             }
-            targetBounds[index] = target;
+            offsetBounds[index] = optimalOffset;
             stats[index] = newStats;
             serviceLevels[index] = newServiceLevel;
             error = Math.abs(newServiceLevel - desiredServiceLevel) / desiredServiceLevel;
             numIt++;
-            log.trace(String.format("Iteration %d error %.5f service level %.5f surplus target %.5f", numIt, error,
-                    newServiceLevel, target));
+            log.trace(String.format("Iteration %d error %.5f service level %.5f surplus offset %.5f", numIt, error,
+                    newServiceLevel, optimalOffset));
             if (numIt > MAX_IT) {
-                throw new RuntimeException(
-                        String.format("Could not converge to service level. Current value %.6f", newServiceLevel));
+                log.error(
+                        String.format("Could not converge to service level. Current value %.6f and offset %.6f",
+                                newServiceLevel, optimalOffset));
+                throw new RuntimeException("Could not converge to service level!");
             }
         }
 
-        // Convert the best target into an offset and return together with the
-        // new stats
-        return Pair.of(target, newStats);
+        return Pair.of(optimalOffset, newStats);
     }
 }

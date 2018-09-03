@@ -14,4 +14,5 @@ public interface SurplusStatistics {
 	
 	public double getMinSurplus();
 
+	public double getMaxSurplus();
 }

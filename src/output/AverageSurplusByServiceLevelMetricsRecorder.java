@@ -39,17 +39,21 @@ public class AverageSurplusByServiceLevelMetricsRecorder extends Recorder {
             row[2] = item.getId();
 
             double desiredServiceLevel = sim.getDerivedParams().getServiceLevels().get(item.getId());
-            Pair<Double, SurplusStatistics> pair = metrics.findOptimalOffsetForServiceLevel(item, desiredServiceLevel);
+            Pair<Double, SurplusStatistics> offsetPair = metrics.findOptimalOffsetForServiceLevel(item, desiredServiceLevel);
 
             row[1] = "DESIRED_SERVICE_LEVEL";
             row[3] = desiredServiceLevel;
             record(row);
 
-            row[1] = "OPTIMAL_SURPLUS_TARGET";
-            row[3] = pair.getLeft();
+            row[1] = "OPTIMAL_SURPLUS_OFFSET";
+            row[3] = offsetPair.getLeft();
             record(row);
 
-            SurplusStatistics stats = pair.getRight();
+            row[1] = "OPTIMAL_SURPLUS_TARGET";
+            row[3] = item.getSurplusTarget() + offsetPair.getLeft();
+            record(row);
+
+            SurplusStatistics stats = offsetPair.getRight();
             row[1] = "INVENTORY";
             row[3] = stats.getAverageInventory();
             record(row);

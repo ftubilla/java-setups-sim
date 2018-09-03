@@ -11,38 +11,45 @@ import system.Item;
 import system.Machine;
 
 /**
- * A generalized version of the HZP where the targets are a linear function of the surplus levels of the other items.
- * For example
+ * A generalized version of the HZP where the targets are a function of the work-in-progress (measured off of the upper
+ * nominal target) of the remaining items.
+ * In particular,
  * <pre>
- *      target_i = nominal_target_i  + sum_{j != i} C_{i,j} ( nominal_target_j - surplus_j ) 
- * </pre>
- * The constant <tt>C_{i,j}</tt> is defined as
- * <pre>
- *      C_{i,j} = 1/(N-1) * d_i /d_j * [ ( mu_i - d_i ) / ( sqrt( alpha d_i / c_i ) - d_i )  - 1 ] 
+ *      delta_target[i] = ( V[i] / (N-1) ) * mu[i] * [ (mu[i] - d[i])/(mu_bar[i] - d[i]) - 1 ] 
  * </pre>
  * where
  * <pre>
- *      alpha = min( c_i \mu_i / \rho_i )
+ *      mu_bar[i] = sqrt( alpha d[i] / c[i] )
  * </pre>
- * Note that c_i is defined as 
+ * and
  * <pre>
- *  c_i = b_i * h_i / ( b_i + h_i ).
+ *      alpha = average( c_i \mu_i / \rho_i )
+ * </pre>
+ * V[i] is defined as
+ * <pre>
+ *      sum{ j != i } max( 0, ZU[j] - x[j] ) / mu[j]
  * </pre>
  * 
- * By defining <tt>alpha</tt> as the minimum value of the ratio, we guarantee that <tt>mu_i >= sqrt( alpha d_i / c_i)</tt>
- * and so the correction term <tt>C_{i,j}</tt> is non-negative. This helps prevent shrinkage of the hedging zone.
+ * The multiplier of V[i] in the above equation is truncated to a set of bounds that are necessary for stability and
+ * that guarantee that the surplus trajectory stays within the corridor.
+ * 
  * @author ftubilla
  *
  */
 @CommonsLog
-public class LinearHedgingZonePolicyV3 extends GeneralizedHedgingZonePolicy {
+public class LinearHedgingZonePolicyV4 extends GeneralizedHedgingZonePolicy {
 
     /**
-     * Corresponds to d_i / ( N - 1 ) * (mu_i - d_i) / ( \sqrt( alpha d_i / c_i ) - d_i ) - 1
+     * TODO Make configurable. Determines how much relative slack to have in the inequalities for truncation
+     */
+    public static final double REL_SLACK_FACTOR = 1.5;
+
+    /**
+     * Corresponds to [mu[i] - d[i]]/[mu_bar[i]-d[i]] - 1 
      */
     private Map<Item, Double> upperHedgingZoneFactors;
     /**
-     * Corresponds to ( 1 + sum_{j != j} factor[i]^2 / d[j]^2 )^1/2
+     * Corresponds to sqrt( 1 + sum_{j != i} (factor[i] mu[i])^2 / mu[j]^2 )
      */
     private Map<Item, Double> hedgingZoneExpansionFactors;
 
@@ -135,6 +142,7 @@ public class LinearHedgingZonePolicyV3 extends GeneralizedHedgingZonePolicy {
         if ( deltaTime < 0 ) throw new IllegalArgumentException(String.format("DeltaTime of %.3f is negative!", deltaTime));
         double increment = 0;
         double factor = this.upperHedgingZoneFactors.get(item);
+        double nMinus1 = this.machine.getNumItems() - 1;
         for ( Item otherItem : this.machine ) {
             if ( otherItem.equals(item) ) {
                 continue;
@@ -143,8 +151,9 @@ public class LinearHedgingZonePolicyV3 extends GeneralizedHedgingZonePolicy {
             // the demand rate.
             double projectedDeviation = otherItem.getSurplusDeviation() + deltaTime * otherItem.getDemandRate();
             // If this item is i and other item is j, then the equation is:
-            // (Z^U_j_nominal - x_j + d_j * delta_time) / d_j * factor_i
-            increment +=  projectedDeviation * factor / otherItem.getDemandRate();
+            // factor[i] * (Z^U_j_nominal - x_j + d_j * delta_time)+ * mu[i] / mu[j]
+            double vIContribution = Math.max(0, projectedDeviation) / otherItem.getProductionRate();
+            increment +=  factor * vIContribution * item.getProductionRate() / nMinus1;
         }
         log.trace(String.format("The upper hedging point for %s has an increment of %.4f at %.4f time units from now", item, increment, deltaTime));
         return increment;
@@ -155,24 +164,33 @@ public class LinearHedgingZonePolicyV3 extends GeneralizedHedgingZonePolicy {
 
         Map<Item, Double> upperHedgingZoneFactors = Maps.newHashMap();
         // First compute alpha
-        double alpha = Double.MAX_VALUE;
+        double alpha = 0.0;
+        // TODO Should we compensate for the machine efficiency??
+        double rho = 0.0;
         for ( Item item : machine ) {
-            double alphaItem = item.getCCostRate() * item.getProductionRate() / ( item.getUtilization() );
-            if ( alphaItem < alpha ) {
-                alpha = alphaItem;
-            }
+            alpha += item.getCCostRate() * item.getProductionRate() / ( item.getUtilization() * machine.getNumItems() );
+            rho += item.getUtilization();
         }
         log.debug(String.format("Computing alpha coefficient %.3f", alpha));
         // Now determine the multiplicative factors for each item
+        double nMinus1 = machine.getNumItems() - 1;
         for ( Item item : machine ) {
-            // First term is d[i] / ( N - 1 )
-            double term1 = ( item.getDemandRate() / ( (double) machine.getNumItems() - 1 ) );
-            // Second term is ( mu[i] - d[i] ) / ( (alpha d[i] / c[i])^(1/2) - d[i] ) - 1
-            double term2 = ( item.getProductionRate() - item.getDemandRate() ) / (
-                            Math.sqrt( alpha * item.getDemandRate() / item.getCCostRate() ) - item.getDemandRate() ) - 1;
-            double factor = term1 * term2;
-            log.debug(String.format("Setting Delta ZU factor for item %s to %.3f", item, factor));
-            upperHedgingZoneFactors.put(item, factor);
+            // First calculate mu_bar
+            double muBar = Math.sqrt( alpha * item.getDemandRate() / item.getCCostRate() );
+            // Now calculate the raw multiplicative factor
+            double factor = ( item.getProductionRate() - item.getDemandRate() ) / ( muBar - item.getDemandRate() ) - 1;
+            // Truncate if necessary
+            // Note that the slack factor deflates the bounds so that, if the constraint becomes active, we are actually 10% (say)
+            // from the real bound
+            double truncatedFactor = Math.max( factor, - ( nMinus1 / REL_SLACK_FACTOR ) *
+                    item.getUtilization() / ( rho - item.getUtilization() ));
+            truncatedFactor = Math.min( truncatedFactor,
+                    ( nMinus1 / REL_SLACK_FACTOR ) * item.getUtilization() / ( 1 - rho + item.getUtilization() ));
+            truncatedFactor = Math.min( truncatedFactor,
+                    ( nMinus1 / REL_SLACK_FACTOR ) * ( 1 - item.getUtilization() ) / ( rho - item.getUtilization() ) );
+            log.debug(String.format("Setting Delta ZU factor for item %s to %.3f (%.3f before truncation)",
+                    item, truncatedFactor, factor));
+            upperHedgingZoneFactors.put(item, truncatedFactor);
         }
         return upperHedgingZoneFactors;
     }
@@ -180,16 +198,17 @@ public class LinearHedgingZonePolicyV3 extends GeneralizedHedgingZonePolicy {
     @VisibleForTesting
     protected static Map<Item, Double> computeHedgingZoneExpansionFactors(final Map<Item, Double> hedgingFactors) {
         Map<Item, Double> expansionFactors = Maps.newHashMap();
+        double nMinus1 = hedgingFactors.size() - 1;
         for ( Item itemI : hedgingFactors.keySet() ) {
             double factorI = hedgingFactors.get(itemI);
             double sumSq = 0.0;
             for ( Item itemJ : hedgingFactors.keySet() ) {
                 if ( itemJ != itemI ) {
-                    sumSq += Math.pow(itemJ.getDemandRate(), 2);
+                    sumSq += Math.pow( factorI * itemI.getProductionRate(), 2 ) /
+                            Math.pow(itemJ.getProductionRate() * nMinus1, 2);
                 }
             }
-            //FIXME This is wrong: we are doing 1 / sumSq when in reality we need sum( 1/ sq)
-            double expansionFactorI = Math.sqrt( 1 + Math.pow(factorI, 2) / sumSq );
+            double expansionFactorI = Math.sqrt( 1 + sumSq );
             log.debug(String.format("Setting the DZ expansion factor for item %s to %.3f", itemI, expansionFactorI));
             expansionFactors.put(itemI, expansionFactorI);
         }
