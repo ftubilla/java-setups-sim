@@ -29,6 +29,10 @@ public class OptimizationProblem {
 	public static enum Response {SUCCESS, WARN, FAILED};
 	public static final double DEFAULT_TOL = 1e-6;
 	public static final double DEFAULT_TOL_FEAS = 1e-6;
+	/**
+	 * A multiplier on the feasibility tolerance used to find an initial interior point.
+	 */
+	public static final double TOL_FEAS_MULT_FOR_INTERIOR_POINT = 0.1;
 	
 	@Getter @Setter private double toleranceFeas = DEFAULT_TOL_FEAS;
 	@Getter @Setter private double tolerance = DEFAULT_TOL;
@@ -122,7 +126,7 @@ public class OptimizationProblem {
 				}
 				vectorH[i] = sign * ctr.getRightHandSide();
 				// We create a RHS that forces the LP solver to find a strictly feasible solution
-				vectorHMinusEps[i] = sign * ctr.getRightHandSide() - 10 * this.toleranceFeas;
+				vectorHMinusEps[i] = sign * ctr.getRightHandSide() - 0.1 * this.toleranceFeas;
 				inequalitiesFunc[i] = new LinearMultivariateRealFunction(matrixG[i], -vectorH[i]);
 			}
 			optimizationRequest.setFi(inequalitiesFunc);
@@ -157,7 +161,7 @@ public class OptimizationProblem {
 		if (!userDefinedInitialValues) {
 		    // Find a strictly feasible initial point
 			initialPointOptimizationRequest.setC(new double[numVariables]);
-			initialPointOptimizationRequest.setToleranceFeas(toleranceFeas*0.1); //Get better tol for the initial point
+			initialPointOptimizationRequest.setToleranceFeas(toleranceFeas * TOL_FEAS_MULT_FOR_INTERIOR_POINT);
 			LPPrimalDualMethod lp = new LPPrimalDualMethod();
 			lp.setLPOptimizationRequest(initialPointOptimizationRequest);
 			lp.optimize();
