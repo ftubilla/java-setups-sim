@@ -56,6 +56,8 @@ public abstract class AbstractPolicy implements IPolicy {
                 logger.trace(String.format("The machine has finished its setup change at time %.2f."
                         + " Next control event will determine how much work to do", clock.getTime()));
                 machine.setSprint();
+                // Inform implementations that the setup is complete
+                noteNewSetup();
                 sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
 
             } else {
@@ -71,6 +73,15 @@ public abstract class AbstractPolicy implements IPolicy {
         this.machine = sim.getMachine();
         this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
         this.policyParams = sim.getParams().getPolicyParams();
+    }
+
+    /**
+     * Called once a new setup has been identified. Can be overridden to update internal logic of the implementations.
+     */
+    protected void noteNewSetup() {
+        if ( logger.isDebugEnabled() ) {
+            String.format("Registering a new changeover to item %s", this.currentSetup);
+        }
     }
 
     /**

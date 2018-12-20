@@ -69,9 +69,8 @@ public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
             throw new RuntimeException("Cruising is not implemented yet");
         }
         if ( sim.getSurplusCostLowerBound().getIsCruising() ) {
-            log.error("The sim instance is a cruising instance (according to the lower bound), but cruising is not enabled in this policy");
-            // NOTE Throwing an exception might be too drastic; we could just issue a warning
-            throw new RuntimeException("The lower bound dictates cruising, but this policy does not implement it.");
+            log.error("The sim instance is a cruising instance (according to the lower bound), but cruising is not enabled in this policy!");
+            // TODO Record this warning somewhere
         }
 
     }

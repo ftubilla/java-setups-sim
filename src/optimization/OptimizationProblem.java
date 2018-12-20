@@ -126,7 +126,7 @@ public class OptimizationProblem {
 				}
 				vectorH[i] = sign * ctr.getRightHandSide();
 				// We create a RHS that forces the LP solver to find a strictly feasible solution
-				vectorHMinusEps[i] = sign * ctr.getRightHandSide() - 0.1 * this.toleranceFeas;
+				vectorHMinusEps[i] = sign * ctr.getRightHandSide() - TOL_FEAS_MULT_FOR_INTERIOR_POINT * this.toleranceFeas;
 				inequalitiesFunc[i] = new LinearMultivariateRealFunction(matrixG[i], -vectorH[i]);
 			}
 			optimizationRequest.setFi(inequalitiesFunc);
@@ -161,7 +161,7 @@ public class OptimizationProblem {
 		if (!userDefinedInitialValues) {
 		    // Find a strictly feasible initial point
 			initialPointOptimizationRequest.setC(new double[numVariables]);
-			initialPointOptimizationRequest.setToleranceFeas(toleranceFeas * TOL_FEAS_MULT_FOR_INTERIOR_POINT);
+			initialPointOptimizationRequest.setToleranceFeas(toleranceFeas);
 			LPPrimalDualMethod lp = new LPPrimalDualMethod();
 			lp.setLPOptimizationRequest(initialPointOptimizationRequest);
 			lp.optimize();

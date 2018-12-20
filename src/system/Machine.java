@@ -8,11 +8,12 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import discreteEvent.MasterScheduler;
+import discreteEvent.ScheduleType;
+import lombok.Getter;
 import params.Params;
 import processes.production.IProductionProcess;
 import sim.Clock;
-import discreteEvent.MasterScheduler;
-import discreteEvent.ScheduleType;
 
 /**
  * The main entity used in the sim. Holds the reference to the items that can be produced.
@@ -40,10 +41,12 @@ public class Machine implements Iterable<Item> {
 	private Clock clock;
 	private double changingOverUntil;
 	private Map<Item, Double> lastSetupTime;
+	@Getter private final double efficiency;
 	
 	
 	public Machine(Params params, Clock clock, MasterScheduler masterScheduler){
 		
+	    this.efficiency = params.getMachineEfficiency();
 		int numItems = params.getNumItems();
 		itemMap = new HashMap<Integer,Item>(numItems);
 		items = new ArrayList<Item>(numItems);

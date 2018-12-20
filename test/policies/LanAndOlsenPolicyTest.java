@@ -27,8 +27,8 @@ public class LanAndOlsenPolicyTest extends AbstractPolicyTest {
                 .numItems(3)
                 .surplusTargets(c(0.0, 0.0, 0.0))
                 .initialDemand(c(0.0, 20.0, 20.0))
-                .setupTimes(c(215.0, 15.0, 15.0))
-                .demandRates(c(0.1, 0.1, 0.1))
+                .setupTimes(c(200.0, 10.0, 10.0))
+                .demandRates(c(0.3, 0.3, 0.3))
                 .build();
 
         // Case I: All items have the same deviation ratio, so ties broken by ID
