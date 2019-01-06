@@ -45,6 +45,8 @@ public abstract class AbstractPolicy implements IPolicy {
 
                 if (isTimeToChangeOver()) {
                     logger.trace(String.format("The machine is ready to change setups at time %.2f", clock.getTime()));
+                    // Inform implementations that the run finished
+                    noteEndOfRun();
                     startChangeover(nextItem());
                 } else {
                     logger.trace(String.format("The machine is in the middle of a production run at time %.2f", clock.getTime()));
@@ -73,6 +75,15 @@ public abstract class AbstractPolicy implements IPolicy {
         this.machine = sim.getMachine();
         this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
         this.policyParams = sim.getParams().getPolicyParams();
+    }
+
+    /**
+     * Called once the current run has completed, and before the changeover to the next setup.
+     */
+    protected void noteEndOfRun() {
+        if ( logger.isDebugEnabled() ) {
+            String.format("Finishing run of item %s", this.currentSetup);
+        }
     }
 
     /**

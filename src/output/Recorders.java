@@ -21,6 +21,7 @@ public class Recorders {
 		recorders.add(new AverageSurplusMetricsRecorder());
 		recorders.add(new AverageSurplusByServiceLevelMetricsRecorder());
 		recorders.add(new TimeFractionsRecorder());
+		recorders.add(new PolicySpecificRecorder());
 	}
 
 	public Recorders(Collection<Recorder> recordersCollection) {
