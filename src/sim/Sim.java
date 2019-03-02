@@ -64,7 +64,7 @@ public class Sim {
 	 * @param verbose
 	 */
 	public void run(boolean verbose) {
-		
+		log.info(String.format("Starting run of sim %s from file %s", this.getId(), this.params.getFile()));
 		//Schedule the first failure and set an initial control event
 		Event firstFailure = new Failure(this.getTime() + getTheFailuresGenerator().nextTimeInterval());		
 		this.getMasterScheduler().addEvent(firstFailure);

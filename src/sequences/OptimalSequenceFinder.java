@@ -52,15 +52,20 @@ public class OptimalSequenceFinder {
         // Initialize the data structures to traverse the tree
         Queue<SearchNode> nodes = new LinkedList<>();
         Set<ProductionSequence> searchedSequences = new HashSet<>();
-        nodes.add(new SearchNode(new Item[0]));
+        // We can arbitrarily fix the first item to item 0
+        nodes.add(new SearchNode(this.items.iterator().next()));
 
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
         
         while ( !nodes.isEmpty() ) {
             // Take the next search node
             SearchNode nextNode = nodes.poll();
-            log.trace(String.format("Retrieving next search node of size %d", nextNode.getSize()));
+            if ( log.isTraceEnabled() ) {
+                log.trace(String.format("Retrieving next search node of size %d from pool with %d nodes",
+                    nextNode.getSize(), nodes.size()));
+            }
             if ( nextNode.containsAllItems(this.items) && nextNode.endPointsDiffer() ) {
+                log.trace("Solving optimization problem for retrieved node");
                 // The sequence is valid, so a cost can be computed if not already present
                 ProductionSequence nodeSequence = nextNode.getProductionSequence();
                 if ( !searchedSequences.contains(nodeSequence) ) {
