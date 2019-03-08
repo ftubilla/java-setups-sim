@@ -9,6 +9,7 @@ import lowerbounds.SurplusCostLowerBound;
 import params.PolicyParams;
 import sim.Clock;
 import sim.Sim;
+import sim.TimeInstant;
 import system.Item;
 import system.Machine;
 
@@ -21,7 +22,7 @@ public abstract class AbstractPolicy implements IPolicy {
     private boolean trace = logger.isTraceEnabled();
 
     private Sim    sim;
-    private double lastChangeoverTime = -1;
+    private TimeInstant lastChangeoverTime = null;
 
     protected Item         currentSetup;
     protected Machine      machine;
@@ -44,18 +45,18 @@ public abstract class AbstractPolicy implements IPolicy {
             if (!machine.isChangingSetups()) {
 
                 if (isTimeToChangeOver()) {
-                    logger.trace(String.format("The machine is ready to change setups at time %.2f", clock.getTime()));
+                    logger.trace(String.format("The machine is ready to change setups at time %s", clock.getTime()));
                     // Inform implementations that the run finished
                     noteEndOfRun();
                     startChangeover(nextItem());
                 } else {
-                    logger.trace(String.format("The machine is in the middle of a production run at time %.2f", clock.getTime()));
+                    logger.trace(String.format("The machine is in the middle of a production run at time %s", clock.getTime()));
                     ControlEvent nextControl = onReady();
                     sim.getMasterScheduler().addEvent(nextControl);
                 }
 
             } else if (machine.isSetupComplete()) {
-                logger.trace(String.format("The machine has finished its setup change at time %.2f."
+                logger.trace(String.format("The machine has finished its setup change at time %s."
                         + " Next control event will determine how much work to do", clock.getTime()));
                 machine.setSprint();
                 // Inform implementations that the setup is complete
@@ -63,7 +64,7 @@ public abstract class AbstractPolicy implements IPolicy {
                 sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
 
             } else {
-                logger.debug(String.format("Nothing to do. Setup in progress and it is non-preemptive (time %.2f).", clock.getTime()));
+                logger.debug(String.format("Nothing to do. Setup in progress and it is non-preemptive (time %s).", clock.getTime()));
                 sim.getMasterScheduler().addEvent(new ControlEvent(machine.getNextSetupCompleteTime()));
             }
         }
@@ -142,7 +143,7 @@ public abstract class AbstractPolicy implements IPolicy {
      */
     protected void startChangeover(@NonNull Item item) {
         if (trace) {
-            logger.trace(String.format("Scheduling a changeover to the new item %s. Last changeover was at %.3f",
+            logger.trace(String.format("Scheduling a changeover to the new item %s. Last changeover was at %s",
                     item, lastChangeoverTime));
         }
         assert item != machine.getSetup() : "Cannot changeover to the current setup again!";

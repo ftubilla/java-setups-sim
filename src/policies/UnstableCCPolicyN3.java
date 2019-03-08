@@ -80,7 +80,7 @@ public class UnstableCCPolicyN3 implements IPolicy {
 					Item setup = sim.getMachine().getSetup();
 					double workRemaining = setup.getFluidTimeToSurplusLevel(setup.getSurplusTarget());
 					sim.getMachine().setSprint();
-					sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime() + workRemaining));
+					sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime().add(workRemaining)));
 				}	
 			} 
 			else if (sim.getMachine().getOperationalState() == OperationalState.SETUP){

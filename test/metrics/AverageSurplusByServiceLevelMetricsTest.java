@@ -32,7 +32,7 @@ public class AverageSurplusByServiceLevelMetricsTest extends SimBasicTest {
                 .demandRates(c(0, 0.1, 0.1)) // note the 0 demand rate for item 0!
                 .productionRates(c(1, 1, 1))
                 .initialSetup(0)
-                .finalTime(100)
+                .finalTime(99.999)
                 .build();
 
         Sim sim = new Sim(params);

@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import sim.TimeInstant;
+
 /**
  * Computes the surplus statistics by getting a whole batch of data points at
  * once, instead of one at a time.
@@ -15,11 +17,11 @@ public class BatchSurplusStatisticsCalculator extends AbstractSurplusStatisticsC
 
     private final StreamSurplusStatisticsCalculator streamCalculator = new StreamSurplusStatisticsCalculator();
 
-    public void addPoints(final List<Pair<Double, Double>> dataPoints) {
+    public void addPoints(final List<Pair<TimeInstant, Double>> dataPoints) {
         translateAndAdd(0.0, dataPoints);
     }
 
-    public void translateAndAdd(final double offset, final List<Pair<Double, Double>> dataPoints) {
+    public void translateAndAdd(final double offset, final List<Pair<TimeInstant, Double>> dataPoints) {
         dataPoints.stream().forEach(pair -> streamCalculator.addPoint(pair.getLeft(), pair.getRight() + offset));
     }
 
@@ -36,7 +38,7 @@ public class BatchSurplusStatisticsCalculator extends AbstractSurplusStatisticsC
      * @param dataPoints
      * @return surplusStatistics
      */
-    public static SurplusStatistics translateAndCalculate(final double offset, final List<Pair<Double, Double>> dataPoints) {
+    public static SurplusStatistics translateAndCalculate(final double offset, final List<Pair<TimeInstant, Double>> dataPoints) {
         BatchSurplusStatisticsCalculator calculator = new BatchSurplusStatisticsCalculator();
         calculator.translateAndAdd(offset, dataPoints);
         return calculator.calculate();
@@ -49,7 +51,7 @@ public class BatchSurplusStatisticsCalculator extends AbstractSurplusStatisticsC
      * @param dataPoints
      * @return surplusStatistics
      */
-    public static SurplusStatistics calculate(final List<Pair<Double, Double>> dataPoints) {
+    public static SurplusStatistics calculate(final List<Pair<TimeInstant, Double>> dataPoints) {
         BatchSurplusStatisticsCalculator calculator = new BatchSurplusStatisticsCalculator();
         calculator.addPoints(dataPoints);
         return calculator.calculate();

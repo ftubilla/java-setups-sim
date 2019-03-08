@@ -50,7 +50,7 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		sim.getListenersCoordinator().addBeforeEventListener(new EventListener() {			
 			@Override
 			public void execute(Event event, Sim sim) {
-				double time = event.getTime();
+				double time = event.getTime().doubleValue();
 				double surplus[] = new double[machine.getNumItems()];
 				for (int i=0; i < surplus.length; i++) {
 					surplus[i] = machine.getItemById(i).getSurplus();
@@ -122,7 +122,7 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 				for (Item item : machine) {
 					boolean isNext = nextItem.equals(item);
 					log.trace(String.format("time,item,is_next,deviation,deviation_if_produced,ideal_deviation," +
-							"%.6f,%s,%s,%.3f,%.3f,%.3f",
+							"%s,%s,%s,%.3f,%.3f,%.3f",
 							clock.getTime(), item.getId(), isNext, 
 							item.getSurplusDeviation(), computeAveMaxDeviation(item), makeToOrderLowerBound.getIdealSurplusDeviation(item.getId())));
 
@@ -149,7 +149,7 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 
 
 	private double computeAveTimeBetweenRuns(Item item, Update update){
-		double timeBetweenRunsIfProduced = clock.getTime() - machine.getLastSetupTime(item);
+		double timeBetweenRunsIfProduced = clock.getTime().subtract(machine.getLastSetupTime(item)).doubleValue();
 		double aveTime = (1-learningRate) * aveTimeBetweenRuns.get(item) + learningRate * timeBetweenRunsIfProduced;
 		if (update == Update.TRUE) {
 			aveTimeBetweenRuns.put(item, aveTime);
@@ -167,7 +167,7 @@ public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 		double[] newSurplusPoint = new double[machine.getNumItems()];
 		//We only care about the current item for this calculation, so we can ignore the surplus values for the others
 		newSurplusPoint[item.getId()] = item.getSurplusTarget() - maxDeviationIfProduced; 	
-		surplusTraj.addPoint(clock.getTime() + item.getSetupTime(), newSurplusPoint);
+		surplusTraj.addPoint(clock.getTime().add(item.getSetupTime()).doubleValue(), newSurplusPoint);
 				
 		//The factor of 2 is because we want the highest point in the deviation triangle, not the average deviation
 		double pastSurplusArea = surplusTraj.getSurplusDeviationArea()[item.getId()];

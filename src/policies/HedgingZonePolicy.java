@@ -76,7 +76,7 @@ public class HedgingZonePolicy extends AbstractPolicy {
             // some small tolerance to avoid getting stuck at the boundary if the delta time to exit is exactly equal to 0
             this.machine.setCruise();
             double deltaToExit = Math.max( computeTimeToExitFractionalHedgingZone(cruisingParameter), EXIT_HEDGING_ZONE_TOL );
-            return new ControlEvent( this.clock.getTime() + deltaToExit );
+            return new ControlEvent( this.clock.getTime().add(deltaToExit) );
         } else {
             this.machine.setSprint();
             return new SurplusControlEvent(this.currentSetup, this.currentSetup.getSurplusTarget(), this.clock.getTime(),

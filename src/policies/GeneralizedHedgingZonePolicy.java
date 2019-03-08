@@ -121,7 +121,7 @@ public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
         // Note: cruising is not available in this policy
         this.machine.setSprint();
         double lowerBound = this.currentSetupMinTimeToTarget(this.machine);
-        return new ControlEvent(this.clock.getTime() + lowerBound);
+        return new ControlEvent(this.clock.getTime().add(lowerBound));
     }
 
     @Override

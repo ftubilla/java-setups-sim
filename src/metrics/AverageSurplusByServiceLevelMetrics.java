@@ -13,6 +13,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import metrics.surplusstatistics.BatchSurplusStatisticsCalculator;
 import metrics.surplusstatistics.SurplusStatistics;
 import sim.Sim;
+import sim.TimeInstant;
 import system.Item;
 
 @CommonsLog
@@ -20,14 +21,14 @@ public class AverageSurplusByServiceLevelMetrics {
 
     private static final int MAX_IT = 1000;
 
-    private final Map<Item, List<Pair<Double, Double>>> surplusDataPoints;
+    private final Map<Item, List<Pair<TimeInstant, Double>>> surplusDataPoints;
     private final Map<Item, Double>                     originalSurplusTargets;
     private final double                                tolerance;
 
     public AverageSurplusByServiceLevelMetrics(Sim sim) {
 
         this.tolerance = sim.getParams().getConvergenceTolerance();
-        surplusDataPoints = new HashMap<Item, List<Pair<Double, Double>>>();
+        surplusDataPoints = new HashMap<Item, List<Pair<TimeInstant, Double>>>();
         originalSurplusTargets = new HashMap<Item, Double>();
 
         for (Item item : sim.getMachine()) {
@@ -40,7 +41,7 @@ public class AverageSurplusByServiceLevelMetrics {
             public void execute(Event event, Sim sim) {
                 if (sim.isTimeToRecordData()) {
                     for (Item item : sim.getMachine()) {
-                        Pair<Double, Double> dataPoint = Pair.of(sim.getTime(), item.getSurplus());
+                        Pair<TimeInstant, Double> dataPoint = Pair.of(sim.getTime(), item.getSurplus());
                         surplusDataPoints.get(item).add(dataPoint);
                     }
                 }
@@ -60,7 +61,7 @@ public class AverageSurplusByServiceLevelMetrics {
      */
     public Pair<Double, SurplusStatistics> findOptimalOffsetForServiceLevel(Item item, double desiredServiceLevel) {
 
-        List<Pair<Double, Double>> dataPoints = surplusDataPoints.get(item);
+        List<Pair<TimeInstant, Double>> dataPoints = surplusDataPoints.get(item);
         double originalTarget = originalSurplusTargets.get(item);
 
         // Find the current minimum surplus

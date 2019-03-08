@@ -1,18 +1,20 @@
 package metrics.surplusstatistics;
 
+import sim.TimeInstant;
+
 public interface SurplusStatistics {
 
-	public double getInitialTime();
-	
-	public double getFinalTime();
-	
-	public double getAverageInventory();
-	
-	public double getAverageBacklog();
+    public TimeInstant getInitialTime();
 
-	public double getServiceLevel();
-	
-	public double getMinSurplus();
+    public TimeInstant getFinalTime();
 
-	public double getMaxSurplus();
+    public double getAverageInventory();
+
+    public double getAverageBacklog();
+
+    public double getServiceLevel();
+
+    public double getMinSurplus();
+
+    public double getMaxSurplus();
 }

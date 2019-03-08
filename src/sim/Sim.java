@@ -1,5 +1,10 @@
 package sim;
 
+import discreteEvent.ControlEvent;
+import discreteEvent.Event;
+import discreteEvent.Failure;
+import discreteEvent.ListenersCoordinator;
+import discreteEvent.MasterScheduler;
 import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import lowerbounds.SurplusCostLowerBound;
@@ -12,243 +17,236 @@ import processes.demand.IDemandProcess;
 import processes.generators.IRandomTimeIntervalGenerator;
 import processes.production.IProductionProcess;
 import system.Machine;
-import discreteEvent.ControlEvent;
-import discreteEvent.Event;
-import discreteEvent.Failure;
-import discreteEvent.ListenersCoordinator;
-import discreteEvent.MasterScheduler;
 
 @CommonsLog
 public class Sim {
 
-	//Some constants
-	public static final double SURPLUS_TOLERANCE = 1e-6;
-	
-	private static int sims=0;
-	
-	private int id;
-	private final Params params;
-	@Getter private final DerivedParams derivedParams;
-	private final MasterScheduler masterScheduler;
-	private final ListenersCoordinator listenersCoordinator;
-	private ProgressBar bar;
-	private IDemandProcess demandProcess;
-	private IProductionProcess productionProcess;
-	private IRandomTimeIntervalGenerator theFailuresGenerator;
-	private IRandomTimeIntervalGenerator theRepairsGenerator;
-	private Event latestEvent;
-	private Machine machine;
-	private IPolicy policy;
-	private Metrics metrics;
-	private Recorders recorders;
-	private Clock clock;
-	private SurplusCostLowerBound surplusCostLowerBound;
-	
-	
-	public Sim(Params params) {
-		id = sims++;		
-		log.info("Creating "+this);
-		this.clock = new Clock(params.getMetricsStartTime());
-		this.masterScheduler = new MasterScheduler(this);
-		this.listenersCoordinator = new ListenersCoordinator();
-		this.params = params;
-		this.derivedParams = new DerivedParams(params);
-		
-		//Force computation of the lower bounds
-		getSurplusCostLowerBound();
-	}
+    // Some constants
+    public static final double SURPLUS_TOLERANCE = 1e-6;
 
-	/**
-	 * Runs the simulation. If verbose, it displays a progress bar.
-	 * 
-	 * @param verbose
-	 */
-	public void run(boolean verbose) {
-		log.info(String.format("Starting run of sim %s from file %s", this.getId(), this.params.getFile()));
-		//Schedule the first failure and set an initial control event
-		Event firstFailure = new Failure(this.getTime() + getTheFailuresGenerator().nextTimeInterval());		
-		this.getMasterScheduler().addEvent(firstFailure);
-		this.getMasterScheduler().addEvent(new ControlEvent(this.getTime()));
-		bar = new ProgressBar(5, getParams().getFinalTime());
+    private static int sims = 0;
 
-		// Main Loop of the Sim
-		while(continueSim()){
-			
-			log.trace("Sim time: " + getTime());
-			if (verbose) {
-				bar.setProgress(getTime());
-				bar.display();
-			}			
-											
-			//Process the next event
-			try {
-				getNextEvent().handle(this);
-			} catch (NullPointerException e){
-				log.fatal("Event returned was null!");
-				e.printStackTrace();
-				System.exit(-1);
-			}
+    private int                          id;
+    private final Params                 params;
+    @Getter private final DerivedParams          derivedParams;
+    private final MasterScheduler        masterScheduler;
+    private final ListenersCoordinator   listenersCoordinator;
+    private ProgressBar                  bar;
+    private IDemandProcess               demandProcess;
+    private IProductionProcess           productionProcess;
+    private IRandomTimeIntervalGenerator theFailuresGenerator;
+    private IRandomTimeIntervalGenerator theRepairsGenerator;
+    private Event                        latestEvent;
+    private Machine                      machine;
+    private IPolicy                      policy;
+    private Metrics                      metrics;
+    private Recorders                    recorders;
+    private Clock                        clock;
+    private SurplusCostLowerBound        surplusCostLowerBound;
 
-		}
-		
-		if (verbose) {
-			bar.setProgress(getTime());
-			bar.display();
-		}
-				
-		getRecorders().recordEndOfSim(this);
-	}
-	
-	public boolean continueSim() {
-		return (clock.getTime() < params.getFinalTime() && !eventsComplete());
-	}
+    public Sim(Params params) {
+        id = sims++;
+        log.info("Creating " + this);
+        this.clock = new Clock(params.getMetricsStartTime());
+        this.masterScheduler = new MasterScheduler(this);
+        this.listenersCoordinator = new ListenersCoordinator();
+        this.params = params;
+        this.derivedParams = new DerivedParams(params);
 
-	public IRandomTimeIntervalGenerator getTheFailuresGenerator() {
-		return theFailuresGenerator;
-	}
+        // Force computation of the lower bounds
+        getSurplusCostLowerBound();
+    }
 
-	public void setTheFailuresGenerator(
-			IRandomTimeIntervalGenerator theFailuresGenerator) {
-		this.theFailuresGenerator = theFailuresGenerator;
-	}
+    /**
+     * Runs the simulation. If verbose, it displays a progress bar.
+     * 
+     * @param verbose
+     */
+    public void run(boolean verbose) {
+        log.info(String.format("Starting run of sim %s from file %s", this.getId(), this.params.getFile()));
+        // Schedule the first failure and set an initial control event
+        Event firstFailure = new Failure(this.getTime().add(getTheFailuresGenerator().nextTimeInterval()));
+        this.getMasterScheduler().addEvent(firstFailure);
+        this.getMasterScheduler().addEvent(new ControlEvent(this.getTime()));
+        bar = new ProgressBar(5, getParams().getFinalTime());
 
-	public IRandomTimeIntervalGenerator getTheRepairsGenerator() {
-		return theRepairsGenerator;
-	}
+        // Main Loop of the Sim
+        while (continueSim()) {
 
-	public void setTheRepairsGenerator(
-			IRandomTimeIntervalGenerator theRepairsGenerator) {
-		this.theRepairsGenerator = theRepairsGenerator;
-	}
+            log.trace("Sim time: " + getTime());
+            if (verbose) {
+                bar.setProgress(getTime().doubleValue());
+                bar.display();
+            }
 
-	@Override
-	public String toString() {
-		return "Sim:"+id;
-	}
-	
-	public String toStringVerbose() {
-		return String.format("Sim %d with parameters:\n%s", id, params);		
-	}
+            // Process the next event
+            try {
+                getNextEvent().handle(this);
+            } catch (NullPointerException e) {
+                log.fatal("Event returned was null!");
+                e.printStackTrace();
+                System.exit(-1);
+            }
 
-	public Params getParams() {
-		return params;
-	}
+        }
 
-	public void setTime(double newTime) {
-		clock.advanceClockTo(newTime);
-	}
+        if (verbose) {
+            bar.setProgress(getTime().doubleValue());
+            bar.display();
+        }
 
-	public double getTime() {
-		return clock.getTime();
-	}
-	
-	public Clock getClock(){
-		return clock;
-	}
+        getRecorders().recordEndOfSim(this);
+    }
 
-	public MasterScheduler getMasterScheduler(){
-		return masterScheduler;
-	}
+    public boolean continueSim() {
+        return (!clock.hasReachedEpoch(params.getFinalTime()) && !eventsComplete());
+    }
 
-	public ListenersCoordinator getListenersCoordinator(){
-		return listenersCoordinator;
-	}
-	
-	public boolean eventsComplete() {
-		return masterScheduler.eventsComplete();
-	}
+    public IRandomTimeIntervalGenerator getTheFailuresGenerator() {
+        return theFailuresGenerator;
+    }
 
-	public Event getNextEvent() {
-		return masterScheduler.getNextEvent();
-	}
+    public void setTheFailuresGenerator(IRandomTimeIntervalGenerator theFailuresGenerator) {
+        this.theFailuresGenerator = theFailuresGenerator;
+    }
 
-	public Event getLatestEvent() {
-		return latestEvent;
-	}
+    public IRandomTimeIntervalGenerator getTheRepairsGenerator() {
+        return theRepairsGenerator;
+    }
 
-	public void setLatestEvent(Event latestEvent) {
-		this.latestEvent = latestEvent;
-	}
+    public void setTheRepairsGenerator(IRandomTimeIntervalGenerator theRepairsGenerator) {
+        this.theRepairsGenerator = theRepairsGenerator;
+    }
 
-	public Machine getMachine() {
-		return machine;
-	}
+    @Override
+    public String toString() {
+        return "Sim:" + id;
+    }
 
-	public void setMachine(Machine machine) {
-		this.machine = machine;
-	}
+    public String toStringVerbose() {
+        return String.format("Sim %d with parameters:\n%s", id, params);
+    }
 
-	public IPolicy getPolicy() {
-		return policy;
-	}
+    public Params getParams() {
+        return params;
+    }
 
-	public void setPolicy(IPolicy policy) {
-		this.policy = policy;
-	}
+    public void setTime(TimeInstant newTime) {
+        clock.advanceClockTo(newTime);
+    }
 
-	public Metrics getMetrics() {
-		return metrics;
-	}
+    public TimeInstant getTime() {
+        return clock.getTime();
+    }
 
-	public void setMetrics(Metrics theMetrics) {
-		this.metrics = theMetrics;
-	}
+    public Clock getClock() {
+        return clock;
+    }
 
-	public Recorders getRecorders() {
-		return recorders;
-	}
+    public MasterScheduler getMasterScheduler() {
+        return masterScheduler;
+    }
 
-	public void setRecorders(Recorders recorders) {
-		this.recorders = recorders;
-	}
+    public ListenersCoordinator getListenersCoordinator() {
+        return listenersCoordinator;
+    }
 
-	public IDemandProcess getDemandProcess(){
-		return demandProcess;
-	}
-	
-	public void setDemandProcess(IDemandProcess demandProcess){
-		this.demandProcess=demandProcess;
-	}
+    public boolean eventsComplete() {
+        return masterScheduler.eventsComplete();
+    }
 
-	public IProductionProcess getProductionProcess() {
-		return productionProcess;
-	}
+    public Event getNextEvent() {
+        return masterScheduler.getNextEvent();
+    }
 
-	public boolean hasDiscreteMaterial(){
-		//We cannot have mixed continuous and discrete processes, but just in case I check with OR.
-		return productionProcess.isDiscrete() || demandProcess.isDiscrete();
-	}
-	
-	public void setProductionProcess(IProductionProcess productionProcess) {
-		this.productionProcess = productionProcess;
-		this.machine.setProductionProcess(productionProcess);
-	}
-	
-	public int getId(){
-		return id;
-	}
-	
-	public boolean isTimeToRecordData() {
-		return clock.isTimeToRecordData();
-	}
-	
-	/**
-	 * Lazily computes and returns the surplus cost lower bound.
-	 * 
-	 * @return SurplusCostLowerBound
-	 */
-	public SurplusCostLowerBound getSurplusCostLowerBound() {
-		if (surplusCostLowerBound == null){
-			this.surplusCostLowerBound = new SurplusCostLowerBound("LB_SIM:"+id, params);
-			try {
-				this.surplusCostLowerBound.compute();
-				derivedParams.setSurplusCostLowerBound(surplusCostLowerBound);
-			} catch (Exception e) {
-				log.error("Could not compute the make to order lower bound", e);
-				e.printStackTrace();
-			}	
-		}
-		return surplusCostLowerBound;
-	}
+    public Event getLatestEvent() {
+        return latestEvent;
+    }
+
+    public void setLatestEvent(Event latestEvent) {
+        this.latestEvent = latestEvent;
+    }
+
+    public Machine getMachine() {
+        return machine;
+    }
+
+    public void setMachine(Machine machine) {
+        this.machine = machine;
+    }
+
+    public IPolicy getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(IPolicy policy) {
+        this.policy = policy;
+    }
+
+    public Metrics getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(Metrics theMetrics) {
+        this.metrics = theMetrics;
+    }
+
+    public Recorders getRecorders() {
+        return recorders;
+    }
+
+    public void setRecorders(Recorders recorders) {
+        this.recorders = recorders;
+    }
+
+    public IDemandProcess getDemandProcess() {
+        return demandProcess;
+    }
+
+    public void setDemandProcess(IDemandProcess demandProcess) {
+        this.demandProcess = demandProcess;
+    }
+
+    public IProductionProcess getProductionProcess() {
+        return productionProcess;
+    }
+
+    public boolean hasDiscreteMaterial() {
+        // We cannot have mixed continuous and discrete processes, but just in
+        // case I check with OR.
+        return productionProcess.isDiscrete() || demandProcess.isDiscrete();
+    }
+
+    public void setProductionProcess(IProductionProcess productionProcess) {
+        this.productionProcess = productionProcess;
+        this.machine.setProductionProcess(productionProcess);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public boolean isTimeToRecordData() {
+        return clock.isTimeToRecordData();
+    }
+
+    /**
+     * Lazily computes and returns the surplus cost lower bound.
+     * 
+     * @return SurplusCostLowerBound
+     */
+    public SurplusCostLowerBound getSurplusCostLowerBound() {
+        if (surplusCostLowerBound == null) {
+            this.surplusCostLowerBound = new SurplusCostLowerBound("LB_SIM:" + id, params);
+            try {
+                this.surplusCostLowerBound.compute();
+                derivedParams.setSurplusCostLowerBound(surplusCostLowerBound);
+            } catch (Exception e) {
+                log.error("Could not compute the make to order lower bound", e);
+                e.printStackTrace();
+            }
+        }
+        return surplusCostLowerBound;
+    }
 
 }

@@ -8,6 +8,7 @@ import static util.UtilMethods.c;
 import java.util.Optional;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
@@ -27,6 +28,7 @@ public class HZPImplGeneralizedHedgingZonePolicyTest extends AbstractPolicyTest 
         this.policy = new HZPImplGeneralizedHedgingZonePolicy();
     }
 
+    @Ignore("Ignoring this test because we are no longer throwing an exception")
     @Test
     public void testCruisingNotAllowed() {
 

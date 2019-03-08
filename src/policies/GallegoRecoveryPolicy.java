@@ -20,6 +20,7 @@ import sequences.OptimalFCyclicSchedule;
 import sequences.OptimalSequenceFinder;
 import sequences.ProductionSequence;
 import sim.Sim;
+import sim.TimeInstant;
 import system.Item;
 
 @CommonsLog
@@ -38,7 +39,7 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
     // Variables regarding the current control cycle
     private GRPControlCycle controlCycle;
     private GRPRunInfo currentRun;
-    private Double currentRunStartTime;
+    private TimeInstant currentRunStartTime;
 
     @Override
     public void setUpPolicy(final Sim sim) {
@@ -121,11 +122,11 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
     protected ControlEvent onReady() {
         if ( this.currentRunStartTime == null ) {
             this.currentRunStartTime = this.clock.getTime();
-            log.trace(String.format("Starting run %s at time %.2f", this.currentRun, this.currentRunStartTime));
+            log.trace(String.format("Starting run %s at time %.2f", this.currentRun, this.currentRunStartTime.doubleValue()));
         }
         double remainingTime = this.getTimeRemainingCurrentRun();
         log.trace(String.format("Machine should continue sprinting for %.2f more time units", remainingTime));
-        return new ControlEvent(this.clock.getTime() + remainingTime);
+        return new ControlEvent(this.clock.getTime().add(remainingTime));
     }
 
     @Override
@@ -158,7 +159,8 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
             return 0.0;
         }
         // If the current run start time is null, the run has not started so elapsed time is 0
-        double elapsedTime = this.currentRunStartTime == null ? 0 : this.clock.getTime() - this.currentRunStartTime;
+        double elapsedTime = this.currentRunStartTime == null ? 0 :
+            this.clock.getTime().subtract(this.currentRunStartTime).doubleValue();
         return Math.max(0, this.currentRun.getRunDuration() - elapsedTime );
     }
 

@@ -2,6 +2,7 @@ package metrics.surplusstatistics;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import sim.TimeInstant;
 
 /**
  * Computes the surplus statistics on-line, without the need to store the whole
@@ -19,38 +20,38 @@ public class StreamSurplusStatisticsCalculator extends AbstractSurplusStatistics
     private double serviceLevel;
     private double minSurplus = Double.POSITIVE_INFINITY;
     private double maxSurplus = Double.NEGATIVE_INFINITY;
-    private double initialTime;
-    private double finalTime;
+    private TimeInstant initialTime;
+    private TimeInstant finalTime;
 
     @Getter(AccessLevel.NONE)
-    private Double previousTime    = null;
+    private TimeInstant previousTime    = null;
     @Getter(AccessLevel.NONE)
     private Double previousSurplus = null;
 
-    public void addPoint(double time, double surplus) {
+    public void addPoint(TimeInstant time, double surplus) {
 
         if (previousTime == null) {
             // First time the function is called
             initialTime = time;
         } else {
 
-            if ( time < previousTime ) {
+            if ( !time.hasReachedEpoch(previousTime) ) {
                 throw new IllegalArgumentException(
-                        String.format("A data point for time %.3f was given, but the calculator is currently at time %.3f",
+                        String.format("A data point for time %s was given, but the calculator is currently at time %s",
                                 time, this.previousTime));
             }
             
-            if (time > initialTime) {
-                double prevDeltaT = finalTime - initialTime;
-                double newDeltaT = time - initialTime;
+            if (time.hasPassedEpoch(initialTime)) {
+                double prevDeltaT = finalTime.subtract(initialTime).doubleValue();
+                double newDeltaT = time.subtract(initialTime).doubleValue();
                 averageInventory = (averageInventory * prevDeltaT
-                        + findAreaAboveXAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
+                        + findAreaAboveTimeAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
 
                 averageBacklog = (averageBacklog * prevDeltaT
-                        + findAreaBelowXAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
+                        + findAreaBelowTimeAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
 
                 serviceLevel = (serviceLevel * prevDeltaT
-                        + findPeriodAboveXAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
+                        + findPeriodAboveTimeAxis(previousTime, previousSurplus, time, surplus)) / newDeltaT;
 
             }
         }

@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import sim.Clock;
 import sim.Sim;
+import sim.TimeInstant;
 
 /**
  * The main schedule object used to get access and update events in the
@@ -47,9 +48,9 @@ public class MasterScheduler {
      */
     public void addEvent(Event e) {
         if (e != null) {
-            if (e.time < clock.getTime()) {
+            if (e.time.compareTo(clock.getTime()) < 0) {
                 throw new RuntimeException(
-                        String.format("Cannot add events that occur in the past (event time %.5f, current time %.5f",
+                        String.format("Cannot add events that occur in the past (event time %s, current time %s",
                                 e.time, clock.getTime()));
             }
             logger.trace("Adding event " + e + " to the master schedule");
@@ -74,10 +75,10 @@ public class MasterScheduler {
     public Event getNextEvent() {
 
         ScheduleType nextType = null;
-        double nextEventTime = Double.MAX_VALUE;
+        TimeInstant nextEventTime = TimeInstant.INFINITY;
 
         for (ScheduleType st : ScheduleType.values()) {
-            if (!schedules.get(st).eventsComplete() && schedules.get(st).nextEventTime() < nextEventTime) {
+            if (!schedules.get(st).eventsComplete() && schedules.get(st).nextEventTime().compareTo(nextEventTime) < 0 ) {
                 // Note that because we use a < sign here, if two or more
                 // events occur at the same time, the first schedule type wins.
                 nextType = st;
@@ -96,13 +97,13 @@ public class MasterScheduler {
      * 
      * @return
      */
-    public double nextEventTime() {
+    public TimeInstant nextEventTime() {
 
         ScheduleType nextType = null;
-        double nextEventTime = Double.MAX_VALUE;
+        TimeInstant nextEventTime = TimeInstant.INFINITY;
 
         for (ScheduleType st : ScheduleType.values()) {
-            if (!schedules.get(st).eventsComplete() && schedules.get(st).nextEventTime() < nextEventTime) {
+            if (!schedules.get(st).eventsComplete() && schedules.get(st).nextEventTime().compareTo(nextEventTime) < 0 ) {
                 nextType = st;
                 nextEventTime = schedules.get(st).nextEventTime();
             }
@@ -153,12 +154,16 @@ public class MasterScheduler {
         }
     }
 
+    public void delayEvents(double delay) {
+        delayEvents(new TimeInstant(delay));
+    }
+
     /**
      * Delays all events in schedules that are delayable.
      * 
      * @param delay
      */
-    public void delayEvents(double delay) {
+    public void delayEvents(TimeInstant delay) {
         for (ScheduleType st : ScheduleType.values()) {
             if (st.isDelayable()) {
                 if (trace) {

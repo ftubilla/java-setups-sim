@@ -19,6 +19,7 @@ import params.PolicyParams.PolicyParamsBuilder;
 import processes.generators.IRandomTimeIntervalGenerator;
 import sim.Clock;
 import sim.Sim;
+import sim.TimeInstant;
 import system.Machine;
 
 public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
@@ -74,28 +75,28 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
         this.advanceUntilTime( setup1, sim, 10);
         assertTrue( machine.isSetupComplete() );
         assertEquals( machine.getItemById(1), machine.getSetup() );
-        this.advanceUntilTime( clock.getTime() + this.grpPolicy.getSprintingTimeTargetCurrentRun(), sim, 10);
+        this.advanceUntilTime( clock.getTime().doubleValue() + this.grpPolicy.getSprintingTimeTargetCurrentRun(), sim, 10);
 
         // Production run item 0
         assertTrue( machine.isChangingSetups() );
-        this.advanceUntilTime(clock.getTime() + setup0, sim, 10);
+        this.advanceUntilTime(clock.getTime().doubleValue() + setup0, sim, 10);
         assertTrue( machine.isSetupComplete() );
         assertEquals( machine.getItemById(0), machine.getSetup() );
-        this.advanceUntilTime( clock.getTime() + this.grpPolicy.getSprintingTimeTargetCurrentRun(), sim, 10);
+        this.advanceUntilTime( clock.getTime().doubleValue() + this.grpPolicy.getSprintingTimeTargetCurrentRun(), sim, 10);
         
         // Production run item 2
         assertTrue( machine.isChangingSetups() );
-        this.advanceUntilTime(clock.getTime() + setup2, sim, 10);
+        this.advanceUntilTime(clock.getTime().doubleValue() + setup2, sim, 10);
         assertTrue( machine.isSetupComplete() );
         assertEquals( machine.getItemById(2), machine.getSetup() );
-        this.advanceUntilTime( clock.getTime() + this.grpPolicy.getSprintingTimeTargetCurrentRun(), sim, 10);
+        this.advanceUntilTime( clock.getTime().doubleValue() + this.grpPolicy.getSprintingTimeTargetCurrentRun(), sim, 10);
 
         // Production run item 1 again (new cycle)
         assertTrue( machine.isChangingSetups() );
-        this.advanceUntilTime(clock.getTime() + setup1, sim, 10);
+        this.advanceUntilTime(clock.getTime().doubleValue() + setup1, sim, 10);
         assertTrue( machine.isSetupComplete() );
         assertEquals( machine.getItemById(1), machine.getSetup() );
-        this.advanceUntilTime( clock.getTime() + this.grpPolicy.getSprintingTimeTargetCurrentRun(), sim, 10);
+        this.advanceUntilTime( clock.getTime().doubleValue() + this.grpPolicy.getSprintingTimeTargetCurrentRun(), sim, 10);
     }
 
     /**
@@ -112,9 +113,9 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
         this.advanceUntilTime( setup1, sim, 10);
         assertTrue( machine.isSetupComplete() );
         assertEquals( machine.getItemById(1), machine.getSetup() );
-        double currentTime = clock.getTime();
-        double runEndTime = currentTime + this.grpPolicy.getSprintingTimeTargetCurrentRun();
-        double deltaTime = runEndTime - currentTime;
+        TimeInstant currentTime = clock.getTime();
+        TimeInstant runEndTime = currentTime.add(this.grpPolicy.getSprintingTimeTargetCurrentRun());
+        double deltaTime = runEndTime.subtract(currentTime).doubleValue();
         // Generate a failover at 0.1 * delta with repair of 0.5 delta
         sim.setTheRepairsGenerator( new IRandomTimeIntervalGenerator() {
             @Override
@@ -134,8 +135,8 @@ public class GallegoRecoveryPolicyTest extends AbstractPolicyTest {
                 return Double.MAX_VALUE;
             }
         });
-        sim.getMasterScheduler().addEvent( new Failure(currentTime + 0.1 * deltaTime));
-        this.advanceUntilTime( runEndTime, sim, 10);
+        sim.getMasterScheduler().addEvent( new Failure(currentTime.add(0.1 * deltaTime)) );
+        this.advanceUntilTime( runEndTime.doubleValue(), sim, 10);
         assertTrue( "The machine should be changing setups at this point", machine.isChangingSetups() );
     }
     

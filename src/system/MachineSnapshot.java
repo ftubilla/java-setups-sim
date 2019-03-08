@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import sim.Clock;
+import sim.TimeInstant;
 
 public class MachineSnapshot {
     private static Logger logger = Logger.getLogger(MachineSnapshot.class);
@@ -16,7 +17,7 @@ public class MachineSnapshot {
 
     private Map<Item, Double> surplus;
     private Map<Item, Double> surplusDeviations;
-    private double            snapshotTime;
+    private TimeInstant            snapshotTime;
 
     public MachineSnapshot(Machine machine, Clock clock) {
 
@@ -36,7 +37,7 @@ public class MachineSnapshot {
         return surplusDeviations.get(item);
     }
 
-    public double getSnapshotTime() {
+    public TimeInstant getSnapshotTime() {
         return snapshotTime;
     }
 

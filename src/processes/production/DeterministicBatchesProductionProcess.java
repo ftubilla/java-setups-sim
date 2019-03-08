@@ -3,12 +3,13 @@ package processes.production;
 import java.util.HashMap;
 import java.util.Map;
 
-import sim.Sim;
-import system.Item;
 import discreteEvent.Event;
 import discreteEvent.MasterScheduler;
 import discreteEvent.ProductionDeparture;
 import discreteEvent.ScheduleType;
+import sim.Sim;
+import sim.TimeInstant;
+import system.Item;
 
 public class DeterministicBatchesProductionProcess implements IProductionProcess {
 
@@ -17,8 +18,8 @@ public class DeterministicBatchesProductionProcess implements IProductionProcess
 	private MasterScheduler masterScheduler;
 
 	@Override
-	public ProductionDeparture getNextProductionDeparture(Item item, double currentTime) {
-		return new ProductionDeparture(item, currentTime + interDepartureTimes.get(item), batchSizes.get(item));
+	public ProductionDeparture getNextProductionDeparture(Item item, TimeInstant currentTime) {
+		return new ProductionDeparture(item, currentTime.add(interDepartureTimes.get(item)), batchSizes.get(item));
 	}
 
 	@Override
@@ -41,12 +42,12 @@ public class DeterministicBatchesProductionProcess implements IProductionProcess
 	}
 	
 	@Override
-	public double getNextScheduledProductionDepartureTime(Item item) {
+	public TimeInstant getNextScheduledProductionDepartureTime(Item item) {
 		Event nextEvent = masterScheduler.getSchedule(ScheduleType.PRODUCTION).peekNextEvent();
 		assert nextEvent instanceof ProductionDeparture;
 		if (nextEvent==null || ((ProductionDeparture) nextEvent).getItem()!=item){
 			//THere are no scheduled productions of this item
-			return Double.MAX_VALUE;
+			return TimeInstant.INFINITY;
 		}
 		return nextEvent.getTime();
 	}

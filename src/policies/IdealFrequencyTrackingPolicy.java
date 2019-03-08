@@ -143,7 +143,7 @@ public class IdealFrequencyTrackingPolicy extends AbstractPolicy {
 
 
 	private double computeAveTimeBetweenRuns(Item item){
-		double timeBetweenRunsIfProduced = clock.getTime() - machine.getLastSetupTime(item);
+		double timeBetweenRunsIfProduced = clock.getTime().subtract(machine.getLastSetupTime(item)).doubleValue();
 		return (1-learningRate) * aveTimeBetweenRuns.get(item) + learningRate * timeBetweenRunsIfProduced;		
 	}
 	
