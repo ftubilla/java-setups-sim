@@ -8,7 +8,9 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
 
 import lombok.extern.apachecommons.CommonsLog;
 import sim.Sim;
@@ -97,8 +99,8 @@ public class LinearHedgingZonePolicyV6 extends GeneralizedHedgingZonePolicy {
 
     @Override
     protected boolean isInTheHedgingZone(Machine machine, Item item, double deltaZ) {
-        // Note that we shrink the hedging zone in proportion to the mu factor
-        return getTarget(item) - item.getSurplus() <=  deltaZ * this.muFactor.get(item);
+        // Note that we DO NOT alter the size of the hedging zone
+        return getTarget(item) - item.getSurplus() <= deltaZ;
     }
 
     @Override
@@ -119,11 +121,11 @@ public class LinearHedgingZonePolicyV6 extends GeneralizedHedgingZonePolicy {
 
     @Override
     protected Optional<Item> selectItemFromReadySet(final Set<Item> readyItems) {
-        // Note that we use the shrunk hedging zone size
+        // Note that we DO NOT alter the hedging zon esize
         Optional<Pair<Item, Double>> maximizingPairOpt = 
                 readyItems.stream()
                 .map( item -> Pair.of(item,
-                   this.getSurplusDeviation(this.machine, item) / ( this.hedgingZoneSize.get(item) * this.muFactor.get(item) ) ) )
+                   this.getSurplusDeviation(this.machine, item) / this.hedgingZoneSize.get(item) ) )
                 .max( Comparator.comparingDouble( ( Pair<Item, Double> pair ) -> pair.getRight() ) );
         Item returnItem = null;
         if ( maximizingPairOpt.isPresent() ) {
@@ -190,6 +192,21 @@ public class LinearHedgingZonePolicyV6 extends GeneralizedHedgingZonePolicy {
             factors.put(item, factor);
         }
         return factors;
+    }
+
+    @Override
+    public Optional<Table<String, String, Object>> getDataToRecordBeforeControl() {
+        Table<String, String, Object> table = HashBasedTable.create();
+        for (Item item : this.machine) {
+            String itemId = String.format("%d", item.getId());
+            table.put("NOMINAL_TARGET", itemId, item.getSurplusTarget());
+            table.put("TARGET_SHIFT", itemId, nominalTargetShift.get(item));
+            table.put("HEDGING_ZONE_SIZE", itemId, this.hedgingZoneSize.get(item));
+            table.put("MODIFIED_TARGET", itemId, getTarget(item));
+            table.put("SURPLUS", itemId, item.getSurplus());
+            table.put("CURRENT_SETUP", itemId, this.currentSetup.getId());
+        }
+        return Optional.of(table);
     }
 
 }

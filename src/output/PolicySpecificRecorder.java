@@ -11,7 +11,7 @@ import discreteEvent.Event;
 import sim.Sim;
 
 /**
- * A general purporse key-value table for recording policy-specific data.
+ * A general purpose key-value table for recording policy-specific data.
  */
 public class PolicySpecificRecorder extends Recorder {
 
