@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.joptimizer.functions.ConvexMultivariateRealFunction;
 
@@ -30,20 +31,19 @@ public abstract class AbstractLowerBound {
 
     // TODO Add more unit tests to ensure that things are working properly!
 
-    protected final Params                                     params;
-    private final String                                       name;
-    @Getter
-    private Double                                             lowerBound;
-    @Getter
-    private Boolean                                            isCruising;
-    private final SingleIndexOptimizationVar<Integer>          setupFreq;
-    private final DoubleIndexOptimizationVar<Integer, Integer> transitionFreq;
-    private final SingleIndexOptimizationVar<Integer>          cruisingFrac;
+    protected final Params params;
+    private final String name;
+    @VisibleForTesting @Getter protected final SingleIndexOptimizationVar<Integer> setupFreq;
+    @VisibleForTesting @Getter protected final DoubleIndexOptimizationVar<Integer, Integer> transitionFreq;
+    @VisibleForTesting @Getter protected final SingleIndexOptimizationVar<Integer> cruisingFrac;
 
     private final OptimizationProblem opt;
-    private final List<Integer>       items;
+    private final List<Integer> items;
     // Scale by (1-rho/e)
-    @Getter private final double              scalingFactor;
+    @VisibleForTesting protected final double scalingFactor;
+
+    @Getter private Double lowerBound;
+    @Getter private Boolean isCruising;
 
     public AbstractLowerBound(String name, Params params) {
         this.name = name;
@@ -69,13 +69,28 @@ public abstract class AbstractLowerBound {
         opt.addVar(cruisingFrac);
     }
 
-    public abstract Posynomial getObjectivePosynomial(Params params, SingleIndexOptimizationVar<Integer> setupFreq,
+    /**
+     * Generates the objective function to minimize using the <i>original, unscaled</i> variables. That is,
+     * all variables are multiplied by the given scaling factor in order to recover the original (unscaled)
+     * optimization objective.
+     * 
+     * @param params
+     * @param setupFreq
+     * @param transitionFreq
+     * @param nonCruisingFrac
+     * @param scalingFactor
+     * @return objective function
+     */
+    public abstract Posynomial getUnscaledObjectivePosynomial(Params params, SingleIndexOptimizationVar<Integer> setupFreq,
             DoubleIndexOptimizationVar<Integer, Integer> transitionFreq,
-            SingleIndexOptimizationVar<Integer> nonCruisingFrac);
+            SingleIndexOptimizationVar<Integer> nonCruisingFrac,
+            double scalingFactor);
 
     public void compute() throws Exception {
 
-        final Posynomial objPosynomial = getObjectivePosynomial(params, setupFreq, transitionFreq, cruisingFrac);
+        final Posynomial objPosynomial = getUnscaledObjectivePosynomial(params, setupFreq, transitionFreq, cruisingFrac, scalingFactor);
+        // Re-scale the objective, since as 1 - rho/e tends to 0 the obj tends to grow
+        objPosynomial.mult(this.scalingFactor);
         ConvexMultivariateRealFunction objFunction = objPosynomial.getConvexFunction(opt.getVariablesMap());
         opt.setObj(objFunction);
 
@@ -162,16 +177,18 @@ public abstract class AbstractLowerBound {
         opt.setTolerance(1e-5);
         opt.setToleranceFeas(1e-5);
         opt.solve();
-        lowerBound = opt.getOptimalCost();
-        log.debug(String.format("The lower bound cost is %.5f", lowerBound / this.scalingFactor));
+        // Unscale the cost
+        this.lowerBound = opt.getOptimalCost() / this.scalingFactor;
+        log.debug(String.format("The lower bound cost is %.5f", this.lowerBound));
 
         // Assume that the bound does not prescribe cruising and then check
         this.isCruising = false;
         for (int i : items) {
             log.debug(String.format("The ideal setup frequency of item %d is %.5f", i, getIdealFrequency(i)));
             log.debug(String.format("The ideal cruising fraction of item %d is %.5f", i, getCruisingFrac(i)));
-            if ( getCruisingFrac(i) > 0.0 + 1e-5) {
-                // TODO Set this tolerance in a better way, perhaps as a function of the cruising fraction
+            if (getCruisingFrac(i) > 0.0 + 1e-5) {
+                // TODO Set this tolerance in a better way, perhaps as a
+                // function of the cruising fraction
                 log.debug(String.format("The policy should cruise because of item %d", i));
                 this.isCruising = true;
             }

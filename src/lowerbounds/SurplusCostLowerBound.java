@@ -12,6 +12,13 @@ import optimization.Posynomial;
 import optimization.SingleIndexOptimizationVar;
 import params.Params;
 
+/**
+ * Solves a lower bound optimization problem that minimizes the cost given by
+ * <pre>
+ *      (1/2) d_i * ( 1 - rho_i / e ) * (hi * bi) / (hi + bi) * ( 1 - pic )^2 / ni.
+ * </pre>
+ * 
+ */
 @CommonsLog
 public class SurplusCostLowerBound extends AbstractLowerBound {
 
@@ -23,9 +30,9 @@ public class SurplusCostLowerBound extends AbstractLowerBound {
     }
 
     @Override
-    public Posynomial getObjectivePosynomial(Params params, SingleIndexOptimizationVar<Integer> setupFreq,
+    public Posynomial getUnscaledObjectivePosynomial(Params params, SingleIndexOptimizationVar<Integer> setupFreq,
             DoubleIndexOptimizationVar<Integer, Integer> transitionFreq,
-            SingleIndexOptimizationVar<Integer> cruisingFrac) {
+            SingleIndexOptimizationVar<Integer> cruisingFrac, double scalingFactor) {
         final Posynomial objPosynomial = new Posynomial();
         for (int i = 0; i < params.getNumItems(); i++) {
 
@@ -47,14 +54,12 @@ public class SurplusCostLowerBound extends AbstractLowerBound {
             Monomial m1 = new Monomial();
             Monomial m2 = new Monomial();
             Monomial m3 = new Monomial();
-            // TODO Clean up the scaling because there's a missing 1/(1-rho/e) term that is applied in the parent class,
-            // it should be applied here
-            // coeff / nI
-            m1.mult(coeff).mult(nI, -1.0);
-            // - 2 coeff pcI / nI
-            m2.mult(coeff).mult(getScalingFactor()).mult(-2).mult(pcI, 1).mult(nI, -1.0);
-            // coeff pcI^2 / nI
-            m3.mult(coeff).mult(Math.pow(getScalingFactor(),2)).mult(pcI, 2).mult(nI, -1.0);
+            // coeff / (nI_scaled * scaling_factor)
+            m1.mult(coeff / scalingFactor).mult(nI, -1.0);
+            // - 2 coeff pcI_scaled / nI_scaled
+            m2.mult(coeff).mult(-2).mult(pcI, 1).mult(nI, -1.0);
+            // coeff * (pcI_scaled * scaling_factor)^2 / ( nI_sc * scaling_factor )
+            m3.mult(coeff).mult( scalingFactor ).mult(pcI, 2).mult(nI, -1.0);
             objPosynomial.add(m1).add(m2).add(m3);
         }
         return objPosynomial;
