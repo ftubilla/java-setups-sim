@@ -76,18 +76,6 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
     @Test
     public abstract void testIsTargetBased();
 
-    /**
-     * Creates and sets up a new sim instance for testing.
-     * 
-     * @param params
-     * @return Sim
-     */
-    protected Sim getSim(Params params) {
-        Sim sim = new Sim(params);
-        SimSetup.setup(sim, new Recorders());
-        return sim;
-    }
-
     protected void advanceUntilTime(double time, Sim sim, int maxEvents) {
         log.debug(String.format("Advancing sim to time %s. Current time %s", time, sim.getClock().getTime()));
         // Add a control event at current time if there are no events in the sim (typically at startup)

@@ -13,11 +13,12 @@ import sim.Sim;
  */
 public interface IEventListener {
 
-	/**
-	 * The method called when the event occurs. 
-	 * @param event that triggered the listener
-	 */
-	public void execute(Event event, Sim sim);
+    /**
+     * The method called when the event occurs.
+     * 
+     * @param event - the event that triggered the listener
+     */
+    public void execute(Event event, Sim sim);
 
-	public int getId();
+    public int getId();
 }

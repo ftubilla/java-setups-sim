@@ -12,7 +12,7 @@ package discreteEvent;
  */
 public interface IScheduleTrigger {
 
-	public void trigger(Event eventAdded);
-	
-	public int getId();
+    public void trigger(Event eventAdded);
+
+    public int getId();
 }

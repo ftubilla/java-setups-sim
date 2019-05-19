@@ -20,6 +20,10 @@ public class TimeInstant extends Number implements Comparable<TimeInstant> {
 
     private final BigDecimal time;
 
+    public static TimeInstant at(final double time) {
+        return new TimeInstant(time);
+    }
+
     public TimeInstant(final double time) {
         this( new BigDecimal(time) );
     }
