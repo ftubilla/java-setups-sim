@@ -69,8 +69,7 @@ public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
             throw new RuntimeException("Cruising is not implemented yet");
         }
         if ( sim.getSurplusCostLowerBound().getIsCruising() ) {
-            log.error("The sim instance is a cruising instance (according to the lower bound), but cruising is not enabled in this policy!");
-            // TODO Record this warning somewhere
+            log.warn("The sim instance is a cruising instance (according to the lower bound), but cruising is not enabled in this policy!");
         }
 
     }
@@ -132,13 +131,14 @@ public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
             return null;
         }
 
-        // Compute the set R(1) of items whose deviation exceeds the hedging zone
+        // Compute the set of items R(1) whose deviation exceeds the hedging zone
         Set<Item> hedgingZoneReadyItems = this.sortedItems.stream()
                 .filter( item -> !this.isInTheHedgingZone(this.machine, item, this.hedgingZoneSize.get(item)) )
                 .peek(item -> log.trace(String.format("%s is in the set R(1)", item)))
                 .collect(Collectors.toSet());
 
-        // Determine the ready set by taking the highest priority items in R(1) or, if it's empty, all the items
+        // Determine the ready set by taking the highest priority items outside their hedging zone
+        // If all items are in their hedging zone, then consider them all
         Set<Item> readyItems = new HashSet<Item>();
         if ( !hedgingZoneReadyItems.isEmpty() ) {
             // Case 1: set R(1) is non-empty. Get the highest priority items
@@ -160,9 +160,10 @@ public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
                 }
             }
         } else {
-            // Case 2: set R(1) is empty. Set to all items
+            // Case 2: set R(1) is empty. Set to all items (except for the current setup)
             log.debug("The ready set R(1) is empty. Adding all items to the ready set");
             readyItems.addAll( this.sortedItems );
+            readyItems.remove( this.currentSetup );
         }
 
         // Final step: select the ready item with the highest ratio of deviation to threshold difference
@@ -177,8 +178,10 @@ public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
     }
 
     protected Optional<Item> selectItemFromReadySet(final Set<Item> readyItems) {
+        // Sort by increasing index so that in case of ties the lowest-index is returned
         Optional<Pair<Item, Double>> maximizingPairOpt = 
                 readyItems.stream()
+                .sorted(Comparator.comparingInt(Item::getId))
                 .map( item -> Pair.of(item,
                    this.getSurplusDeviation(this.machine, item) / this.hedgingZoneSize.get(item) ) )
                 .max( Comparator.comparingDouble( ( Pair<Item, Double> pair ) -> pair.getRight() ) );

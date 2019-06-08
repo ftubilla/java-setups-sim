@@ -4,9 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static util.UtilMethods.c;
 
+import java.util.Optional;
+
+import javax.management.RuntimeErrorException;
+
 import org.junit.Before;
+import org.junit.Test;
 
 import params.Params;
+import params.PolicyParams;
 import sim.Sim;
 
 public class LanAndOlsenPolicyTest extends AbstractPolicyTest {
@@ -35,9 +41,6 @@ public class LanAndOlsenPolicyTest extends AbstractPolicyTest {
         Sim sim = getSim(params);
         policy.setUpPolicy(sim);
         policy.currentSetup = sim.getMachine().getItemById(0);
-        System.out.println(sim.getSurplusCostLowerBound().getIdealSurplusDeviation(0) + "," +
-                sim.getSurplusCostLowerBound().getIdealSurplusDeviation(1) + "," +
-                sim.getSurplusCostLowerBound().getIdealSurplusDeviation(2));
         assertEquals("Items 1 and 2 have the same deviation ratio, we should prefer the lowest ID", 1,
                 policy.nextItem().getId());
 
@@ -49,6 +52,21 @@ public class LanAndOlsenPolicyTest extends AbstractPolicyTest {
         policy.setUpPolicy(sim);
         assertEquals("Since item 2 has a larger dev. ratio, we should produce it next", 2, policy.nextItem().getId());
 
+    }
+
+    @Test
+    public void testCruisingNotEnabledException() {
+        Params params = Params.builder()
+                .policyParams(PolicyParams.builder().userDefinedIsCruising(Optional.of(true)).build())
+                .build();
+        Sim sim = getSim(params);
+        boolean exceptionThrown = false;
+        try {
+            policy.setUpPolicy(sim);
+        } catch ( RuntimeException e ) {
+            exceptionThrown = true;
+        }
+        assertTrue(exceptionThrown);
     }
 
     @Override

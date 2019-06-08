@@ -1,6 +1,7 @@
 package policies;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static util.UtilMethods.c;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableList;
 
 import discreteEvent.ControlEvent;
+import discreteEvent.Event;
 import lombok.extern.apachecommons.CommonsLog;
 import output.Recorders;
 import params.Params;
@@ -59,10 +61,11 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
             .inventoryHoldingCosts(c(1.0, 1.0))
             .backlogCosts(c(1.0, 1.0))
             .policyParams( policyParamsBuilder.build() );
-        
+
         Sim sim = new Sim(paramsBuilder.build());
         SimSetup.setup(sim, new Recorders());
         policy.setUpPolicy(sim);
+        policy.currentSetup = sim.getMachine().getSetup();
         assertFalse("The item is still below target", policy.isTimeToChangeOver());
 
         // Make sure that if it's not time to changeover, we return null
@@ -99,6 +102,29 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
         if ( events == maxEvents ) {
             throw new RuntimeException(String.format("Reached the maximum number of allowed events (%d). Current sim time %.2f",
                     events, sim.getClock().getTime().doubleValue()));
+        }
+    }
+
+    /**
+     * Advances the sim until the last event <i>before</i> the next occurrence of an event of the given type. The latter
+     * event is not handled and remains in the schedule for subsequent execution.
+     * 
+     * @param sim
+     * @param eventType
+     */
+    protected void advanceUntilBeforeEventOfType(Sim sim, Class<? extends Event> eventType) {
+        if ( sim.getMasterScheduler().nextEventTime().equals(TimeInstant.INFINITY) ) {
+            log.warn("No more events in sim. Adding a control event at the current time to jump start the sim");
+            sim.getMasterScheduler().addEvent( new ControlEvent(sim.getTime()) );
+        }
+        while( !sim.getMasterScheduler().eventsComplete() ) {
+            if ( sim.getMasterScheduler().nextEventType().equals(eventType) ) {
+                // next event matches the specified type; do not handle and break
+                break;
+            } else {
+                // retrieve the event and handle
+                sim.getMasterScheduler().getNextEvent().handle(sim);
+            }
         }
     }
 

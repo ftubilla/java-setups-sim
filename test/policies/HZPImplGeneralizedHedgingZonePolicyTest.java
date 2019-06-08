@@ -111,15 +111,24 @@ public class HZPImplGeneralizedHedgingZonePolicyTest extends AbstractPolicyTest 
                 2, policy.nextItem().getId());
 
         // Now give items 1 and 2 the same y/DZ ratio. We should switch to 1
-        // because that's the next one
+        // because that's the lowest index one
         policyParamsBuilder.userDefinedLowerHedgingPoints(Optional.of(c(-5.0, -15.0, -15.0)));
         paramsBuilder.policyParams(policyParamsBuilder.build());
         Sim sim4 = getSim(paramsBuilder.build());
         policy.setUpPolicy(sim4);
         policy.currentSetup = sim4.getMachine().getItemById(0);
-        assertTrue("Items 1 and 2 are tied. Next item could be 1 or 2", 
-                policy.nextItem().getId()  == 1 ||
-                    policy.nextItem().getId() == 2 );
+        assertTrue("Items 1 and 2 are tied. Next item should be 1", 
+                policy.nextItem().getId()  == 1);
+
+        // Finally, tie all items (including item 0). We should ignore item 0 since it's the current setup
+        policyParamsBuilder.userDefinedLowerHedgingPoints(Optional.of(c(-15.0, -15.0, -15.0)));
+        paramsBuilder.policyParams(policyParamsBuilder.build());
+        paramsBuilder.initialDemand(c(0.0, 0.0, 0.0));
+        Sim sim5 = getSim(paramsBuilder.build());
+        policy.setUpPolicy(sim5);
+        policy.currentSetup = sim5.getMachine().getItemById(0);
+        assertTrue("Items 0, 1, and 2 are tied. Next item should be 1",
+                policy.nextItem().getId() == 1);
     }
 
     @Override

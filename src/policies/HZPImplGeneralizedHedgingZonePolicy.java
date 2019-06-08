@@ -5,7 +5,7 @@ import system.Item;
 import system.Machine;
 
 /**
- * A simple implemenation of the (non-cruising) HZP using the structure from {@link GeneralizedHedgingZonePolicy}.
+ * A simple implementation of the (non-cruising) HZP using the structure from {@link GeneralizedHedgingZonePolicy}.
  * 
  * @author ftubilla
  *

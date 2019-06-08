@@ -23,6 +23,7 @@ public class Sim {
 
     // Some constants
     public static final double SURPLUS_TOLERANCE = 1e-6;
+    public static final double SURPLUS_RELATIVE_TOLERANCE = 1e-6;
 
     private static int sims = 0;
 

@@ -32,7 +32,7 @@ public class ClearTheLargestDeviationWorkPolicyTest extends AbstractPolicyTest {
         Sim sim = getSim(params);
         policy.setUpPolicy(sim);
         policy.currentSetup = sim.getMachine().getItemById(0);
-        assertEquals("Item 2 has the largest backlog work and should be the next setup", 2, policy.nextItem().getId());
+        assertEquals("Item 2 has the largest deviation work and should be the next setup", 2, policy.nextItem().getId());
 
         // All non-setup items have the same backlog work, change to something
         // different than the current setup and break ties by id

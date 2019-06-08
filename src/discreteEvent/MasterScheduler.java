@@ -28,15 +28,17 @@ public class MasterScheduler {
     private Clock                       clock;
 
     public MasterScheduler(Sim sim) {
+        this(sim.getClock());
+    }
 
+    public MasterScheduler(Clock clock) {
         logger.debug("Creating the master schedule and initializing each schedule");
         schedules = new HashMap<ScheduleType, Schedule>();
         for (ScheduleType st : ScheduleType.values()) {
-            schedules.put(st, new Schedule(st, sim.getClock()));
+            schedules.put(st, new Schedule(st, clock));
         }
         scheduleTriggers = new LinkedList<IScheduleTrigger>();
-        this.clock = sim.getClock();
-
+        this.clock = clock;
     }
 
     /**
@@ -98,20 +100,35 @@ public class MasterScheduler {
      * @return
      */
     public TimeInstant nextEventTime() {
+        Event nextEvent = this.peekNextEvent();
+        return nextEvent == null ? TimeInstant.INFINITY : nextEvent.getTime();
+    }
 
+    /**
+     * Returns the class of the next event in the queue.
+     * 
+     * @return class
+     */
+    public Class<? extends Event> nextEventType() {
+        return this.peekNextEvent().getClass();
+    }
+
+    private Event peekNextEvent() {
+        Event nextEvent = null;
         ScheduleType nextType = null;
         TimeInstant nextEventTime = TimeInstant.INFINITY;
 
         for (ScheduleType st : ScheduleType.values()) {
             if (!schedules.get(st).eventsComplete() && schedules.get(st).nextEventTime().compareTo(nextEventTime) < 0 ) {
                 nextType = st;
+                nextEvent = schedules.get(st).peekNextEvent();
                 nextEventTime = schedules.get(st).nextEventTime();
             }
         }
         if (trace) {
             logger.trace("Next event occuring is of type " + nextType + " and occurs at " + nextEventTime);
         }
-        return nextEventTime;
+        return nextEvent;
     }
 
     /**

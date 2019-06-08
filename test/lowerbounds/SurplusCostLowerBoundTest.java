@@ -79,6 +79,9 @@ public class SurplusCostLowerBoundTest extends SimBasicTest {
                 capConstraintLHS += ni * Si + pci * ( 1 - di / (mui * e));
                 assertEquals("The stored transition is not correct", ni, lowerBound.getIdealFrequency(i), tol);
                 assertEquals("The stored cruising fraction is not correct", pci, lowerBound.getCruisingFrac(i), tol);
+                assertEquals("The ideal peak deviation is not correct",
+                        di * ( 1 - (di / mui) / e ) * ( 1 - pci ) / ni,
+                        lowerBound.getIdealSurplusDeviation(i), tol);
             }
             assertEquals("The cost function optimized is not correct", expectedObjectiveValue, objectiveValue, tol);
             assertEquals("The objective value stored is not correct", expectedObjectiveValue, lowerBound.getLowerBound(), tol);

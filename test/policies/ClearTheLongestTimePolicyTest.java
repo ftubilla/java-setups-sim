@@ -9,27 +9,24 @@ import params.Params;
 import params.Params.ParamsBuilder;
 import sim.Sim;
 
-public class ClearTheLargestDeviationCostPolicyTest extends AbstractPolicyTest {
+public class ClearTheLongestTimePolicyTest extends AbstractPolicyTest {
 
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        policy = new ClearTheLargestDeviationCostPolicy();
+        policy = new ClearTheLongestTimePolicy();
     }
 
     @Override
     public void testNextItem() {
 
-        // Item 2 has the largest C-cost (hb/(h+b)) * y and item 0 (the current setup) is
-        // at its target
+        // Item 2 has the longest time to clear
         ParamsBuilder paramsBuilder = Params.builderWithDefaults();
         paramsBuilder
             .numItems(3)
             .surplusTargets(c(0.0, 0.0, 0.0))
             .initialDemand(c(0, 10, 10))
-            .backlogCosts(c(1, 3, 7))
-            .inventoryHoldingCosts(c(1, 1, 1))
-            .productionRates(c(2, 4, 10))
+            .productionRates(c(2, 10, 5))
             .demandRates(c(1, 1, 1))
             .setupTimes(c(1, 1, 1));
 
@@ -37,11 +34,11 @@ public class ClearTheLargestDeviationCostPolicyTest extends AbstractPolicyTest {
         Sim sim = getSim(params);
         policy.setUpPolicy(sim);
         policy.currentSetup = sim.getMachine().getItemById(0);
-        assertEquals("Item 2 has the largest C-cost and should be the next setup", 2, policy.nextItem().getId());
+        assertEquals("Item 2 has the longest time to clear and should be the next setup", 2, policy.nextItem().getId());
 
-        // All items have the same C-costs (within tolerance), change to something different
+        // All items have the same time to clear (within tolerance), change to something different
         // than the current setup and break ties by id
-        paramsBuilder.initialDemand(c(0, 4 / 3.0, 8.000001 / 7.0));
+        paramsBuilder.productionRates(c(2, 5, 5.00001));
         params = paramsBuilder.build();
         policy.setUpPolicy(getSim(params));
         assertEquals("The next item should not be the current setup and ties should be broken by ID!", 1,
