@@ -37,12 +37,12 @@ public class GallegoRecoveryPolicyControlMatrixCalculatorTest extends SimBasicTe
         
         GallegoRecoveryPolicyControlMatrixCalculator calculator = new GallegoRecoveryPolicyControlMatrixCalculator(params);
         ProductionSequence sequence = new ProductionSequence(item0, item1, item2, item1, item2);
-        double[][] gUnscaled = calculator.compute(sequence, false, 1e-5);
+        double[][] gUnscaled = calculator.compute(sequence, 1e-5);
         
         // Now compute with a very low tolerance and check that an error is thrown
         boolean errorThrown = false;
         try {
-            calculator.compute(sequence, false, 1e-100);
+            calculator.compute(sequence, 1e-100);
         } catch( Exception e ) {
             errorThrown = true;
         }
@@ -61,7 +61,7 @@ public class GallegoRecoveryPolicyControlMatrixCalculatorTest extends SimBasicTe
 
         Params params2 = paramsBuilder.build();
         GallegoRecoveryPolicyControlMatrixCalculator calculator2 = new GallegoRecoveryPolicyControlMatrixCalculator(params2);
-        double[][] gScaled = calculator2.compute(sequence, false, 1e-5);
+        double[][] gScaled = calculator2.compute(sequence, 1e-5);
 
         // Check that the product of an inventory vector times G agrees in the scaled an unscaled versions
         double[] z = {1.5, 2.3, 4.0};
@@ -112,7 +112,7 @@ public class GallegoRecoveryPolicyControlMatrixCalculatorTest extends SimBasicTe
         
         GallegoRecoveryPolicyControlMatrixCalculator calculator = new GallegoRecoveryPolicyControlMatrixCalculator(params);
         ProductionSequence sequence = new ProductionSequence(item3, item4, item0, item1, item3, item4, item0, item2);
-        double[][] G = calculator.compute(sequence, false, 1e-7);
+        double[][] G = calculator.compute(sequence, 1e-7);
         
         for ( int i = 0; i < G.length; i++ ) {
             for ( int j = 0; j < G[0].length; j++ ) {
@@ -149,14 +149,64 @@ public class GallegoRecoveryPolicyControlMatrixCalculatorTest extends SimBasicTe
         GallegoRecoveryPolicyControlMatrixCalculator calculator = new GallegoRecoveryPolicyControlMatrixCalculator(params);
         ProductionSequence sequence = new ProductionSequence(item1, item0, item2);
         // Should solve fine
-        calculator.compute(sequence, false, 1.0e-7);
+        calculator.compute(sequence, 1.0e-7);
         // Should raise an exception
         boolean exceptionDueToTolerance = false;
         try {
-            calculator.compute(sequence, false, -1.0);
+            calculator.compute(sequence, -1.0);
         } catch( Exception e ) {
             exceptionDueToTolerance = true;
         }
         assertTrue(exceptionDueToTolerance);
     }
+
+    @Test
+    public void testMachineEfficiencyCompensation() throws Exception {
+
+        // First solve with efficiency of 1
+        ParamsBuilder paramsBuilder = Params.builderWithDefaults();
+        paramsBuilder
+            .numItems(3)
+            .surplusTargets(c(0.0, 0.0, 0.0))
+            .initialDemand(c(0.0, 0.0, 0.0))
+            .demandRates(c(1, 1, 1))
+            .setupTimes(c(1, 1, 1))
+            .backlogCosts(c(1.0, 1.0, 1.0))
+            .inventoryHoldingCosts(c(10.0, 10.0, 10.0))
+            .productionRates(c(2.0, 2.0, 2.0));
+
+        Params params = paramsBuilder.build();
+        Item item0 = new Item(0, params);
+        Item item1 = new Item(1, params);
+        Item item2 = new Item(2, params);
+
+        GallegoRecoveryPolicyControlMatrixCalculator calculator = new GallegoRecoveryPolicyControlMatrixCalculator(params);
+        ProductionSequence sequence = new ProductionSequence(item1, item0, item2);
+        // Should solve fine
+        double[][] matrixGEff1 = calculator.compute(sequence, 1.0e-7);
+
+        // Now change the efficiency to be half of the original and scale all other variables appropriately
+        // Since G[i][j] is unit-less but then gets scaled back by d, the entries should double in size 
+        paramsBuilder
+            .meanTimeToRepair(50)
+            .meanTimeToFail(50)
+            .demandRates(c(0.5, 0.5, 0.5))
+            .setupTimes(c(2.0, 2.0, 2.0))
+            .backlogCosts(c(2.0, 2.0, 2.0))
+            .inventoryHoldingCosts(c(20.0, 20.0, 20.0));
+
+        params = paramsBuilder.build();
+        GallegoRecoveryPolicyControlMatrixCalculator calculator2 = new GallegoRecoveryPolicyControlMatrixCalculator(params);
+        // Should solve fine
+        double[][] matrixGEffL1 = calculator2.compute(sequence, 1.0e-7);
+
+        double tol = 1e-4;
+        for ( int i = 0; i < 3; i++ ) {
+            for ( int j = 0; j < 3; j++ ) {
+                assertEquals( 2.0, matrixGEffL1[i][j] / matrixGEff1[i][j], tol );
+            }
+        }
+
+    }
+
 }

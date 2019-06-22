@@ -34,7 +34,7 @@ public class SimBasicTest {
      */
     protected Sim getSim(Params params) {
         Sim sim = new Sim(params);
-        SimSetup.setup(sim, new Recorders());
+        SimSetup.setUp(sim, new Recorders());
         return sim;
     }
 

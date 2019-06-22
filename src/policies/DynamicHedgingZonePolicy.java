@@ -1,11 +1,7 @@
 package policies;
 
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashBasedTable;

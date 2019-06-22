@@ -38,7 +38,7 @@ public class AverageSurplusMetricsTest extends SimBasicTest {
                 .build();
 
         Sim sim = new Sim(params);
-        SimSetup.setup(sim, new Recorders(Collections.emptyList()));
+        SimSetup.setUp(sim, new Recorders(Collections.emptyList()));
         sim.run(false);
         AverageSurplusMetrics metrics = sim.getMetrics().getAverageSurplusMetrics();
         Item item0 = sim.getMachine().getItemById(0);
@@ -52,7 +52,7 @@ public class AverageSurplusMetricsTest extends SimBasicTest {
         // Now run longer and with inventory during the second half
         params = params.toBuilder().surplusTargets(c(100, 100, 100)).finalTime(200).build();
         sim = new Sim(params);
-        SimSetup.setup(sim, new Recorders(Collections.emptyList()));
+        SimSetup.setUp(sim, new Recorders(Collections.emptyList()));
         sim.run(false);
         metrics = sim.getMetrics().getAverageSurplusMetrics();
         item0 = sim.getMachine().getItemById(0);

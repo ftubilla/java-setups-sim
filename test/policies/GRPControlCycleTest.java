@@ -3,6 +3,7 @@ package policies;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static util.UtilMethods.c;
 
 import java.util.Map;
 
@@ -12,8 +13,10 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Maps;
 
+import params.Params;
 import policies.GRPControlCycle.GRPRunInfo;
 import sequences.ProductionSequence;
+import sim.Sim;
 import system.Item;
 import system.Machine;
 import util.SimBasicTest;
@@ -80,6 +83,46 @@ public class GRPControlCycleTest extends SimBasicTest {
 
         assertFalse( cycle2.hasNext() );
         
+    }
+
+    @Test
+    public void testNegativeNetSprintingTime() {
+
+        Params params = Params.builder()
+                .surplusTargets(c(0, 0, 0))
+                .initialDemand(c(10, -10, 10))
+                .demandRates(c(1, 1, 1))
+                .productionRates(c(11, 11, 11))
+                .build();
+        Sim sim = getSim(params);
+        Item item0 = sim.getMachine().getItemById(0);
+        Item item1 = sim.getMachine().getItemById(1);
+        Item item2 = sim.getMachine().getItemById(2);
+        ProductionSequence sequence = new ProductionSequence(item0, item1, item2, item1);
+        Map<Item, Double> surplusTarget = Maps.newHashMap();
+        for ( Item item : sim.getMachine() ) {
+            surplusTarget.put(item, 0.0);
+        }
+
+        double[] sprintingTimeTarget = { 1.0, 0.5, 1.0, 0.5 };
+        double[][] gainMatrix = { 
+                { 1.0,  0.0, 0.0 },
+                { 0.0,  0.8, 0.0 },
+                { 0.0,  0.0, 1.0 },
+                { 0.0, -0.2, 0.0} };
+        GRPControlCycle cycle = new GRPControlCycle( sim.getMachine(), sequence, surplusTarget, sprintingTimeTarget, gainMatrix );
+        GRPRunInfo run1 = cycle.next();
+        GRPRunInfo run2 = cycle.next();
+        GRPRunInfo run3 = cycle.next();
+        GRPRunInfo run4 = cycle.next();
+        assertEquals( sim.getMachine().getItemById(0), run1.getItem() );
+        assertTrue( run1.getRunDuration() > 0 );
+        assertEquals( sim.getMachine().getItemById(1), run2.getItem() );
+        assertTrue( run2.getRunDuration() == 0 );
+        assertEquals( sim.getMachine().getItemById(2), run3.getItem() );
+        assertTrue( run3.getRunDuration() > 0 );
+        assertEquals( sim.getMachine().getItemById(1), run4.getItem() );
+        assertTrue( run4.getRunDuration() == 0 );
     }
 
 }

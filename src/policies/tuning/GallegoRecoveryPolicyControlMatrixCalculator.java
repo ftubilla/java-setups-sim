@@ -37,13 +37,8 @@ public class GallegoRecoveryPolicyControlMatrixCalculator {
      * @return matrix G
      * @throws Exception
      */
-    public double[][] compute(final ProductionSequence sequence, final boolean compensateForEfficiency,
-            final double tolerance) throws Exception {
+    public double[][] compute(final ProductionSequence sequence, final double tolerance) throws Exception {
 
-        if ( compensateForEfficiency ) {
-            throw new RuntimeException("This feature is unsupported right now!!!");
-        }
-        
         String dir = System.getProperty("user.dir");
         String pythonPath = SimMain.getProperties().getProperty("python.path");
         String scriptPath = dir + File.separator + "python" + File.separator + "grp.py";
@@ -54,35 +49,41 @@ public class GallegoRecoveryPolicyControlMatrixCalculator {
 
         // Write the sequence
         String sequenceString = sequence.toString();
-        ProcessBuilder pb = new ProcessBuilder(pythonPath, scriptPath, paramsJson, sequenceString, compensateForEfficiency + "");
+        ProcessBuilder pb = new ProcessBuilder(pythonPath, scriptPath, paramsJson, sequenceString);
+        pb.redirectErrorStream(true);
         Process p = pb.start();
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));  
-        BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-        // Check for any error output
-        final StringBuilder errOutputBuilder = new StringBuilder();
-        err.lines().forEach(l -> errOutputBuilder.append(String.format("%s%n", l)));
-        String errOutput = errOutputBuilder.toString();
-        if ( !errOutput.isEmpty() ) {
-            log.warn(String.format("Python script messages:%n%s", errOutput));
-            if ( errOutput.contains("TOLERANCE NOT MET") ) {
-                throw new Exception("Tolerance not met while solving the ARME");
+        // Collect the output into the matrix (note that the output could be mixed with stderr output)
+        final double[][] G = new double[sequence.getSize()][params.getNumItems()];
+        final boolean[] toleranceNotMet = { false };
+        final int[] rowsRead = { 0 };
+        in.lines().forEach(l -> {
+            try {
+                String[] line = l.split(" ");
+                int i = Integer.parseInt(line[0]);
+                int j = Integer.parseInt(line[1]);
+                double g = Double.parseDouble(line[2]);
+                G[i][j] = g;
+                rowsRead[0] += 1;
+                log.trace(String.format("Gallego G[%d,%d]=%.5f", i, j, g));
+            } catch (NumberFormatException e) {
+                if ( l.contains("TOLERANCE NOT MET" ) ) {
+                    log.error(String.format("Could not parse line %s", l), e);
+                    toleranceNotMet[0] = true;
+                } else {
+                    log.trace(String.format("Could not parse line %s", l));
+                }
             }
+        });
+
+        p.waitFor();
+
+        if ( rowsRead[0] < sequence.getSize() || toleranceNotMet[0] ) {
+            throw new Exception("Could not compute G");
         }
 
-        // Collect the output into the matrix
-        final double[][] G = new double[sequence.getSize()][params.getNumItems()];
-        in.lines().forEach(l -> {
-            String[] line = l.split(" ");
-            int i = Integer.parseInt(line[0]);
-            int j = Integer.parseInt(line[1]);
-            double g = Double.parseDouble(line[2]);
-            G[i][j] = g;
-            log.trace(String.format("Gallego G[%d,%d]=%.5f", i, j, g));
-        });
-        
-        
         return G;
     }
     
@@ -94,16 +95,22 @@ public class GallegoRecoveryPolicyControlMatrixCalculator {
 
         private final Params params;
         private final double tol;
+        private final double machineEff;
 
         public ParamsForPython(final Params params, final double tol) {
             this.params = params;
             this.tol = tol;
+            this.machineEff = params.getMachineEfficiency();
         }
 
         public double getTolerance() {
             return this.tol;
         }
-        
+
+        public double getMachineEfficiency() {
+            return this.machineEff;
+        }
+
         public ImmutableList<Double> getDemandRates() {
             return this.params.getDemandRates();
         }

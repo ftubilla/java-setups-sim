@@ -124,14 +124,14 @@ public class HedgingZonePolicyTest extends AbstractPolicyTest {
         // First start with all the surplus at the target. The time to exit should be 0
         paramsBuilder.initialDemand(c(0.0, 0.0, 0.0));
         Sim sim = new Sim(paramsBuilder.build());
-        SimSetup.setup(sim, new Recorders());
+        SimSetup.setUp(sim, new Recorders());
         policy.setUpPolicy(sim);
         assertEquals( 0.0, hzpPolicy.computeTimeToExitFractionalHedgingZone(0.0), tol );
 
         // Now put the demand on the middle of the DZ
         paramsBuilder.initialDemand(c(5, 10, 15));
         sim = new Sim(paramsBuilder.build());
-        SimSetup.setup(sim, new Recorders());
+        SimSetup.setUp(sim, new Recorders());
         policy.setUpPolicy(sim);
         assertEquals( 50, hzpPolicy.computeTimeToExitFractionalHedgingZone(1.0), tol );
         assertEquals( 30, hzpPolicy.computeTimeToExitFractionalHedgingZone(0.8), tol );

@@ -36,7 +36,7 @@ public class AverageSurplusByServiceLevelMetricsTest extends SimBasicTest {
                 .build();
 
         Sim sim = new Sim(params);
-        SimSetup.setup(sim, new Recorders(Collections.emptyList()));
+        SimSetup.setUp(sim, new Recorders(Collections.emptyList()));
         sim.run(false);
         AverageSurplusByServiceLevelMetrics metrics = sim.getMetrics().getAverageSurplusByServiceLevelMetrics();
 
@@ -71,7 +71,7 @@ public class AverageSurplusByServiceLevelMetricsTest extends SimBasicTest {
                 .build();
 
         Sim sim = new Sim(params);
-        SimSetup.setup(sim, new Recorders(Collections.emptyList()));
+        SimSetup.setUp(sim, new Recorders(Collections.emptyList()));
         sim.run(false);
         AverageSurplusByServiceLevelMetrics metrics = sim.getMetrics().getAverageSurplusByServiceLevelMetrics();
 
@@ -91,7 +91,7 @@ public class AverageSurplusByServiceLevelMetricsTest extends SimBasicTest {
                 .build();
 
         Sim sim2 = new Sim(params);
-        SimSetup.setup(sim2, new Recorders(Collections.emptyList()));
+        SimSetup.setUp(sim2, new Recorders(Collections.emptyList()));
         sim2.run(false);
 
         // Now verify that we matched the service levels

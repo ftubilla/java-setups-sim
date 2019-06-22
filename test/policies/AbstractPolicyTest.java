@@ -63,7 +63,7 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
             .policyParams( policyParamsBuilder.build() );
 
         Sim sim = new Sim(paramsBuilder.build());
-        SimSetup.setup(sim, new Recorders());
+        SimSetup.setUp(sim, new Recorders());
         policy.setUpPolicy(sim);
         policy.currentSetup = sim.getMachine().getSetup();
         assertFalse("The item is still below target", policy.isTimeToChangeOver());

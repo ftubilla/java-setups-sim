@@ -31,8 +31,8 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
 
     // Problem-specific parameters
     private int sequenceLength;
-    private double[] sprintingTimeTarget;                // Corresponds to the vector t in the paper
-    private Map<Item, Double> initialSurplusTarget;      // Corresponds to the vector w in the paper
+    private double[] sprintingTimeTarget;                // Corresponds to the vector t in my thesis
+    private Map<Item, Double> initialSurplusTarget;      // Corresponds to the vector w in my thesis
     private double[][] gainMatrix;                       // Matrix G
     @Getter private OptimalFCyclicSchedule schedule;
 
@@ -106,7 +106,7 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
         GallegoRecoveryPolicyControlMatrixCalculator gainCalculator = 
                 new GallegoRecoveryPolicyControlMatrixCalculator(sim.getParams());
         try {
-            this.gainMatrix = gainCalculator.compute(sequence, false, ARME_TOLERANCE);
+            this.gainMatrix = gainCalculator.compute(sequence, ARME_TOLERANCE);
         } catch (Exception e) {
             throw new RuntimeException("Could not solve the ARME to obtain the gain matrix", e);
         }
