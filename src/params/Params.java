@@ -131,6 +131,10 @@ public class Params extends AbstractParams {
         }
     }
 
+    @JsonProperty
+    @Builder.Default
+    protected int numBatchesForBatchedMetrics = 10;
+
     @JsonPOJOBuilder(buildMethodName = "build", withPrefix = "")
     public static class ParamsBuilder {
     }

@@ -9,7 +9,9 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Table;
 
 import discreteEvent.ControlEvent;
 import lombok.Getter;
@@ -174,6 +176,15 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
         } else {
             return this.currentRun.getRunDuration();
         }
+    }
+
+    @Override
+    public Optional<Table<String, String, Object>> getDataToRecordBeforeControl() {
+        Table<String, String, Object> table = HashBasedTable.create();
+        String currentItem = String.format("%d", this.currentRun.getItem().getId());
+        table.put("CURRENT_RUN_TIME", currentItem, this.currentRun.getRunDuration());
+        table.put("CURRENT_RUN_START_TIME", currentItem, this.currentRunStartTime.doubleValue());
+        return Optional.of(table);
     }
 
 }

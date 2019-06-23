@@ -9,6 +9,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 
 import lombok.extern.apachecommons.CommonsLog;
+import params.PolicyParams;
+import policies.tuning.HeuristicBoundBasedLowerHedgingPointsComputationMethod;
+import policies.tuning.ILowerHedgingPointsComputationMethod;
+import policies.tuning.MakeToOrderBoundBasedLowerHedgingPointsComputationMethod;
 import sim.Sim;
 import system.Item;
 import system.Machine;
@@ -45,6 +49,17 @@ public class DynamicHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
         super.setUpPolicy(sim);
         this.muFactors = computeMuFactors(sim.getMachine());
         this.nominalTargetShift = computeNominalTargetShift(sim.getMachine(), this.muFactors, this.hedgingZoneSize);
+    }
+
+    @Override
+    protected ILowerHedgingPointsComputationMethod getLowerHedgingPointComputationMethod(PolicyParams policyParams) {
+        if ( policyParams.getLowerHedgingPointsComputationMethod()
+                .equals(MakeToOrderBoundBasedLowerHedgingPointsComputationMethod.class.getSimpleName()) ) {
+            log.info("Overriding the hedging point method to use the heuristic bound instead");
+            return new HeuristicBoundBasedLowerHedgingPointsComputationMethod();
+        } else {
+            return super.getLowerHedgingPointComputationMethod(policyParams);
+        }
     }
 
     @Override

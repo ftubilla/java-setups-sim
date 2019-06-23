@@ -29,8 +29,6 @@ import params.Params;
 @CommonsLog
 public abstract class AbstractLowerBound {
 
-    // TODO Add more unit tests to ensure that things are working properly!
-
     protected final Params params;
     private final String name;
     @VisibleForTesting @Getter protected final SingleIndexOptimizationVar<Integer> setupFreq;
@@ -82,6 +80,21 @@ public abstract class AbstractLowerBound {
      * @return objective function
      */
     public abstract Posynomial getUnscaledObjectivePosynomial(Params params, SingleIndexOptimizationVar<Integer> setupFreq,
+            DoubleIndexOptimizationVar<Integer, Integer> transitionFreq,
+            SingleIndexOptimizationVar<Integer> nonCruisingFrac,
+            double scalingFactor);
+
+    /**
+     * A callback for running any additional logic before solving the optimization problem. This callback can be used
+     * for adding other constraints to the model.
+     * 
+     * @param optimizationProblem
+     * @param setupFreq
+     * @param transitionFreq
+     * @param nonCruisingFrac
+     * @param scalingFactor
+     */
+    abstract void beforeSolve(OptimizationProblem optimizationProblem, SingleIndexOptimizationVar<Integer> setupFreq,
             DoubleIndexOptimizationVar<Integer, Integer> transitionFreq,
             SingleIndexOptimizationVar<Integer> nonCruisingFrac,
             double scalingFactor);
@@ -171,6 +184,8 @@ public abstract class AbstractLowerBound {
             ctr.lEql(1.0);
             opt.addConstraint(ctr);
         }
+
+        beforeSolve(opt, setupFreq, transitionFreq, cruisingFrac, scalingFactor);
 
         // Solve and store the solution
         log.debug(String.format("Lower bound %s\nObjective: %s\nConstraints:\n%s", this, objPosynomial, opt));

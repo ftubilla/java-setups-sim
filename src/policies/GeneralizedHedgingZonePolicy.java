@@ -15,6 +15,7 @@ import com.google.common.collect.Maps;
 
 import discreteEvent.ControlEvent;
 import lombok.extern.apachecommons.CommonsLog;
+import params.PolicyParams;
 import policies.tuning.ILowerHedgingPointsComputationMethod;
 import policies.tuning.IPriorityComparator;
 import sim.Sim;
@@ -53,8 +54,7 @@ public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
                 .collect(Collectors.toList());
 
         // Get the lower hedging points
-        ILowerHedgingPointsComputationMethod lowerHedgingPointsComputation = AlgorithmLoader.load("policies.tuning",
-                this.policyParams.getLowerHedgingPointsComputationMethod(), ILowerHedgingPointsComputationMethod.class);
+        ILowerHedgingPointsComputationMethod lowerHedgingPointsComputation = getLowerHedgingPointComputationMethod(this.policyParams);
         lowerHedgingPointsComputation.compute(sim);
         this.hedgingZoneSize = Maps.newHashMap();
         for ( Item item : this.machine ) {
@@ -72,6 +72,16 @@ public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
             log.warn("The sim instance is a cruising instance (according to the lower bound), but cruising is not enabled in this policy!");
         }
 
+    }
+
+    /**
+     * Provides an entry point for using a different hedging point computation method.
+     * @param policyParams
+     * @return
+     */
+    protected ILowerHedgingPointsComputationMethod getLowerHedgingPointComputationMethod(PolicyParams policyParams) {
+        return AlgorithmLoader.load("policies.tuning",
+                this.policyParams.getLowerHedgingPointsComputationMethod(), ILowerHedgingPointsComputationMethod.class);
     }
 
     /**

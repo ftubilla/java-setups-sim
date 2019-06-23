@@ -18,6 +18,8 @@ import params.Params;
 import params.Params.ParamsBuilder;
 import params.PolicyParams;
 import params.PolicyParams.PolicyParamsBuilder;
+import policies.tuning.HeuristicBoundBasedLowerHedgingPointsComputationMethod;
+import policies.tuning.MakeToOrderBoundBasedLowerHedgingPointsComputationMethod;
 import policies.tuning.UserDefinedLowerHedgingPointsComputationMethod;
 import sim.Sim;
 import sim.TimeInstant;
@@ -174,6 +176,56 @@ public class DynamicHedgingZonePolicyTest extends AbstractPolicyTest {
     @Override
     public void testNextItem() {
         // Skipping this test since the method is handled by the tested class' parent.
+    }
+
+    @Test
+    public void testLowerHedgingPointComputationMethod() {
+        ParamsBuilder paramsBuilder = Params.builder();
+        paramsBuilder
+            .numItems(3)
+            .surplusTargets(c(0.0, 0.0, 0.0))
+            .initialDemand(c(0.0, 20.0, 30.0))
+            .backlogCosts(c(1.0, 2.0, 3.0))
+            .inventoryHoldingCosts(c(1.0, 2.0, 3.0))
+            .productionRates(c(2.0, 4.0, 1.0))
+            .demandRates(c(0.1, 0.1, 0.1))
+            .setupTimes(c(1,1,1))
+            .initialSetup(0);
+
+        PolicyParamsBuilder policyParamsBuilder = PolicyParams.builderWithDefaults();
+
+        // Case I: The lower hedging point method is the user defined. We should use this one.
+        policyParamsBuilder.userDefinedLowerHedgingPoints(Optional.of(c(-5.0, -15.0, -10.0)))
+                           .lowerHedgingPointsComputationMethod(UserDefinedLowerHedgingPointsComputationMethod.class.getSimpleName())
+                           .name(DynamicHedgingZonePolicy.class.getSimpleName());
+        PolicyParams policyParamsI = policyParamsBuilder.build();
+        paramsBuilder.policyParams(policyParamsI);
+        Sim simI = getSim(paramsBuilder.build());
+        DynamicHedgingZonePolicy dynamicHZPI = (DynamicHedgingZonePolicy) simI.getPolicy();
+        assertEquals( UserDefinedLowerHedgingPointsComputationMethod.class,
+                dynamicHZPI.getLowerHedgingPointComputationMethod(policyParamsI).getClass());
+
+        // Case II: The lower hedging point method is based on the surplus bound. We should override and use the heuristic one.
+        policyParamsBuilder.userDefinedLowerHedgingPoints(Optional.of(c(-5.0, -15.0, -10.0)))
+        .lowerHedgingPointsComputationMethod(MakeToOrderBoundBasedLowerHedgingPointsComputationMethod.class.getSimpleName())
+        .name(DynamicHedgingZonePolicy.class.getSimpleName());
+        PolicyParams policyParamsII = policyParamsBuilder.build();
+        paramsBuilder.policyParams(policyParamsII);
+        Sim simII = getSim(paramsBuilder.build());
+        DynamicHedgingZonePolicy dynamicHZPII = (DynamicHedgingZonePolicy) simII.getPolicy();
+        assertEquals( HeuristicBoundBasedLowerHedgingPointsComputationMethod.class,
+                dynamicHZPII.getLowerHedgingPointComputationMethod(policyParamsII).getClass());
+
+        // Case III: The given method is the heuristic one
+        policyParamsBuilder.userDefinedLowerHedgingPoints(Optional.of(c(-5.0, -15.0, -10.0)))
+        .lowerHedgingPointsComputationMethod(HeuristicBoundBasedLowerHedgingPointsComputationMethod.class.getSimpleName())
+        .name(DynamicHedgingZonePolicy.class.getSimpleName());
+        PolicyParams policyParamsIII = policyParamsBuilder.build();
+        paramsBuilder.policyParams(policyParamsIII);
+        Sim simIII = getSim(paramsBuilder.build());
+        DynamicHedgingZonePolicy dynamicHZPIII = (DynamicHedgingZonePolicy) simIII.getPolicy();
+        assertEquals( HeuristicBoundBasedLowerHedgingPointsComputationMethod.class,
+                dynamicHZPIII.getLowerHedgingPointComputationMethod(policyParamsIII).getClass());
     }
 
 }

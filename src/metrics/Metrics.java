@@ -6,14 +6,16 @@ import sim.Sim;
 @Getter
 public class Metrics {
 
-    private TimeFractionsMetrics                timeFractionsMetrics;
-    private AverageSurplusMetrics               averageSurplusMetrics;
-    private AverageSurplusByServiceLevelMetrics averageSurplusByServiceLevelMetrics;
+    private final TimeFractionsMetrics                timeFractionsMetrics;
+    private final AverageSurplusMetrics               averageSurplusMetrics;
+    private final AverageSurplusByServiceLevelMetrics averageSurplusByServiceLevelMetrics;
+    private final BatchedAverageSurplusMetrics batchedAverageSurplusMetrics;
 
     public Metrics(Sim sim) {
-        timeFractionsMetrics = new TimeFractionsMetrics(sim);
-        averageSurplusMetrics = new AverageSurplusMetrics(sim);
-        averageSurplusByServiceLevelMetrics = new AverageSurplusByServiceLevelMetrics(sim);
+        this.timeFractionsMetrics = new TimeFractionsMetrics(sim);
+        this.averageSurplusMetrics = new AverageSurplusMetrics(sim);
+        this.averageSurplusByServiceLevelMetrics = new AverageSurplusByServiceLevelMetrics(sim);
+        this.batchedAverageSurplusMetrics = new BatchedAverageSurplusMetrics(sim.getParams().getNumBatchesForBatchedMetrics(), sim);
     }
 
 }

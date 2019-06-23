@@ -67,7 +67,7 @@ public class GallegoRecoveryPolicyControlMatrixCalculator {
                 double g = Double.parseDouble(line[2]);
                 G[i][j] = g;
                 rowsRead[0] += 1;
-                log.trace(String.format("Gallego G[%d,%d]=%.5f", i, j, g));
+                log.info(String.format("Gallego G[%d,%d]=%.5f", i, j, g));
             } catch (NumberFormatException e) {
                 if ( l.contains("TOLERANCE NOT MET" ) ) {
                     log.error(String.format("Could not parse line %s", l), e);

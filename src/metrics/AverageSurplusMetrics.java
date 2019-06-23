@@ -30,8 +30,7 @@ public class AverageSurplusMetrics {
             @Override
             public void execute(Event event, Sim sim) {
 
-                if (sim.isTimeToRecordData()) {
-
+                if ( canRecordEvent(event, sim) ) {
                     log.trace("Recording data point");
                     for (Item item : machine) {
                         StreamSurplusStatisticsCalculator calculator = surplusStatsCalculators.get(item);
@@ -40,6 +39,10 @@ public class AverageSurplusMetrics {
                 }
             }
         });
+    }
+
+    protected boolean canRecordEvent(Event event, Sim sim) {
+        return sim.isTimeToRecordData();
     }
 
     public double getAverageInventory(Item item) {

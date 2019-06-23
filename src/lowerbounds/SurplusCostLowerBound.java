@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.apachecommons.CommonsLog;
 import optimization.DoubleIndexOptimizationVar;
 import optimization.Monomial;
+import optimization.OptimizationProblem;
 import optimization.OptimizationVar;
 import optimization.Posynomial;
 import optimization.SingleIndexOptimizationVar;
@@ -86,6 +87,13 @@ public class SurplusCostLowerBound extends AbstractLowerBound {
 
     public Double getIdealSurplusDeviation(int itemId) {
         return idealSurplusDeviation.get(itemId);
+    }
+
+    @Override
+    void beforeSolve(OptimizationProblem optimizationProblem, SingleIndexOptimizationVar<Integer> setupFreq,
+            DoubleIndexOptimizationVar<Integer, Integer> transitionFreq,
+            SingleIndexOptimizationVar<Integer> nonCruisingFrac, double scalingFactor) {
+        // Nothing to do
     }
 
 }
