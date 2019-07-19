@@ -45,8 +45,12 @@ public class Sim {
     private Clock                        clock;
     private SurplusCostLowerBound        surplusCostLowerBound;
 
+    private static synchronized int newSimId() {
+        return Sim.sims++;
+    }
+
     public Sim(Params params) {
-        id = sims++;
+        this.id = newSimId();
         log.info("Creating " + this);
         this.clock = new Clock(params.getMetricsStartTime());
         this.masterScheduler = new MasterScheduler(this);

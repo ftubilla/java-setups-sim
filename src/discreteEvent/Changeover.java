@@ -26,7 +26,13 @@ public class Changeover extends Event {
 
         // Set the changeover, delay upcoming failures/repairs, and call the
         // policy when done
-        double changeoverTime = sim.getParams().getSetupTimes().get(changeTo.getId());
+        double changeoverTime;
+        if ( sim.getMachine().getSetup().equals(this.changeTo) ) {
+            logger.warn("Changeover will happen immediately since it's for the same item");
+            changeoverTime = 0.0;
+        } else {
+            changeoverTime = sim.getParams().getSetupTimes().get(changeTo.getId());
+        }
         if (trace) {
             logger.trace("Changing the machine's setup to Item " + changeTo.getId() + " with a changeover time "
                     + changeoverTime);

@@ -23,6 +23,7 @@ public abstract class AbstractPolicy implements IPolicy {
 
     private Sim    sim;
     private TimeInstant lastChangeoverTime = null;
+    private boolean firstControl = true;
 
     protected Item         currentSetup;
     protected Machine      machine;
@@ -32,8 +33,14 @@ public abstract class AbstractPolicy implements IPolicy {
 
     public void updateControl(Sim sim) {
 
-        currentSetup = machine.getSetup();
-        clock = sim.getClock();
+
+        this.currentSetup = machine.getSetup();
+
+        if ( this.firstControl ) {
+            logger.debug("First control event for the policy. Acknowledging the new setup.");
+            noteNewSetup();
+            this.firstControl = false;
+        }
 
         if (machine.isDown()) {
             logger.trace("Machine is down.");
@@ -76,6 +83,7 @@ public abstract class AbstractPolicy implements IPolicy {
         this.machine = sim.getMachine();
         this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
         this.policyParams = sim.getParams().getPolicyParams();
+        this.clock = sim.getClock();
     }
 
     /**
@@ -146,7 +154,9 @@ public abstract class AbstractPolicy implements IPolicy {
             logger.trace(String.format("Scheduling a changeover to the new item %s. Last changeover was at %s",
                     item, lastChangeoverTime));
         }
-        assert item != machine.getSetup() : "Cannot changeover to the current setup again!";
+        if ( item.equals(this.machine.getSetup()) ) {
+            logger.warn(String.format("Changing over to the same current setup %s!", item));
+        }
         sim.getMasterScheduler().addEvent(new Changeover(sim.getTime(), item));
         lastChangeoverTime = clock.getTime();
     }

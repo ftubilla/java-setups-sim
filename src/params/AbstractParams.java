@@ -45,7 +45,7 @@ public abstract class AbstractParams {
                     }
                 } else {
                     if (value != null) {
-                        valueTriads.add(new String[] { field.getName(), "NA", value.toString() });
+                        valueTriads.add(new String[] { field.getName(), "NA", "'" + value.toString() + "'" });
                     } else {
                         valueTriads.add(new String[] { field.getName(), "NA", "null" });
                     }

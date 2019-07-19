@@ -86,7 +86,7 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
         // Ensure that the schedule is non-cruising
         for ( int n = 0; n < this.sequenceLength; n++ ) {
             if ( this.schedule.getOptimalCruisingTime(n) > NON_CRUISING_CHECK_TOL ) {
-                throw new RuntimeException("GRP only works with 0 cruising time!");
+                 log.warn("Gallego only works with non-cruising systems!");
             }
         }
 
@@ -181,9 +181,11 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
     @Override
     public Optional<Table<String, String, Object>> getDataToRecordBeforeControl() {
         Table<String, String, Object> table = HashBasedTable.create();
-        String currentItem = String.format("%d", this.currentRun.getItem().getId());
-        table.put("CURRENT_RUN_TIME", currentItem, this.currentRun.getRunDuration());
-        table.put("CURRENT_RUN_START_TIME", currentItem, this.currentRunStartTime.doubleValue());
+        if ( this.currentRunStartTime != null ) {
+            String currentItem = String.format("%d", this.currentRun.getItem().getId());
+            table.put("CURRENT_RUN_TIME", currentItem, this.currentRun.getRunDuration());
+            table.put("CURRENT_RUN_START_TIME", currentItem, this.currentRunStartTime.doubleValue());
+        }
         return Optional.of(table);
     }
 
