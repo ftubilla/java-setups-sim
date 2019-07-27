@@ -19,15 +19,17 @@ public class OptimalSequenceFinder {
 
     public static final double COST_TOLERANCE = 1e-4;
     public static final int TIMEOUT_MIN = 45;
-    
+
     private final Set<Item> items;
     private final double machineEff;
+    private final OptimalFCyclicScheduleComparator scheduleComparator;
 
     private OptimalFCyclicSchedule optimalSchedule = null;
 
     public OptimalSequenceFinder(final Collection<Item> items, final double machineEff) {
         this.items = Sets.newHashSet(items);
         this.machineEff = machineEff;
+        this.scheduleComparator = new OptimalFCyclicScheduleComparator(COST_TOLERANCE);
     }
 
     public OptimalFCyclicSchedule find(final int maxLength) throws Exception {
@@ -107,25 +109,17 @@ public class OptimalSequenceFinder {
     }
 
     private synchronized void submitSchedule(final OptimalFCyclicSchedule schedule) {
-        double cost = schedule.getScheduleCost();
-        double size = schedule.getSequence().getSize();
-        log.trace(String.format("Looking at sequence %s with cost %.5f", schedule.getSequence(), cost));
+        log.trace(String.format("Looking at sequence %s with cost %.5f", schedule.getSequence(), schedule.getScheduleCost()));
         boolean isBetterSchedule = false;
         if ( this.optimalSchedule == null ) {
             isBetterSchedule = true;
         } else {
-            // Accept the sequence if it has a lower cost or equal cost but shorter length
-            double currentBestCost = this.optimalSchedule.getScheduleCost();
-            int currentBestSeqSize = this.optimalSchedule.getSequence().getSize();
-            boolean isLowerCostSchedule = currentBestCost > cost * (1 + COST_TOLERANCE);
-            boolean isEqualCostSchedule = Math.abs(currentBestCost - cost) < COST_TOLERANCE * currentBestCost;
-            boolean isShorterSequence = size < currentBestSeqSize;
-            if ( isLowerCostSchedule || ( isEqualCostSchedule && isShorterSequence ) ) {
+            if ( this.scheduleComparator.compare(schedule, this.optimalSchedule) < 0 ) {
                 isBetterSchedule = true;
             }
         }
         if ( isBetterSchedule ) {
-            log.debug(String.format("Found better sequence %s with cost %.5f", schedule.getSequence(), cost));
+            log.debug(String.format("Found better sequence %s with cost %.5f", schedule.getSequence(), schedule.getScheduleCost()));
             this.optimalSchedule = schedule;
         }
     }
