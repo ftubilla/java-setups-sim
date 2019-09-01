@@ -80,6 +80,22 @@ public class PolicyParams extends AbstractParams {
     @Builder.Default
     protected double deviationTrackingBias = 0.5;
 
+    @JsonProperty
+    @Builder.Default
+    protected double serviceLevelControllerInitialLearningRate = 0.25;
+
+    @JsonProperty
+    @Builder.Default
+    protected double serviceLevelControllerLearningRateDecayFactor = 0.95;
+
+    @JsonProperty
+    @Builder.Default
+    protected int serviceLevelControllerChangeoversPerCycle = 100;
+
+    @JsonProperty
+    @Builder.Default
+    protected double serviceLevelControllerPropGain = 5;
+
     @Deprecated
     @JsonProperty
     protected ImmutableList<Double> lowerHedgingPoints;

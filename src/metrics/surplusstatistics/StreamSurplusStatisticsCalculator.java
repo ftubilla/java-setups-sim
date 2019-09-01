@@ -20,6 +20,7 @@ public class StreamSurplusStatisticsCalculator extends AbstractSurplusStatistics
     private double serviceLevel;
     private double minSurplus = Double.POSITIVE_INFINITY;
     private double maxSurplus = Double.NEGATIVE_INFINITY;
+    private int numDataPoints;
     private TimeInstant initialTime;
     private TimeInstant finalTime;
 
@@ -65,6 +66,7 @@ public class StreamSurplusStatisticsCalculator extends AbstractSurplusStatistics
         previousTime = time;
         previousSurplus = surplus;
         finalTime = time;
+        numDataPoints++;
     }
 
     @Override

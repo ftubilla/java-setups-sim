@@ -15,6 +15,8 @@ public interface IPolicy {
 
     public boolean isTargetBased();
 
+    public ServiceLevelController getServiceLevelController();
+
     /**
      * Provides a hook for recording internal state of a policy before each occurrence of {@link ControlEvent}.
      * 

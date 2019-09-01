@@ -123,7 +123,7 @@ public class RectifiedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
         if (log.isTraceEnabled()) {
             log.trace(String.format("Target for item %s is %.5f", item, zU));
         }
-        return zU;
+        return zU + this.getServiceLevelController().getControl(item);
     }
 
     @VisibleForTesting

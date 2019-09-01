@@ -11,6 +11,7 @@ import java.util.stream.StreamSupport;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 
 import discreteEvent.ControlEvent;
@@ -143,7 +144,12 @@ public class GallegoRecoveryPolicy extends AbstractPolicy {
     @Override
     protected Item nextItem() {
         if ( this.controlCycle == null || !this.controlCycle.hasNext() ) {
-            this.controlCycle = new GRPControlCycle(this.machine, this.getSchedule().getSequence(), this.initialSurplusTarget, this.sprintingTimeTarget, this.gainMatrix);
+            Map<Item, Double> surplusTarget = Maps.newHashMap();
+            for ( Item item : this.machine ) {
+                surplusTarget.put( item, this.initialSurplusTarget.get(item) + this.serviceLevelController.getControl(item) );
+            }
+            this.controlCycle = new GRPControlCycle(this.machine, this.getSchedule().getSequence(), surplusTarget,
+                    this.sprintingTimeTarget, this.gainMatrix);
             log.trace(String.format("Computing a new control cycle:%n%s", this.controlCycle));
         }
         this.currentRun = this.controlCycle.next();

@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import discreteEvent.Changeover;
 import discreteEvent.ControlEvent;
+import lombok.Getter;
 import lombok.NonNull;
 import lowerbounds.SurplusCostLowerBound;
 import params.PolicyParams;
@@ -30,11 +31,23 @@ public abstract class AbstractPolicy implements IPolicy {
     protected boolean      hasDiscreteMaterial;
     protected PolicyParams policyParams;
     protected Clock        clock;
+    @Getter protected ServiceLevelController serviceLevelController;
+
+
+    @Override
+    public void setUpPolicy(Sim sim) {
+        this.sim = sim;
+        this.machine = sim.getMachine();
+        this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
+        this.policyParams = sim.getParams().getPolicyParams();
+        this.clock = sim.getClock();
+        this.serviceLevelController = new ServiceLevelController(sim);
+    }
 
     public void updateControl(Sim sim) {
 
-
         this.currentSetup = machine.getSetup();
+        this.serviceLevelController.updateSurplus();
 
         if ( this.firstControl ) {
             logger.debug("First control event for the policy. Acknowledging the new setup.");
@@ -77,15 +90,6 @@ public abstract class AbstractPolicy implements IPolicy {
         }
     }
 
-    @Override
-    public void setUpPolicy(Sim sim) {
-        this.sim = sim;
-        this.machine = sim.getMachine();
-        this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
-        this.policyParams = sim.getParams().getPolicyParams();
-        this.clock = sim.getClock();
-    }
-
     /**
      * Called once the current run has completed, and before the changeover to the next setup.
      */
@@ -102,6 +106,7 @@ public abstract class AbstractPolicy implements IPolicy {
         if ( logger.isDebugEnabled() ) {
             String.format("Registering a new changeover to item %s", this.currentSetup);
         }
+        this.serviceLevelController.noteNewSetup(this.currentSetup);
     }
 
     /**
