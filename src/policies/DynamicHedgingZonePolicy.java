@@ -120,7 +120,7 @@ public class DynamicHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
             if ( log.isTraceEnabled() ) {
                 String.format("Target for item %s is %.5f", item, zU);
             }
-            return zU;
+            return zU + this.serviceLevelController.getControl(item);
         }
     }
 

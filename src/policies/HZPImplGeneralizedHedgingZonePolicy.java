@@ -14,28 +14,32 @@ public class HZPImplGeneralizedHedgingZonePolicy extends GeneralizedHedgingZoneP
 
     @Override
     protected boolean currentSetupOnOrAboveTarget(Machine machine) {
-        return machine.getSetup().getSurplus() >= machine.getSetup().getSurplusTarget() - Sim.SURPLUS_TOLERANCE;
+        return machine.getSetup().getSurplus() >= getTarget(machine.getSetup()) - Sim.SURPLUS_TOLERANCE;
     }
 
     @Override
     protected boolean isInTheHedgingZone(Machine machine, Item item, double deltaZ) {
-        return item.getSurplusTarget() - item.getSurplus() <= deltaZ;
+        return getTarget(item) - item.getSurplus() <= deltaZ;
     }
 
     @Override
     protected double currentSetupMinTimeToTarget(Machine machine) {
         Item currentSetup = machine.getSetup();
-        return currentSetup.getFluidTimeToSurplusLevel(currentSetup.getSurplusTarget());
+        return currentSetup.getFluidTimeToSurplusLevel(getTarget(currentSetup));
     }
 
     @Override
     protected double getSurplusDeviation(Machine machine, Item item) {
-        return item.getSurplusTarget() - item.getSurplus();
+        return getTarget(item) - item.getSurplus();
     }
 
     @Override
     public boolean isTargetBased() {
         return true;
+    }
+
+    protected double getTarget(final Item item) {
+        return item.getSurplusTarget() + this.serviceLevelController.getControl(item);
     }
 
 }
