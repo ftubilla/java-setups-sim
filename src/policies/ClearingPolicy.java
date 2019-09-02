@@ -22,7 +22,7 @@ public abstract class ClearingPolicy extends AbstractPolicy {
      */
     @Override
     protected boolean isTimeToChangeOver() {
-        return machine.getSetup().onOrAboveTarget();
+        return machine.getSetup().onOrAboveSurplusValue(getSurplusTargetWithControl(machine.getSetup()));
     }
 
     /**
@@ -32,7 +32,7 @@ public abstract class ClearingPolicy extends AbstractPolicy {
     @Override
     protected ControlEvent onReady() {
         machine.setSprint();
-        return new SurplusControlEvent(currentSetup, currentSetup.getSurplusTarget(), clock.getTime(),
+        return new SurplusControlEvent(currentSetup, getSurplusTargetWithControl(currentSetup), clock.getTime(),
                 hasDiscreteMaterial);
     }
 

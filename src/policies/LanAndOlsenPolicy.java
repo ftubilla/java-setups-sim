@@ -31,13 +31,13 @@ public class LanAndOlsenPolicy extends AbstractPolicy {
     @Override
     protected ControlEvent onReady() {
         machine.setSprint();
-        return new SurplusControlEvent(currentSetup, currentSetup.getSurplusTarget(), clock.getTime(),
+        return new SurplusControlEvent(currentSetup, getSurplusTargetWithControl(currentSetup), clock.getTime(),
                 hasDiscreteMaterial);
     }
 
     @Override
     protected boolean isTimeToChangeOver() {
-        return machine.getSetup().onOrAboveTarget();
+        return machine.getSetup().onOrAboveSurplusValue(getSurplusTargetWithControl(machine.getSetup()));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class LanAndOlsenPolicy extends AbstractPolicy {
 
             // Compute the deviation ratio (see Section 2.4.3 of Tubilla 2011)
             double idealDeviation = surplusCostLowerBound.getIdealSurplusDeviation(item.getId());
-            double deviationRatio = (item.getSurplusDeviation() + item.getSetupTime() * item.getDemandRate())
+            double deviationRatio = (getSurplusDeviationWithControl(item) + item.getSetupTime() * item.getDemandRate())
                     / idealDeviation;
 
             if (deviationRatio >= largestDeviationRatio * ( 1 + Sim.SURPLUS_RELATIVE_TOLERANCE ) ) {

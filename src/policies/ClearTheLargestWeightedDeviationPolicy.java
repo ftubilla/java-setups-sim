@@ -37,7 +37,8 @@ public abstract class ClearTheLargestWeightedDeviationPolicy extends ClearingPol
                 // This will throw an NPE
                 log.fatal("No weight given for " + item + ". Check implementation of your policy");
             }
-            double weightedDeviation = item.getSurplusDeviation() * weight;
+            // Get the deviation
+            double weightedDeviation = weight * this.getSurplusDeviationWithControl(item);
             if (weightedDeviation > largestWeightedDeviation * ( 1 + Sim.SURPLUS_RELATIVE_TOLERANCE ) ) {
                 largestWeightedDeviation = weightedDeviation;
                 nextItem = item;

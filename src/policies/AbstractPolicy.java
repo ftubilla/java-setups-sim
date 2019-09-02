@@ -170,4 +170,12 @@ public abstract class AbstractPolicy implements IPolicy {
         return sim.getSurplusCostLowerBound();
     }
 
+    protected double getSurplusTargetWithControl(final Item item) {
+        return item.getSurplusTarget() + this.serviceLevelController.getControl(item);
+    }
+
+    protected double getSurplusDeviationWithControl(final Item item) {
+        return item.getSurplusDeviation() + this.serviceLevelController.getControl(item);
+    }
+
 }

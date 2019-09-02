@@ -97,7 +97,11 @@ public class Item {
     }
 
     public boolean onOrAboveTarget() {
-        return surplus >= surplusTarget - Sim.SURPLUS_TOLERANCE;
+        return onOrAboveSurplusValue(surplusTarget);
+    }
+
+    public boolean onOrAboveSurplusValue(double surplusValue) {
+        return surplus >= surplusValue - Sim.SURPLUS_TOLERANCE;
     }
 
     /**

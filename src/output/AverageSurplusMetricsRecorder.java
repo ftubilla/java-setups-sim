@@ -51,8 +51,8 @@ public class AverageSurplusMetricsRecorder extends Recorder {
         }
 
         // Add the cost
-        row[1] = "NA";
-        row[2] = "AVERAGE_COST";
+        row[1] = "AVERAGE_COST";
+        row[2] = "NA";
         row[3] = cost;
         record(row);
 
