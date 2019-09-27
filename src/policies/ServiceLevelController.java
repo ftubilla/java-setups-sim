@@ -1,6 +1,7 @@
 package policies;
 
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import com.google.common.collect.Maps;
 
@@ -49,6 +50,12 @@ public class ServiceLevelController {
         this.learningRate = Maps.newHashMap();
 
         double controllerPropGain = params.getServiceLevelControllerPropGain();
+
+        // Get the average ideal deviation of the items to scale up the controller gain
+        double aveIdealDev = StreamSupport.stream(sim.getMachine().spliterator(), false)
+                .mapToDouble(i -> sim.getSurplusCostLowerBound().getIdealSurplusDeviation(i.getId()))
+                .average().getAsDouble();
+
         for ( Item item : sim.getMachine() ) {
             // Initialize maps
             this.latestSurplusStats.put(item, new StreamSurplusStatisticsCalculator());
@@ -56,10 +63,8 @@ public class ServiceLevelController {
             this.targetServiceLevel.put(item, sim.getDerivedParams().getServiceLevels().get(item.getId()));
             this.changeoversSinceLatestControl.put(item, 0);
             this.learningRate.put(item, this.initialLearningRate);
-
-            // Set the controller gain to be proportional to the ideal surplus deviatio
-            double idealDev = sim.getSurplusCostLowerBound().getIdealSurplusDeviation(item.getId());
-            double itemGain = idealDev * controllerPropGain;
+            // Set the controller gain to be proportional to the average ideal surplus deviation
+            double itemGain = aveIdealDev * controllerPropGain;
             log.info(String.format("Setting the service-level controller gain for item %s to %.5f",
                     item, itemGain));
             this.itemPropGain.put(item, itemGain);

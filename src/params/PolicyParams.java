@@ -94,7 +94,7 @@ public class PolicyParams extends AbstractParams {
 
     @JsonProperty
     @Builder.Default
-    protected double serviceLevelControllerPropGain = 5;
+    protected double serviceLevelControllerPropGain = 500;
 
     @Deprecated
     @JsonProperty
