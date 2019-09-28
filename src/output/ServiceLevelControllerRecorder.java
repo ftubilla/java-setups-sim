@@ -2,7 +2,7 @@ package output;
 
 import discreteEvent.ControlEvent;
 import discreteEvent.Event;
-import policies.ServiceLevelController;
+import policies.IServiceLevelController;
 import sim.Sim;
 import system.Item;
 
@@ -32,7 +32,7 @@ public class ServiceLevelControllerRecorder extends Recorder {
     }
 
     private void recordRow(Sim sim, Item item) {
-        ServiceLevelController controller = sim.getPolicy().getServiceLevelController();
+        IServiceLevelController controller = sim.getPolicy().getServiceLevelController();
         if (item != null && controller != null) {
             Object[] row = new Object[5];
             row[0] = sim.getId();

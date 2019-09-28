@@ -19,7 +19,7 @@ import system.Machine;
  *
  */
 @CommonsLog
-public class ServiceLevelController {
+public class ProportionalServiceLevelController implements IServiceLevelController {
 
     private final Map<Item, StreamSurplusStatisticsCalculator> latestSurplusStats;
     private final Map<Item, Double> learnedServiceLevel;
@@ -33,7 +33,7 @@ public class ServiceLevelController {
     private final Machine machine;
     private final Clock clock;
 
-    public ServiceLevelController(final Sim sim) {
+    public ProportionalServiceLevelController(final Sim sim) {
 
         PolicyParams params = sim.getParams().getPolicyParams();
         this.initialLearningRate = params.getServiceLevelControllerInitialLearningRate();
@@ -72,13 +72,15 @@ public class ServiceLevelController {
 
     }
 
-    protected void updateSurplus() {
+    @Override
+    public void updateSurplus() {
         for ( Item item : this.machine ) {
             this.latestSurplusStats.get(item).addPoint(this.clock.getTime(), item.getSurplus());
         }
     }
 
-    protected void noteNewSetup(final Item item) {
+    @Override
+    public void noteNewSetup(final Item item) {
 
         this.changeoversSinceLatestControl.merge(item, 1, Integer::sum);
 
@@ -106,6 +108,10 @@ public class ServiceLevelController {
         }
     }
 
+    /* (non-Javadoc)
+     * @see policies.IServiceLevelController#getControl(system.Item)
+     */
+    @Override
     public double getControl(final Item item) {
         double error = this.targetServiceLevel.get(item) - this.learnedServiceLevel.get(item);
         double control = this.itemPropGain.get(item) * error;
@@ -116,10 +122,18 @@ public class ServiceLevelController {
         return control;
     }
 
+    /* (non-Javadoc)
+     * @see policies.IServiceLevelController#getLearnedServiceLevel(system.Item)
+     */
+    @Override
     public Double getLearnedServiceLevel(final Item item) {
         return this.learnedServiceLevel.get(item);
     }
 
+    /* (non-Javadoc)
+     * @see policies.IServiceLevelController#getLearningRate(system.Item)
+     */
+    @Override
     public Double getLearningRate(final Item item) {
         return this.learningRate.get(item);
     }

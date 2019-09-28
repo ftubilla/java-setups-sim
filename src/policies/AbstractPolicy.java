@@ -31,7 +31,7 @@ public abstract class AbstractPolicy implements IPolicy {
     protected boolean      hasDiscreteMaterial;
     protected PolicyParams policyParams;
     protected Clock        clock;
-    @Getter protected ServiceLevelController serviceLevelController;
+    @Getter protected IServiceLevelController serviceLevelController;
 
 
     @Override
@@ -41,7 +41,11 @@ public abstract class AbstractPolicy implements IPolicy {
         this.hasDiscreteMaterial = sim.hasDiscreteMaterial();
         this.policyParams = sim.getParams().getPolicyParams();
         this.clock = sim.getClock();
-        this.serviceLevelController = new ServiceLevelController(sim);
+        if ( this.policyParams.isEnableServiceLevelController() ) {
+            this.serviceLevelController = new ProportionalServiceLevelController(sim);
+        } else {
+            this.serviceLevelController = new InactiveServiceLevelController();
+        }
     }
 
     public void updateControl(Sim sim) {

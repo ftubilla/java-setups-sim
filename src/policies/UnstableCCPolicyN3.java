@@ -94,7 +94,7 @@ public class UnstableCCPolicyN3 implements IPolicy {
     }
 
     @Override
-    public ServiceLevelController getServiceLevelController() {
+    public IServiceLevelController getServiceLevelController() {
         return null;
     }
 
