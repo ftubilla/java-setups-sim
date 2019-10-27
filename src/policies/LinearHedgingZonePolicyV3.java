@@ -188,7 +188,7 @@ public class LinearHedgingZonePolicyV3 extends GeneralizedHedgingZonePolicy {
                     sumSq += Math.pow(itemJ.getDemandRate(), 2);
                 }
             }
-            //FIXME This is wrong: we are doing 1 / sumSq when in reality we need sum( 1/ sq)
+            //TODO This is wrong: we are doing 1 / sumSq when in reality we need sum( 1/ sq)
             double expansionFactorI = Math.sqrt( 1 + Math.pow(factorI, 2) / sumSq );
             log.debug(String.format("Setting the DZ expansion factor for item %s to %.3f", itemI, expansionFactorI));
             expansionFactors.put(itemI, expansionFactorI);

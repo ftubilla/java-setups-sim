@@ -161,6 +161,7 @@ public class HZPImplGeneralizedHedgingZonePolicyTest extends AbstractPolicyTest 
         Sim sim = getSim(paramsBuilder.build());
 
         GeneralizedHedgingZonePolicy generalizedHZP = (GeneralizedHedgingZonePolicy) this.policy;
+        generalizedHZP.setUpPolicy(sim);
 
         // Test that setup 0 is at its target
         assertTrue( generalizedHZP.currentSetupOnOrAboveTarget(sim.getMachine()));
