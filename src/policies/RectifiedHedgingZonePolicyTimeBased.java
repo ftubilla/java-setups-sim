@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 
 import lombok.extern.apachecommons.CommonsLog;
@@ -25,7 +26,7 @@ import system.Machine;
  *
  */
 @CommonsLog
-public class RectifiedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
+public class RectifiedHedgingZonePolicyTimeBased extends GeneralizedHedgingZonePolicyV2 {
 
     private static final double MU_FACTOR_TOLERANCE = 1e-3;
     private static final double TIME_TOLERANCE = 1e-5;
@@ -36,15 +37,15 @@ public class RectifiedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
     @VisibleForTesting protected Map<Item, Double> muFactors;
     @VisibleForTesting protected Map<Item, Double> nominalTargetShift;
     // Note that these variables are defined at the point at which the changeover into the item has been completed
-    private TimeInstant currentSetupRunTime;
-    private TimeInstant currentSetupStartTime;
-    private Double currentSetupRunStartSurplus;
+    protected TimeInstant currentSetupRunTime;
+    protected TimeInstant currentSetupStartTime;
+    protected Double currentSetupRunStartSurplus;
 
     @Override
     public void setUpPolicy(final Sim sim) {
         super.setUpPolicy(sim);
-        this.muFactors = DynamicHedgingZonePolicy.computeMuFactors(sim.getMachine());
-        this.nominalTargetShift = DynamicHedgingZonePolicy.computeNominalTargetShift(sim.getMachine(), this.muFactors, this.hedgingZoneSize);
+        this.muFactors = computeMuFactors(sim.getMachine());
+        this.nominalTargetShift = computeNominalTargetShift(sim.getMachine(), this.muFactors, this.hedgingZoneSize);
     }
 
     @Override
@@ -59,50 +60,18 @@ public class RectifiedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
     }
 
     @Override
-    protected boolean currentSetupOnOrAboveTarget(Machine machine) {
-        if ( isHighPriority(this.currentSetup) ) {
-            // Runs for this item are target based
-            return getTarget(this.currentSetup) - this.currentSetup.getSurplus() <= Sim.SURPLUS_TOLERANCE;
-        } else {
-            // Runs for this item are time based
-            return this.clock.hasReachedEpoch( this.currentSetupStartTime.add(this.currentSetupRunTime) );
-        }
-    }
-
-    @Override
     protected void noteNewSetup() {
         super.noteNewSetup();
         this.currentSetupStartTime = this.clock.getTime();
         this.currentSetupRunStartSurplus = this.currentSetup.getSurplus();
-        // Calculate the (e-compensated) time to reach the target
-        double surplusChangeNeeded = getTarget(this.currentSetup) - this.currentSetup.getSurplus();
-        double runTime = surplusChangeNeeded / ( this.machine.getEfficiency() *
-                this.currentSetup.getProductionRate() - this.currentSetup.getDemandRate());
-        this.currentSetupRunTime = TimeInstant.at(runTime);
-        if ( log.isTraceEnabled() ) {
-            log.trace(String.format("Starting run of item %d; expected run time %.5f, surplus change needed %.5f",
-                this.currentSetup.getId(), runTime, surplusChangeNeeded));
-        }
-    }
-
-    @Override
-    protected boolean isInTheHedgingZone(Machine machine, Item item, double deltaZ) {
-        // To maintain consistency, we consider the current item to be in the hedging zone if it has finished production
-        // even though this might not be the case for items that are time-based
-        // TODO It might be better to move this check to the generalized policy
-        if ( item.equals(this.currentSetup) && currentSetupOnOrAboveTarget(machine) ) {
-            return true;
-        } else {
-            return getTarget(item) - item.getSurplus() <= deltaZ;
-        }
+        this.currentSetupRunTime = computeCurrentSetupRunTime(getTarget(this.currentSetup), this.machine);
     }
 
     @Override
     protected double currentSetupMinTimeToTarget(Machine machine) {
-        if ( isHighPriority(this.currentSetup) ) {
-            double currentTarget = getTarget(this.currentSetup);
+        if ( isSurplusControlled(this.currentSetup) ) {
+            double currentTarget = getTargetWithGivenSurplus(this.currentSetup, this.currentSetupRunStartSurplus);
             double timeToReachCurrentTarget = this.currentSetup.getFluidTimeToSurplusLevel(currentTarget);
-            // This is a target-based item, or have not calculated a run time yet
             return timeToReachCurrentTarget;
         } else {
             TimeInstant runtimeSoFar = this.clock.getTime().subtract(this.currentSetupStartTime);
@@ -112,19 +81,24 @@ public class RectifiedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
     }
 
     @Override
-    protected double getSurplusDeviation(Machine machine, Item item) {
-        return getTarget(item) - item.getSurplus();
+    protected boolean isTimeToChangeOver() {
+        if ( isSurplusControlled(this.currentSetup) ) {
+            // Surplus-based stop condition
+            return this.currentSetup.getSurplus() >= getTargetWithGivenSurplus(this.currentSetup, this.currentSetupRunStartSurplus)
+                    - Sim.SURPLUS_TOLERANCE;
+        } else {
+            // Run-time based stop condition
+            return this.clock.hasReachedEpoch( this.currentSetupStartTime.add(this.currentSetupRunTime) );
+        }
     }
 
+    @Override
     protected double getTarget(final Item item) {
-        double surplusForTargetCalculation;
-        if ( isHighPriority(item) && this.currentSetup.equals(item) && this.currentSetupRunStartSurplus != null ) {
-            // The target should be locked based on the surplus at the start of the run
-            surplusForTargetCalculation = this.currentSetupRunStartSurplus;
-        } else {
-            // The target is not locked, use the current surplus
-            surplusForTargetCalculation = item.getSurplus();
-        }
+        return getTargetWithGivenSurplus(item, item.getSurplus());
+    }
+
+    @VisibleForTesting
+    protected double getTargetWithGivenSurplus(final Item item, final double surplusForTargetCalculation) {
         double surplusDev = item.getSurplusTarget() - surplusForTargetCalculation;
         double zU = ( surplusDev + this.nominalTargetShift.get(item) ) * this.muFactors.get(item) + surplusForTargetCalculation;
         if (log.isTraceEnabled()) {
@@ -134,8 +108,21 @@ public class RectifiedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
     }
 
     @VisibleForTesting
-    protected boolean isHighPriority(final Item item) {
+    protected boolean isSurplusControlled(final Item item) {
         return this.muFactors.get(item) >= 1.0 - MU_FACTOR_TOLERANCE; 
+    }
+
+    public static TimeInstant computeCurrentSetupRunTime(final double currentSetupTarget, final Machine machine) {
+        // Calculate the (e-compensated) time to reach the target
+        Item currentSetup = machine.getSetup();
+        double surplusChangeNeeded = currentSetupTarget - currentSetup.getSurplus();
+        double runTime = surplusChangeNeeded / ( machine.getEfficiency() *
+                currentSetup.getProductionRate() - currentSetup.getDemandRate());
+        if ( log.isTraceEnabled() ) {
+            log.trace(String.format("Starting run of %s; expected run time %.5f, surplus change needed %.5f",
+                machine.getSetup(), runTime, surplusChangeNeeded));
+        }
+        return TimeInstant.at(runTime);
     }
 
     @Override
@@ -156,4 +143,40 @@ public class RectifiedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
         return Optional.of(table);
     }
 
+    @VisibleForTesting
+    protected static Map<Item, Double> computeMuFactors(final Machine machine) {
+        Map<Item, Double> factors = Maps.newHashMap();
+        double maxCmu = 0;
+        for ( Item item : machine ) {
+            // Find the largest cmu ratio
+            double cMu = item.getCCostRate() * item.getProductionRate();
+            if ( cMu > maxCmu ) {
+                maxCmu = cMu;
+            }
+        }
+        for ( Item item : machine ) {
+            // Compute the adjusted mu based on how far the item is from max cmu
+            double muBar = maxCmu / item.getCCostRate();
+            // The factor adjusts the length of runs based on mubar
+            double factor = ( machine.getEfficiency() * item.getProductionRate() - item.getDemandRate() ) / 
+                            ( machine.getEfficiency() * muBar - item.getDemandRate() );
+            log.debug(String.format("mu bar for %s is %.5f and its factor %.5f", item, muBar, factor));
+            factors.put(item, factor);
+        }
+        return factors;
+    }
+
+    @VisibleForTesting
+    protected static Map<Item, Double> computeNominalTargetShift(final Machine machine, final Map<Item, Double> muFactors,
+            final Map<Item, Double> hedgingZoneSize) {
+        Map<Item, Double> nominalTargetShift = Maps.newHashMap();
+        for ( Item item : machine ) {
+            // The goal is to shift the surplus target by some value such
+            // DZ / (mu - d) = ( ZU + shift - x(0) ) / ( corrected_mu - d )
+            nominalTargetShift.put(item, hedgingZoneSize.get(item) / muFactors.get(item) + item.getSurplus() - item.getSurplusTarget() );
+            log.debug(String.format("Nominal ZU shift for %s is %.4f", item, nominalTargetShift.get(item)));
+        }
+        return nominalTargetShift;
+    }
+    
 }

@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
+import discreteEvent.Changeover;
 import params.Params;
 import params.Params.ParamsBuilder;
 import params.PolicyParams;
@@ -178,6 +179,33 @@ public class HZPImplGeneralizedHedgingZonePolicyTest extends AbstractPolicyTest 
         // Test the surplus deviation computation
         assertEquals( 0, generalizedHZP.getSurplusDeviation(sim.getMachine(), sim.getMachine().getItemById(0)), 1e-5);
         assertEquals( 20, generalizedHZP.getSurplusDeviation(sim.getMachine(), sim.getMachine().getItemById(1)), 1e-5);
+    }
+
+    @Test
+    public void testCurrentSetupMinTimeToTarget() {
+        double tol = 1e-4;
+        PolicyParams policyParams = PolicyParams.builder()
+                .name(HZPImplGeneralizedHedgingZonePolicy.class.getSimpleName())
+                .build();
+        Params params = Params.builder()
+                .backlogCosts(c(10.0, 10.0, 0.25))
+                .inventoryHoldingCosts(c(10.0, 10.0, 2.5))
+                .productionRates(c(10, 10, 10))
+                .initialDemand(c(100, 100, 100))
+                .surplusTargets(c(0, 0, 0))
+                .setupTimes(c(10, 10, 10))
+                .policyParams(policyParams)
+                .meanTimeToFail(1)
+                .meanTimeToRepair(0.2)
+                .build();
+        Sim sim = getSim(params);
+        HZPImplGeneralizedHedgingZonePolicy hzp = (HZPImplGeneralizedHedgingZonePolicy) sim.getPolicy();
+        // Run for N changeovers and check that the target is reached every time
+        for ( int i = 0; i < 10; i++ ) {
+            advanceUntilBeforeEventOfType(sim, Changeover.class);
+            assertEquals(0.0, hzp.currentSetup.getSurplus(), tol);
+            advanceOneEvent(sim);
+        }
     }
 
 }

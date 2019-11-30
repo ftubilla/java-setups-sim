@@ -6,8 +6,6 @@ import static util.UtilMethods.c;
 
 import java.util.Optional;
 
-import javax.management.RuntimeErrorException;
-
 import org.junit.Before;
 import org.junit.Test;
 

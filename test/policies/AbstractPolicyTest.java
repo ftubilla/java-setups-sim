@@ -66,6 +66,7 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
         SimSetup.setUp(sim, new Recorders());
         policy.setUpPolicy(sim);
         policy.currentSetup = sim.getMachine().getSetup();
+        policy.noteNewSetup();
         assertFalse("The item is still below target", policy.isTimeToChangeOver());
 
         // Make sure that if it's not time to changeover, we return null
@@ -124,6 +125,20 @@ public abstract class AbstractPolicyTest extends SimBasicTest {
             } else {
                 // retrieve the event and handle
                 sim.getMasterScheduler().getNextEvent().handle(sim);
+            }
+        }
+    }
+
+    protected void advanceOneEvent(Sim sim) {
+        advanceNEvents(sim, 1);
+    }
+
+    protected void advanceNEvents(Sim sim, int n) {
+        for ( int i = 0; i < n; i++ ) {
+            if ( !sim.getMasterScheduler().eventsComplete() ) {
+                sim.getMasterScheduler().getNextEvent().handle(sim);
+            } else {
+                throw new RuntimeException("No more events in the sim!");
             }
         }
     }

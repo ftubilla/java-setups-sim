@@ -28,8 +28,8 @@ import system.Machine;
  * effect, the nominal target ZU is shifted upwards. This has the same effect as
  * the min run length from V5.
  * 
- * Note that this policy is based on what used to be called the LinearHedgingZonePolicy V6,
- * but it has been moved to a separate class to maintain consistency with the paper.
+ * In the paper, we refer to this policy (which used to be LHZP V6) as RHZPx.
+ * See also {@link RectifiedHedgingZonePolicy}.
  * 
  * @author ftubilla
  *

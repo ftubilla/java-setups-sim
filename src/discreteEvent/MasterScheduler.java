@@ -126,7 +126,7 @@ public class MasterScheduler {
             }
         }
         if (trace) {
-            logger.trace("Next event occuring is of type " + nextType + " and occurs at " + nextEventTime);
+            logger.trace("Next event occurring is of type " + nextType + " and occurs at " + nextEventTime);
         }
         return nextEvent;
     }

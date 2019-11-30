@@ -1,12 +1,15 @@
 package util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.mockito.MockitoAnnotations;
 
+import discreteEvent.ControlEvent;
+import discreteEvent.Event;
+import discreteEvent.Failure;
 import output.Recorders;
 import params.Params;
 import sim.Sim;
@@ -35,6 +38,12 @@ public class SimBasicTest {
     protected Sim getSim(Params params) {
         Sim sim = new Sim(params);
         SimSetup.setUp(sim, new Recorders());
+        // Add the first failure event
+        if ( params.getMachineEfficiency() < 1.0 ) {
+            Event firstFailure = new Failure(sim.getTime().add(sim.getTheFailuresGenerator().nextTimeInterval()));
+            sim.getMasterScheduler().addEvent(firstFailure);
+            sim.getMasterScheduler().addEvent(new ControlEvent(sim.getTime()));
+        }
         return sim;
     }
 
