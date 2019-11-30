@@ -18,6 +18,7 @@ import system.Item;
  * @author ftubilla
  *
  */
+@Deprecated
 @CommonsLog
 public class HedgingZonePolicyWithPRA extends HedgingZonePolicy {
 

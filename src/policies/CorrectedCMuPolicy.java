@@ -8,6 +8,7 @@ import util.AlgorithmLoader;
 import discreteEvent.ControlEvent;
 import discreteEvent.SurplusControlEvent;
 
+@Deprecated
 @CommonsLog
 public class CorrectedCMuPolicy extends AbstractPolicy {
 

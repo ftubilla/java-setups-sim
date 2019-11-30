@@ -21,9 +21,12 @@ import system.Machine;
  * A time-controlled version of the Dynamic Hedging Zone Policy. Note that, in the paper, we refer to this policy
  * as RHZPt.
  * 
+ * Deprecated; use {@link RectifiedHedgingZonePolicyTimeBased} instead.
+ * 
  * @author ftubilla
  *
  */
+@Deprecated
 @CommonsLog
 public class RectifiedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
 

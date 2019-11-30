@@ -32,6 +32,7 @@ import util.AlgorithmLoader;
  * @author ftubilla
  *
  */
+@Deprecated
 @CommonsLog
 public abstract class GeneralizedHedgingZonePolicy extends AbstractPolicy {
 

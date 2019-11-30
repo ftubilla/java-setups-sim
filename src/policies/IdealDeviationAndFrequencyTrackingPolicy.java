@@ -21,6 +21,7 @@ import discreteEvent.SurplusControlEvent;
  * @author ftubilla
  *
  */
+@Deprecated
 @CommonsLog
 public class IdealDeviationAndFrequencyTrackingPolicy extends AbstractPolicy {
 

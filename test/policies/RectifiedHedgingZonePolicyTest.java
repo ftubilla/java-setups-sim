@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static util.UtilMethods.c;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import params.Params;
@@ -14,6 +15,8 @@ import params.Params.ParamsBuilder;
 import sim.Sim;
 import system.Item;
 
+@Ignore
+@Deprecated
 public class RectifiedHedgingZonePolicyTest extends AbstractPolicyTest {
 
     @Before

@@ -31,9 +31,12 @@ import system.Machine;
  * In the paper, we refer to this policy (which used to be LHZP V6) as RHZPx.
  * See also {@link RectifiedHedgingZonePolicy}.
  * 
+ * Deprecated; use {@link RectifiedHedgingZonePolicySurplusBased} instead.
+ * 
  * @author ftubilla
  *
  */
+@Deprecated
 @CommonsLog
 public class DynamicHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
 

@@ -7,9 +7,12 @@ import system.Machine;
 /**
  * A simple implementation of the (non-cruising) HZP using the structure from {@link GeneralizedHedgingZonePolicy}.
  * 
+ * Deprecated. Use {@link GeneralizedHedgingZonePolicyV2} instead.
+ * 
  * @author ftubilla
  *
  */
+@Deprecated
 public class HZPImplGeneralizedHedgingZonePolicy extends GeneralizedHedgingZonePolicy {
 
     @Override

@@ -7,6 +7,7 @@ import static util.UtilMethods.c;
 
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
@@ -16,6 +17,8 @@ import sim.Sim;
 import system.Item;
 import system.Machine;
 
+@Ignore
+@Deprecated
 public class LinearHedgingZonePolicyTest extends AbstractPolicyTest {
 
     private LinearHedgingZonePolicy linearHZP;

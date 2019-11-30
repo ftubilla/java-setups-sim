@@ -19,6 +19,7 @@ import system.MachineSnapshot;
  * @author ftubilla
  *
  */
+@Deprecated
 @CommonsLog
 public class LinearHedgingZonePolicyV2 extends GeneralizedHedgingZonePolicy {
 

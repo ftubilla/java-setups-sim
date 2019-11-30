@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import discreteEvent.Changeover;
@@ -26,6 +27,8 @@ import sim.TimeInstant;
 import system.Item;
 import system.Machine;
 
+@Ignore
+@Deprecated
 public class DynamicHedgingZonePolicyTest extends AbstractPolicyTest {
 
     @Before

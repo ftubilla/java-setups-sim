@@ -21,6 +21,8 @@ import params.PolicyParams.PolicyParamsBuilder;
 import policies.tuning.UserDefinedLowerHedgingPointsComputationMethod;
 import sim.Sim;
 
+@Ignore
+@Deprecated
 public class HZPImplGeneralizedHedgingZonePolicyTest extends AbstractPolicyTest {
 
     @Before

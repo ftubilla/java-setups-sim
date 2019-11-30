@@ -34,6 +34,7 @@ import system.Machine;
  * @author ftubilla
  *
  */
+@Deprecated
 @CommonsLog
 public class LinearHedgingZonePolicyV3 extends GeneralizedHedgingZonePolicy {
 
