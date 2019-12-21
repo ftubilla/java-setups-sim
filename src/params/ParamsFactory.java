@@ -42,7 +42,7 @@ public class ParamsFactory {
             log.info(String.format("Reading json %s", jsonDir));
             Params params = readFile(jsonDir);
             // Force it to record high-frequency metrics
-            params.recordHighFreq = true;
+            //params.recordHighFreq = true;
             this.paramsList.add(params);
         }
 
