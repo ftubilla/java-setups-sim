@@ -22,6 +22,7 @@ public class Recorders {
         recorders.add(new PolicySpecificRecorder());
         recorders.add(new BatchedAverageSurplusMetricsRecorder());
         recorders.add(new ServiceLevelControllerRecorder());
+        recorders.add(new EventCountMetricsRecorder());
     }
 
     public Recorders(Collection<Recorder> recordersCollection) {
