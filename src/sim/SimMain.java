@@ -73,11 +73,12 @@ public class SimMain {
 
         final Recorders recorders = new Recorders();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-        final ProgressBar bar = new ProgressBar(10, expParams.size());
+        final ProgressBar progressBar = new ProgressBar(10, expParams.size());
 
         long startTime = System.currentTimeMillis();
         System.out.println("****EXPERIMENT START****");
-        bar.display();
+        progressBar.init();
+        progressBar.display();
 
         // Create the sim tasks
         for (final Params params : expParams) {
@@ -89,8 +90,8 @@ public class SimMain {
                         log.info(String.format("Created %s with %s", sim, params));
                         SimSetup.setUp(sim, recorders);
                         sim.run(false);
-                        bar.addOneUnitOfProgress();
-                        bar.display();
+                        progressBar.addOneUnitOfProgress();
+                        progressBar.display();
                     } catch ( Exception e ) {
                         e.printStackTrace();
                         log.error(String.format("Could not run sim %s", params.getFile()), e);
